@@ -6,14 +6,12 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 const DESCRIPTIONS = {
   cCorp: "Olaporations C-Corp holding company that takes management fee from NT at 21% C-Corp tax rate to invest in diversified securities",
   seattle: "10737 3rd Ave NW, Seattle WA 98177 — appreciating ~6%/year with 2-3% rent increases annually once rented (starting age 34)",
-  land: "Rural land acquisitions to grow, build community infrastructure, and commune sovereignly — appreciating ~4%/year",
+  land: "Rural land acquisitions — appreciating ~4%/year",
   jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
-  ventures: "Entrepreneurship fund for side projects and community businesses — conservative 1% annual return assumption",
+  ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
   k401: "Tax-advantaged retirement account with $12k annual contributions at 8% average returns",
-  ira: "Individual Retirement Account coasting at market returns — no additional contributions",
-  newHome: "Downsized primary residence purchased at age 34 — lower cost, appreciating ~5%/year",
-  margin: "Margin loan against C-Corp investments at 4.5% interest rate, using 30-35% of portfolio value. Spread between investment returns and interest creates additional income.",
-  freeCash: "Annual surplus after all expenses, contributions, and debt service. Sources: Ayoola's income + Jamie's income + Rental net + Margin arbitrage − Living expenses − Homestead staff − Investment contributions"
+  freeCash: "Annual surplus after all expenses, contributions, and debt service",
+  netWorth: "Total assets minus liabilities"
 };
 
 export default function FinancialDashboard() {
@@ -243,9 +241,9 @@ export default function FinancialDashboard() {
             <div className="text-pink-400">+ Jamie's Income: {formatCurrency(src.jamieIncome)}</div>
             <div className="text-blue-400">+ Rental Net: {formatCurrency(src.rentalNet)}</div>
             <div className="text-cyan-400">+ Margin Arbitrage: {formatCurrency(src.marginNet)}</div>
-            <div className="text-amber-400">+ Homestead Income: {formatCurrency(src.homesteadIncome)}</div>
+            <div className="text-amber-400">+ Business Income: {formatCurrency(src.homesteadIncome)}</div>
             <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
-            <div className="text-red-400">− Homestead Staff: {formatCurrency(Math.abs(src.homesteadHelp))}</div>
+            <div className="text-red-400">− Staff Expenses: {formatCurrency(Math.abs(src.homesteadHelp))}</div>
             <div className="text-red-400">− Contributions: {formatCurrency(Math.abs(src.contributions))}</div>
           </div>
         </div>
@@ -269,7 +267,7 @@ export default function FinancialDashboard() {
     { age: 36, label: 'Jamie $300K', icon: '💰' },
     { age: 40, label: '100 Acres', icon: '🌾' },
     { age: 45, label: 'Coast', icon: '⛵' },
-    { age: 60, label: 'Legacy', icon: '👑' },
+    { age: 60, label: 'Retire', icon: '👑' },
   ];
 
   const chartButtons = [
@@ -413,6 +411,32 @@ export default function FinancialDashboard() {
     );
   };
 
+  // Table Header with tooltip
+  const TableHeader = ({ id, label, color = 'text-gray-400', align = 'right' }) => {
+    const isActive = activeTooltip === id;
+    return (
+      <th className={`p-2 text-${align} ${color} relative`}>
+        <button 
+          onClick={() => toggleTooltip(id)}
+          className="hover:underline cursor-help"
+        >
+          {label}
+        </button>
+        {isActive && DESCRIPTIONS[id] && (
+          <div className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-1 w-64 p-3 bg-gray-800 border border-gray-600 rounded-lg text-xs text-gray-200 shadow-xl text-left font-normal">
+            {DESCRIPTIONS[id]}
+            <button 
+              onClick={(e) => { e.stopPropagation(); setActiveTooltip(null); }}
+              className="absolute top-1 right-2 text-gray-500 hover:text-white"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </th>
+    );
+  };
+
   // Stat Card with hover breakdown
   const StatCard = ({ id, label, value, breakdown, monthly, borderColor = 'gray-800' }) => {
     const isActive = activeCard === id;
@@ -476,7 +500,7 @@ export default function FinancialDashboard() {
     return [
       { label: '4% Safe Withdrawal', value: d.safeWithdrawal, color: 'text-emerald-400' },
       { label: 'Rental Net', value: d.rentalNet, color: 'text-blue-400' },
-      { label: 'Homestead Income', value: d.homesteadIncome, color: 'text-amber-400' },
+      { label: 'Business Income', value: d.homesteadIncome, color: 'text-amber-400' },
     ].filter(item => item.value !== 0);
   };
 
@@ -488,9 +512,9 @@ export default function FinancialDashboard() {
       { label: "Jamie's Income", value: src.jamieIncome, color: 'text-pink-400' },
       { label: 'Rental Net', value: src.rentalNet, color: 'text-blue-400' },
       { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
-      { label: 'Homestead Income', value: src.homesteadIncome, color: 'text-amber-400' },
+      { label: 'Business Income', value: src.homesteadIncome, color: 'text-amber-400' },
       { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
-      { label: 'Homestead Staff', value: src.homesteadHelp, color: 'text-red-400' },
+      { label: 'Staff Expenses', value: src.homesteadHelp, color: 'text-red-400' },
       { label: 'Contributions', value: src.contributions, color: 'text-red-400' },
     ].filter(item => item.value !== 0);
   };
@@ -507,7 +531,7 @@ export default function FinancialDashboard() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
           Ayoola & Jamie's Wealth Map
         </h1>
-        <p className="text-gray-400 text-sm mt-1">Ages 31 → 85 • Homestead • Legacy</p>
+        <p className="text-gray-400 text-sm mt-1">Ages 31 → 85</p>
       </div>
 
       {/* Age Selector */}
@@ -609,35 +633,20 @@ export default function FinancialDashboard() {
         {renderChart()}
       </div>
 
-      {/* Legend with clickable info badges */}
-      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4">
-        <div className="text-xs text-gray-500 mb-2">Tap any item for details:</div>
-        <div className="flex flex-wrap gap-2">
-          <InfoBadge id="cCorp" label="C-Corp" color="blue" />
-          <InfoBadge id="k401" label="401k/IRA" color="purple" />
-          <InfoBadge id="seattle" label="Seattle" color="emerald" />
-          <InfoBadge id="land" label="Land" color="amber" />
-          <InfoBadge id="jamie" label="Jamie's" color="pink" />
-          <InfoBadge id="ventures" label="Ventures" color="cyan" />
-          <InfoBadge id="margin" label="Margin" color="gray" />
-          <InfoBadge id="freeCash" label="Free Cash" color="gray" />
-        </div>
-      </div>
-
       {/* Data Table */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
-              <th className="p-2 text-right text-blue-400">C-Corp</th>
-              <th className="p-2 text-right text-purple-400">401k</th>
-              <th className="p-2 text-right text-emerald-400">Seattle</th>
-              <th className="p-2 text-right text-amber-400">Land</th>
-              <th className="p-2 text-right text-pink-400">Jamie's</th>
-              <th className="p-2 text-right text-cyan-400">Ventures</th>
-              <th className="p-2 text-right">Free $</th>
-              <th className="p-2 text-right font-bold">Net Worth</th>
+              <TableHeader id="cCorp" label="C-Corp" color="text-blue-400" />
+              <TableHeader id="k401" label="401k" color="text-purple-400" />
+              <TableHeader id="seattle" label="Seattle" color="text-emerald-400" />
+              <TableHeader id="land" label="Land" color="text-amber-400" />
+              <TableHeader id="jamie" label="Jamie's" color="text-pink-400" />
+              <TableHeader id="ventures" label="Ventures" color="text-cyan-400" />
+              <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
+              <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>
           </thead>
           <tbody>
@@ -716,10 +725,6 @@ export default function FinancialDashboard() {
         </div>
       )}
 
-      {/* Footer */}
-      <div className="text-center mt-6 text-gray-600 text-xs">
-        Built for generational wealth • Homestead Hub • Community Impact
-      </div>
     </div>
   );
 }

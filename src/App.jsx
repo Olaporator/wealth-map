@@ -276,6 +276,7 @@ export default function FinancialDashboard() {
     { id: 'netWorth', label: 'Net Worth' },
     { id: 'assets', label: 'Assets' },
     { id: 'freeCash', label: 'Free Cash' },
+    { id: 'pieChart', label: 'Pie Chart' },
   ];
 
   const renderChart = () => {
@@ -333,6 +334,44 @@ export default function FinancialDashboard() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+        );
+      case 'pieChart':
+        return (
+          <div>
+            <h2 className="text-sm text-emerald-400 mb-2 text-center font-semibold">Age {targetAge1} Allocation</h2>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={getPieData(targetData1)}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {getPieData(targetData1).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const item = payload[0].payload;
+                    return (
+                      <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs max-w-xs">
+                        <div className="font-bold text-white mb-1">{item.name}: {formatCurrency(item.value)}</div>
+                        <div className="text-gray-400">{item.desc}</div>
+                        <div className="text-emerald-400 mt-1">Monthly: {formatMonthly(item.value * 0.04)}</div>
+                      </div>
+                    );
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="text-center text-emerald-400 font-bold text-xl">{formatCurrency(targetData1?.netWorth || 0)}</div>
+          </div>
         );
       default:
         return null;
@@ -526,15 +565,18 @@ export default function FinancialDashboard() {
         />
       </div>
 
-      {/* Legacy Stats */}
+      {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
         <StatCard 
-          id="legacy"
-          label={`Legacy Split (÷5) @ ${targetAge1}`}
-          value={formatCurrency((targetData1?.netWorth || 0) / 5)}
-          breakdown={getNetWorthBreakdown(targetData1).map(item => ({ ...item, value: Math.round(item.value / 5) }))}
-          monthly={formatMonthly((targetData1?.netWorth || 0) / 5 * 0.04)}
-          borderColor="purple-800"
+          id="rental"
+          label={`Rental Equity @ ${targetAge1}`}
+          value={formatCurrency(targetData1?.seattleEquity || 0)}
+          breakdown={[
+            { label: 'Seattle Home Equity', value: targetData1?.seattleEquity || 0, color: 'text-emerald-400' },
+            { label: 'Rental Net/yr', value: targetData1?.rentalNet || 0, color: 'text-blue-400' },
+          ]}
+          monthly={formatMonthly(targetData1?.rentalNet || 0)}
+          borderColor="emerald-800"
         />
         <StatCard 
           id="year"
@@ -579,43 +621,6 @@ export default function FinancialDashboard() {
           ))}
         </div>
         {renderChart()}
-      </div>
-
-      {/* Pie Chart */}
-      <div className="bg-gray-900 rounded-xl p-4 border border-emerald-800 mb-6">
-        <h2 className="text-sm text-emerald-400 mb-2 text-center font-semibold">Age {targetAge1} Allocation</h2>
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={getPieData(targetData1)}
-              cx="50%"
-              cy="50%"
-              innerRadius={60}
-              outerRadius={100}
-              dataKey="value"
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              labelLine={false}
-            >
-              {getPieData(targetData1).map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip 
-              content={({ active, payload }) => {
-                if (!active || !payload || !payload.length) return null;
-                const item = payload[0].payload;
-                return (
-                  <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs max-w-xs">
-                    <div className="font-bold text-white mb-1">{item.name}: {formatCurrency(item.value)}</div>
-                    <div className="text-gray-400">{item.desc}</div>
-                    <div className="text-emerald-400 mt-1">Monthly: {formatMonthly(item.value * 0.04)}</div>
-                  </div>
-                );
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        <div className="text-center text-emerald-400 font-bold text-xl">{formatCurrency(targetData1?.netWorth || 0)}</div>
       </div>
 
       {/* Assumptions Panel */}
@@ -684,6 +689,7 @@ export default function FinancialDashboard() {
               <th className="p-2 text-right text-emerald-400">Seattle</th>
               <th className="p-2 text-right text-amber-400">Land</th>
               <th className="p-2 text-right text-pink-400">Jamie's</th>
+              <th className="p-2 text-right text-cyan-400">Ventures</th>
               <th className="p-2 text-right">Free $</th>
               <th className="p-2 text-right font-bold">Net Worth</th>
             </tr>
@@ -701,6 +707,7 @@ export default function FinancialDashboard() {
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
                 <td className="p-2 text-right text-pink-400">{formatCurrency(row.jamieInvestments)}</td>
+                <td className="p-2 text-right text-cyan-400">{formatCurrency(row.entrepreneur)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
               </tr>

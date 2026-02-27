@@ -589,20 +589,6 @@ export default function FinancialDashboard() {
         />
       </div>
 
-      {/* Timeline */}
-      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6 overflow-x-auto">
-        <div className="flex justify-between min-w-[500px]">
-          {milestones.map((m, i) => (
-            <div key={i} className={`flex flex-col items-center ${m.age === targetAge1 ? 'scale-110' : ''}`}>
-              <span className="text-2xl">{m.icon}</span>
-              <span className={`text-xs mt-1 ${m.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-400'}`}>{m.age}</span>
-              <span className="text-xs text-gray-500">{m.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded mt-3" />
-      </div>
-
       {/* Combined Chart Widget */}
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6">
         <div className="flex gap-2 mb-4">
@@ -622,46 +608,6 @@ export default function FinancialDashboard() {
         </div>
         {renderChart()}
       </div>
-
-      {/* Assumptions Panel */}
-      <button 
-        onClick={() => setShowInputs(!showInputs)}
-        className="w-full bg-gray-800 rounded-xl p-3 border border-gray-700 mb-4 text-sm text-gray-400 hover:bg-gray-700 transition"
-      >
-        {showInputs ? '▼ Hide' : '▶ Adjust'} Assumptions
-      </button>
-
-      {showInputs && (
-        <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { key: 'cCorpStart', label: 'C-Corp Start', prefix: '$' },
-              { key: 'cCorpReturn', label: 'C-Corp Return', suffix: '%' },
-              { key: 'jamieReturn', label: "Jamie's Return", suffix: '%' },
-              { key: 'homeAppreciation', label: 'Seattle Apprec.', suffix: '%' },
-              { key: 'landAppreciation', label: 'Land Apprec.', suffix: '%' },
-              { key: 'marginRate', label: 'Margin Rate', suffix: '%' },
-              { key: 'marginRatio', label: 'Margin Used', suffix: '%' },
-              { key: 'landPricePerAcre', label: '$/Acre', prefix: '$' },
-            ].map(({ key, label, prefix, suffix }) => (
-              <div key={key}>
-                <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                <div className="flex items-center bg-gray-800 rounded px-2">
-                  {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                  <input
-                    type="number"
-                    step={key.includes('Ratio') || key.includes('Rate') ? '0.5' : '1'}
-                    value={assumptions[key]}
-                    onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                    className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                  />
-                  {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Legend with clickable info badges */}
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4">
@@ -715,6 +661,60 @@ export default function FinancialDashboard() {
           </tbody>
         </table>
       </div>
+
+      {/* Timeline */}
+      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6 mt-6 overflow-x-auto">
+        <div className="flex justify-between min-w-[500px]">
+          {milestones.map((m, i) => (
+            <div key={i} className={`flex flex-col items-center ${m.age === targetAge1 ? 'scale-110' : ''}`}>
+              <span className="text-2xl">{m.icon}</span>
+              <span className={`text-xs mt-1 ${m.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-400'}`}>{m.age}</span>
+              <span className="text-xs text-gray-500">{m.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded mt-3" />
+      </div>
+
+      {/* Assumptions Panel */}
+      <button 
+        onClick={() => setShowInputs(!showInputs)}
+        className="w-full bg-gray-800 rounded-xl p-3 border border-gray-700 mb-4 text-sm text-gray-400 hover:bg-gray-700 transition"
+      >
+        {showInputs ? '▼ Hide' : '▶ Adjust'} Assumptions
+      </button>
+
+      {showInputs && (
+        <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { key: 'cCorpStart', label: 'C-Corp Start', prefix: '$' },
+              { key: 'cCorpReturn', label: 'C-Corp Return', suffix: '%' },
+              { key: 'jamieReturn', label: "Jamie's Return", suffix: '%' },
+              { key: 'homeAppreciation', label: 'Seattle Apprec.', suffix: '%' },
+              { key: 'landAppreciation', label: 'Land Apprec.', suffix: '%' },
+              { key: 'marginRate', label: 'Margin Rate', suffix: '%' },
+              { key: 'marginRatio', label: 'Margin Used', suffix: '%' },
+              { key: 'landPricePerAcre', label: '$/Acre', prefix: '$' },
+            ].map(({ key, label, prefix, suffix }) => (
+              <div key={key}>
+                <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                <div className="flex items-center bg-gray-800 rounded px-2">
+                  {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
+                  <input
+                    type="number"
+                    step={key.includes('Ratio') || key.includes('Rate') ? '0.5' : '1'}
+                    value={assumptions[key]}
+                    onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
+                    className="bg-transparent w-full py-2 text-white text-sm outline-none"
+                  />
+                  {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="text-center mt-6 text-gray-600 text-xs">

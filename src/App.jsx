@@ -521,7 +521,6 @@ export default function FinancialDashboard() {
           value={`${targetData1?.acres || 0} acres`}
           breakdown={[
             { label: 'Land Equity', value: targetData1?.landEquity || 0, color: 'text-amber-400' },
-            { label: 'Per Acre Value', value: Math.round((targetData1?.landEquity || 0) / (targetData1?.acres || 1)), color: 'text-gray-400' },
           ]}
           borderColor="amber-800"
         />

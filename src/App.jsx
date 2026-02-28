@@ -1065,6 +1065,191 @@ export default function FinancialDashboard() {
         </div>
       )}
 
+      {/* Major Moves Timeline */}
+      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mt-6">
+        <h3 className="text-sm font-semibold text-emerald-400 mb-4">📋 Major Moves</h3>
+        <div className="space-y-3">
+          {[
+            { 
+              age: 31, 
+              year: 2026, 
+              icon: '🌾', 
+              title: '20 Acre Land Purchase', 
+              desc: 'Initial rural land acquisition',
+              cost: assumptions.landPricePerAcre * 20,
+              status: targetAge1 >= 31 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            { 
+              age: 32, 
+              year: 2027, 
+              icon: '🚜', 
+              title: 'Equipment & Infrastructure', 
+              desc: 'Tractor, basic implements, fencing',
+              cost: 65000,
+              status: targetAge1 >= 32 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            { 
+              age: 34, 
+              year: 2029, 
+              icon: '🏝️', 
+              title: '15 Acres Offshore (Family)', 
+              desc: 'Land abroad to share with extended family',
+              cost: 45000,
+              status: targetAge1 >= 34 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            { 
+              age: 34, 
+              year: 2029, 
+              icon: '🏠', 
+              title: 'Seattle Home → Rental', 
+              desc: 'Convert primary to rental property, begin $6k/mo income',
+              cost: 0,
+              income: 72000,
+              status: targetAge1 >= 34 ? 'complete' : 'upcoming',
+              category: 'rental'
+            },
+            { 
+              age: 35, 
+              year: 2030, 
+              icon: '🏡', 
+              title: 'New Primary Home (0 Down)', 
+              desc: 'Gap year start — closing costs only (~$15k)',
+              cost: 15000,
+              status: targetAge1 >= 35 ? 'complete' : 'upcoming',
+              category: 'home'
+            },
+            { 
+              age: 35, 
+              year: 2030, 
+              icon: '👩‍⚕️', 
+              title: "Jamie's Gap Year", 
+              desc: 'Transition year before attending surgeon role',
+              cost: 0,
+              status: targetAge1 >= 35 ? 'complete' : 'upcoming',
+              category: 'income'
+            },
+            { 
+              age: 36, 
+              year: 2031, 
+              icon: '💰', 
+              title: "Jamie's Attending Income Starts", 
+              desc: '$300k/yr surgical income begins',
+              cost: 0,
+              income: 300000,
+              status: targetAge1 >= 36 ? 'complete' : 'upcoming',
+              category: 'income'
+            },
+            { 
+              age: 38, 
+              year: 2033, 
+              icon: '🏗️', 
+              title: 'Business Infrastructure', 
+              desc: 'Processing facility, commercial kitchen, event space',
+              cost: 200000,
+              status: targetAge1 >= 38 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            { 
+              age: 40, 
+              year: 2035, 
+              icon: '🌲', 
+              title: '100 Acre Expansion', 
+              desc: 'Major land acquisition for full operations',
+              cost: assumptions.landPricePerAcre * 100,
+              status: targetAge1 >= 40 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            { 
+              age: 45, 
+              year: 2040, 
+              icon: '🎯', 
+              title: 'Full Operations Mode', 
+              desc: 'All business units running, staff in place',
+              cost: 0,
+              income: 150000,
+              status: targetAge1 >= 45 ? 'complete' : 'upcoming',
+              category: 'milestone'
+            },
+            { 
+              age: 60, 
+              year: 2055, 
+              icon: '👑', 
+              title: 'Retirement Target', 
+              desc: 'Coast on investments + passive income',
+              cost: 0,
+              status: targetAge1 >= 60 ? 'complete' : 'upcoming',
+              category: 'milestone'
+            },
+          ].map((move, i) => (
+            <div 
+              key={i}
+              className={`flex items-start gap-3 p-3 rounded-lg border transition ${
+                move.age === targetAge1 
+                  ? 'bg-emerald-900/30 border-emerald-700' 
+                  : move.status === 'complete' 
+                    ? 'bg-gray-800/50 border-gray-700' 
+                    : 'bg-gray-800/20 border-gray-800'
+              }`}
+            >
+              <div className="text-2xl">{move.icon}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`font-medium ${move.age === targetAge1 ? 'text-emerald-400' : 'text-white'}`}>
+                    {move.title}
+                  </span>
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    move.category === 'land' ? 'bg-amber-900/50 text-amber-400' :
+                    move.category === 'rental' ? 'bg-emerald-900/50 text-emerald-400' :
+                    move.category === 'home' ? 'bg-blue-900/50 text-blue-400' :
+                    move.category === 'income' ? 'bg-pink-900/50 text-pink-400' :
+                    'bg-purple-900/50 text-purple-400'
+                  }`}>
+                    {move.category}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5">{move.desc}</div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className={`text-xs ${move.status === 'complete' ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Age {move.age} • {move.year}
+                </div>
+                {move.cost > 0 && (
+                  <div className="text-sm text-red-400">-{formatCurrency(move.cost)}</div>
+                )}
+                {move.income > 0 && (
+                  <div className="text-sm text-emerald-400">+{formatCurrency(move.income)}/yr</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Summary */}
+        <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+          <div>
+            <div className="text-xs text-gray-500">Total Land Cost</div>
+            <div className="text-amber-400 font-semibold">
+              {formatCurrency(assumptions.landPricePerAcre * 135 + 65000 + 45000 + 200000)}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Target Acres</div>
+            <div className="text-amber-400 font-semibold">135+</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">New Income Streams</div>
+            <div className="text-emerald-400 font-semibold">+{formatCurrency(522000)}/yr</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500">Years to Retirement</div>
+            <div className="text-purple-400 font-semibold">{Math.max(0, 60 - targetAge1)}</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

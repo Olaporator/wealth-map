@@ -18,7 +18,7 @@ export default function FinancialDashboard() {
   const [targetAge1, setTargetAge1] = useState(40);
   const [activeChart, setActiveChart] = useState('netWorth');
   const [showInputs, setShowInputs] = useState(false);
-  const [settingsTab, setSettingsTab] = useState('balances');
+  const [settingsTab, setSettingsTab] = useState('overview');
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
 
@@ -39,35 +39,56 @@ export default function FinancialDashboard() {
     newHomeAppreciation: 5,
     landAppreciation: 4,
     
-    // Land
+    // Land Acquisitions
     initialAcres: 20,
     landPricePerAcre: 6000,
+    offshoreAcres: 15,
+    offshorePricePerAcre: 3000,
     landPurchase1Age: 34,
     landPurchase1Acres: 15,
     landPurchase2Age: 40,
     landPurchase2Acres: 100,
+    equipmentCost: 65000,
+    infrastructureCost: 200000,
+    infrastructureAge: 38,
+    
+    // Homes
+    seattleCurrentValue: 1100000,
+    seattleMortgageBalance: 970000,
+    seattleMortgageRate: 3.25,
+    newHomePurchasePrice: 600000,
+    newHomeDownPayment: 0,
+    newHomeClosingCosts: 15000,
+    newHomeMortgageRate: 6.5,
     
     // Milestone Ages
     moveOutAge: 34,
+    gapYearAge: 35,
     jamieStartAge: 36,
     jamieEndAge: 45,
     marginStartAge: 36,
     mortgagePaidAge: 64,
+    retirementAge: 60,
     
-    // Margin
+    // Margin Trading
     marginRate: 4.5,
     marginRatio: 32.5,
     
     // Rental Property
     grossRentYear1: 72000,
     mortgagePayment: 67200,
+    propertyTaxes: 12000,
+    insurance: 2400,
     maintenanceRate: 10,
+    vacancyRate: 5,
+    propertyManagement: 0,
     rentGrowth: 2.5,
     seattlePrincipal: 18000,
     newHomePrincipal: 15000,
     
     // Annual Contributions
     k401Contrib: 12000,
+    iraContrib: 0,
     jamieContrib: 70000,
     entrepreneurContrib: 50000,
     
@@ -75,6 +96,7 @@ export default function FinancialDashboard() {
     livingExpenses: 60000,
     staffExpensesBase: 50000,
     staffExpensesMax: 100000,
+    healthInsurance: 12000,
     
     // Income Phases
     phase1AyoolaIncome: 200000,
@@ -776,7 +798,7 @@ export default function FinancialDashboard() {
         onClick={() => setShowInputs(!showInputs)}
         className="w-full bg-gray-800 rounded-xl p-3 border border-gray-700 mb-4 text-sm text-gray-400 hover:bg-gray-700 transition"
       >
-        {showInputs ? '▼ Hide' : '▶ Adjust'} Settings
+        {showInputs ? '▼ Hide' : '⚙️ Setup &'} Settings
       </button>
 
       {showInputs && (
@@ -784,13 +806,15 @@ export default function FinancialDashboard() {
           {/* Settings Tabs */}
           <div className="flex flex-wrap border-b border-gray-800">
             {[
-              { id: 'balances', label: 'Starting Balances' },
-              { id: 'returns', label: 'Returns' },
-              { id: 'milestones', label: 'Milestones' },
-              { id: 'income', label: 'Income Phases' },
-              { id: 'rental', label: 'Rental' },
-              { id: 'land', label: 'Land' },
-              { id: 'expenses', label: 'Expenses' },
+              { id: 'overview', label: '📊 Overview' },
+              { id: 'balances', label: '💰 Balances' },
+              { id: 'income', label: '💵 Income' },
+              { id: 'homes', label: '🏠 Homes' },
+              { id: 'rental', label: '🏘️ Rental' },
+              { id: 'land', label: '🌾 Land' },
+              { id: 'investments', label: '📈 Investments' },
+              { id: 'expenses', label: '💸 Expenses' },
+              { id: 'milestones', label: '🎯 Timeline' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -808,257 +832,840 @@ export default function FinancialDashboard() {
 
           {/* Settings Content */}
           <div className="p-4">
+            
+            {/* Overview */}
+            {settingsTab === 'overview' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Starting Net Worth</div>
+                    <div className="text-lg font-bold text-emerald-400">
+                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre))}
+                    </div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Total Land Investment</div>
+                    <div className="text-lg font-bold text-amber-400">
+                      {formatCurrency(
+                        (assumptions.initialAcres * assumptions.landPricePerAcre) +
+                        (assumptions.offshoreAcres * assumptions.offshorePricePerAcre) +
+                        (assumptions.landPurchase2Acres * assumptions.landPricePerAcre) +
+                        assumptions.equipmentCost + assumptions.infrastructureCost
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Target Retirement Age</div>
+                    <div className="text-lg font-bold text-purple-400">{assumptions.retirementAge}</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Total Planned Acres</div>
+                    <div className="text-lg font-bold text-amber-400">{assumptions.initialAcres + assumptions.offshoreAcres + assumptions.landPurchase2Acres}</div>
+                  </div>
+                </div>
+                
+                {/* Income Phase Summary */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-3">Income Phase Summary</div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+                    <div className="text-center p-2 rounded bg-blue-900/30 border border-blue-800">
+                      <div className="text-blue-400 font-semibold">Phase 1</div>
+                      <div className="text-gray-400">Ages 31-32</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1AyoolaIncome + assumptions.phase1JamieIncome)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-purple-900/30 border border-purple-800">
+                      <div className="text-purple-400 font-semibold">Phase 2</div>
+                      <div className="text-gray-400">Ages 33-34</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2AyoolaIncome + assumptions.phase2JamieIncome)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-red-900/30 border border-red-800">
+                      <div className="text-red-400 font-semibold">Gap Year</div>
+                      <div className="text-gray-400">Age 35</div>
+                      <div className="text-yellow-400 font-medium">{formatCurrency(assumptions.phase3AyoolaIncome)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-pink-900/30 border border-pink-800">
+                      <div className="text-pink-400 font-semibold">Phase 4</div>
+                      <div className="text-gray-400">Ages 36-45</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
+                      <div className="text-emerald-400 font-semibold">Coast</div>
+                      <div className="text-gray-400">Ages 46+</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase5AyoolaIncome + assumptions.phase5BusinessIncome)}/yr</div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Quick Stats */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-gray-800 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Seattle Home Value</div>
+                    <div className="text-emerald-400 font-semibold">{formatCurrency(assumptions.seattleCurrentValue)}</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Est. Rental Income</div>
+                    <div className="text-blue-400 font-semibold">{formatCurrency(assumptions.grossRentYear1)}/yr</div>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg p-3 text-center">
+                    <div className="text-xs text-gray-500">Jamie Peak Income</div>
+                    <div className="text-pink-400 font-semibold">{formatCurrency(assumptions.phase4JamieIncome)}/yr</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Starting Balances */}
             {settingsTab === 'balances' && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { key: 'currentAge', label: 'Current Age', suffix: '' },
-                  { key: 'cCorpStart', label: 'C-Corp', prefix: '$' },
-                  { key: 'k401Start', label: '401k', prefix: '$' },
-                  { key: 'iraStart', label: 'IRA', prefix: '$' },
-                  { key: 'seattleEquityStart', label: 'Seattle Equity', prefix: '$' },
-                  { key: 'initialAcres', label: 'Initial Acres', suffix: ' ac' },
-                ].map(({ key, label, prefix, suffix }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                      <input
-                        type="number"
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                      />
-                      {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+              <div className="space-y-4">
+                <div className="text-xs text-emerald-400 font-semibold mb-2">Current Account Balances</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    { key: 'currentAge', label: 'Current Age', suffix: ' yrs', step: 1 },
+                    { key: 'cCorpStart', label: 'C-Corp Balance', prefix: '$', step: 1000 },
+                    { key: 'k401Start', label: '401k Balance', prefix: '$', step: 1000 },
+                    { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
+                    { key: 'seattleEquityStart', label: 'Seattle Home Equity', prefix: '$', step: 1000 },
+                    { key: 'initialAcres', label: 'Current Land Owned', suffix: ' acres', step: 1 },
+                  ].map(({ key, label, prefix, suffix, step }) => (
+                    <div key={key}>
+                      <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
+                        <input
+                          type="number"
+                          step={step}
+                          value={assumptions[key]}
+                          onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
+                          className="bg-transparent w-full py-2 text-white text-sm outline-none"
+                        />
+                        {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+                      </div>
                     </div>
+                  ))}
+                </div>
+                
+                {/* Calculated Summary */}
+                <div className="bg-gray-800 rounded-lg p-3 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-500">Starting Net Worth (Calculated)</span>
+                    <span className="text-emerald-400 font-bold">
+                      {formatCurrency(
+                        assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + 
+                        assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre)
+                      )}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* Returns */}
-            {settingsTab === 'returns' && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { key: 'cCorpReturn', label: 'C-Corp Return' },
-                  { key: 'k401Return', label: '401k Return' },
-                  { key: 'jamieReturn', label: "Jamie's Return" },
-                  { key: 'entrepreneurReturn', label: 'Ventures Return' },
-                  { key: 'homeAppreciation', label: 'Seattle Apprec.' },
-                  { key: 'newHomeAppreciation', label: 'New Home Apprec.' },
-                  { key: 'landAppreciation', label: 'Land Apprec.' },
-                  { key: 'safeWithdrawalRate', label: 'Withdrawal Rate' },
-                  { key: 'marginRate', label: 'Margin Rate' },
-                  { key: 'marginRatio', label: 'Margin Ratio' },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                      />
-                      <span className="text-gray-500 text-sm">%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Milestones */}
-            {settingsTab === 'milestones' && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { key: 'moveOutAge', label: 'Move Out / Rent Start' },
-                  { key: 'jamieStartAge', label: 'Jamie Income Starts' },
-                  { key: 'jamieEndAge', label: 'Jamie Income Ends' },
-                  { key: 'marginStartAge', label: 'Margin Trading Starts' },
-                  { key: 'mortgagePaidAge', label: 'Mortgage Paid Off' },
-                  { key: 'landPurchase1Age', label: 'Land Purchase #1' },
-                  { key: 'landPurchase2Age', label: 'Land Purchase #2' },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      <span className="text-gray-500 text-sm">Age</span>
-                      <input
-                        type="number"
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseInt(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none text-right"
-                      />
-                    </div>
-                  </div>
-                ))}
+                </div>
               </div>
             )}
 
             {/* Income Phases */}
             {settingsTab === 'income' && (
               <div className="space-y-4">
-                <div className="text-xs text-gray-400 mb-2">Phase 1: Ages 31-32 (Current)</div>
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { key: 'phase1AyoolaIncome', label: "Ayoola's Income" },
-                    { key: 'phase1JamieIncome', label: "Jamie's Income" },
-                    { key: 'phase1CCorpContrib', label: 'C-Corp Contrib' },
-                  ].map(({ key, label }) => (
-                    <div key={key}>
-                      <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                {/* Phase 1 */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — Current State</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'phase1AyoolaIncome', label: "Ayoola's W2/1099" },
+                      { key: 'phase1JamieIncome', label: "Jamie's Resident Salary" },
+                      { key: 'phase1CCorpContrib', label: 'C-Corp Contribution' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Total Household</label>
+                      <div className="flex items-center bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(assumptions.phase1AyoolaIncome + assumptions.phase1JamieIncome)}/yr
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
                 
-                <div className="text-xs text-gray-400 mb-2">Phase 2: Ages 33-34 (Transition)</div>
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { key: 'phase2AyoolaIncome', label: "Ayoola's Income" },
-                    { key: 'phase2JamieIncome', label: "Jamie's Income" },
-                    { key: 'phase2CCorpContrib', label: 'C-Corp Contrib' },
-                  ].map(({ key, label }) => (
-                    <div key={key}>
-                      <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                {/* Phase 2 */}
+                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
+                  <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 33-34 — Transition Period</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'phase2AyoolaIncome', label: "Ayoola's Income" },
+                      { key: 'phase2JamieIncome', label: "Jamie's Income" },
+                      { key: 'phase2CCorpContrib', label: 'C-Corp Contribution' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="text-xs text-gray-400 mb-2">Phase 3: Gap Year (Age 35)</div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-xs text-gray-500 block mb-1">Ayoola's Income</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      <span className="text-gray-500 text-sm">$</span>
-                      <input type="number" value={assumptions.phase3AyoolaIncome} onChange={(e) => setAssumptions({ ...assumptions, phase3AyoolaIncome: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                    ))}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Total Household</label>
+                      <div className="flex items-center bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(assumptions.phase2AyoolaIncome + assumptions.phase2JamieIncome)}/yr
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="text-xs text-gray-400 mb-2">Phase 4: Jamie Earning (Ages 36-45)</div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    { key: 'phase4AyoolaIncome', label: "Ayoola's Income" },
-                    { key: 'phase4JamieIncome', label: "Jamie's Income" },
-                    { key: 'phase4CCorpContrib', label: 'C-Corp Contrib' },
-                    { key: 'jamieContrib', label: "Jamie's Invest Contrib" },
-                  ].map(({ key, label }) => (
-                    <div key={key}>
-                      <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                {/* Phase 3 - Gap Year */}
+                <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 35 — Gap Year (Jamie in Fellowship)</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Ayoola's Income</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" step="1000" value={assumptions.phase3AyoolaIncome} onChange={(e) => setAssumptions({ ...assumptions, phase3AyoolaIncome: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
                       </div>
                     </div>
-                  ))}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Jamie's Income</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Training)</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">C-Corp Contribution</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Paused)</div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-yellow-400 mt-2">⚠️ Lean year — living off savings + reduced income</div>
                 </div>
 
-                <div className="text-xs text-gray-400 mb-2">Phase 5: Coast Mode (Ages 46+)</div>
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { key: 'phase5AyoolaIncome', label: "Ayoola's Income" },
-                    { key: 'phase5BusinessIncome', label: 'Business Income (Start)' },
-                    { key: 'phase5BusinessGrowth', label: 'Business Growth/yr' },
-                  ].map(({ key, label }) => (
-                    <div key={key}>
-                      <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                {/* Phase 4 */}
+                <div className="bg-pink-900/20 rounded-lg p-3 border border-pink-800">
+                  <div className="text-xs text-pink-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Jamie Attending Surgeon</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'phase4AyoolaIncome', label: "Ayoola's Income" },
+                      { key: 'phase4JamieIncome', label: "Jamie's Attending Salary" },
+                      { key: 'phase4CCorpContrib', label: 'C-Corp Contribution' },
+                      { key: 'jamieContrib', label: "Jamie's Investment Contrib" },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div className="mt-2 text-xs text-emerald-400">💰 Peak earning years — {formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr household income</div>
+                </div>
+
+                {/* Phase 5 */}
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 5: Ages 46+ — Coast Mode</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'phase5AyoolaIncome', label: "Ayoola's Passive/Consulting" },
+                      { key: 'phase5BusinessIncome', label: 'Business Income (Start)' },
+                      { key: 'phase5BusinessGrowth', label: 'Business Growth/yr' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Rental */}
-            {settingsTab === 'rental' && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { key: 'grossRentYear1', label: 'Gross Rent (Year 1)', prefix: '$' },
-                  { key: 'rentGrowth', label: 'Rent Growth', suffix: '%' },
-                  { key: 'mortgagePayment', label: 'Mortgage Payment/yr', prefix: '$' },
-                  { key: 'maintenanceRate', label: 'Maintenance', suffix: '%' },
-                  { key: 'seattlePrincipal', label: 'Principal Paydown/yr', prefix: '$' },
-                  { key: 'newHomePrincipal', label: 'New Home Principal/yr', prefix: '$' },
-                ].map(({ key, label, prefix, suffix }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                      <input
-                        type="number"
-                        step={suffix === '%' ? '0.5' : '1000'}
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                      />
-                      {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+            {/* Homes */}
+            {settingsTab === 'homes' && (
+              <div className="space-y-4">
+                {/* Seattle Home */}
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">🏠 Seattle Home — 10737 3rd Ave NW</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'seattleCurrentValue', label: 'Current Value', prefix: '$' },
+                      { key: 'seattleMortgageBalance', label: 'Mortgage Balance', prefix: '$' },
+                      { key: 'seattleMortgageRate', label: 'Interest Rate', suffix: '%', step: 0.125 },
+                      { key: 'seattlePrincipal', label: 'Principal Paydown/yr', prefix: '$' },
+                    ].map(({ key, label, prefix, suffix, step }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
+                          <input type="number" step={step || 1000} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Appreciation Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.5" value={assumptions.homeAppreciation} onChange={(e) => setAssumptions({ ...assumptions, homeAppreciation: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Current Equity</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(assumptions.seattleCurrentValue - assumptions.seattleMortgageBalance)}
+                      </div>
                     </div>
                   </div>
-                ))}
+                  <div className="text-xs text-blue-400 mt-2">→ Converts to rental property at age {assumptions.moveOutAge}</div>
+                </div>
+                
+                {/* New Primary Home */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">🏡 New Primary Home — Gap Year Purchase (Age 35)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'newHomePurchasePrice', label: 'Purchase Price', prefix: '$' },
+                      { key: 'newHomeDownPayment', label: 'Down Payment', prefix: '$' },
+                      { key: 'newHomeClosingCosts', label: 'Closing Costs', prefix: '$' },
+                      { key: 'newHomeMortgageRate', label: 'Interest Rate', suffix: '%', step: 0.125 },
+                    ].map(({ key, label, prefix, suffix, step }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
+                          <input type="number" step={step || 1000} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Appreciation Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.5" value={assumptions.newHomeAppreciation} onChange={(e) => setAssumptions({ ...assumptions, newHomeAppreciation: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Principal Paydown/yr</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.newHomePrincipal} onChange={(e) => setAssumptions({ ...assumptions, newHomePrincipal: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-yellow-400 mt-2">💡 0% down strategy — only pay closing costs ({formatCurrency(assumptions.newHomeClosingCosts)})</div>
+                </div>
+              </div>
+            )}
+
+            {/* Rental Property */}
+            {settingsTab === 'rental' && (
+              <div className="space-y-4">
+                <div className="text-xs text-blue-400 font-semibold mb-2">Seattle Rental Income (Starting Age {assumptions.moveOutAge})</div>
+                
+                {/* Income */}
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Rental Income</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Gross Rent (Year 1)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.grossRentYear1} onChange={(e) => setAssumptions({ ...assumptions, grossRentYear1: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Monthly Rent</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(assumptions.grossRentYear1 / 12)}/mo
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Annual Rent Increase</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.5" value={assumptions.rentGrowth} onChange={(e) => setAssumptions({ ...assumptions, rentGrowth: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Expenses */}
+                <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Rental Expenses</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { key: 'mortgagePayment', label: 'Mortgage Payment/yr', prefix: '$' },
+                      { key: 'propertyTaxes', label: 'Property Taxes/yr', prefix: '$' },
+                      { key: 'insurance', label: 'Insurance/yr', prefix: '$' },
+                      { key: 'maintenanceRate', label: 'Maintenance Reserve', suffix: '%' },
+                      { key: 'vacancyRate', label: 'Vacancy Rate', suffix: '%' },
+                      { key: 'propertyManagement', label: 'Management Fee', suffix: '%' },
+                    ].map(({ key, label, prefix, suffix }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
+                          <input type="number" step={suffix === '%' ? 0.5 : 100} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Net Income Calculation */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-2">Net Rental Income Calculation (Year 1)</div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Gross Rent</span>
+                      <span className="text-emerald-400">+{formatCurrency(assumptions.grossRentYear1)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Mortgage</span>
+                      <span className="text-red-400">-{formatCurrency(assumptions.mortgagePayment)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Property Taxes</span>
+                      <span className="text-red-400">-{formatCurrency(assumptions.propertyTaxes)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Insurance</span>
+                      <span className="text-red-400">-{formatCurrency(assumptions.insurance)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Maintenance ({assumptions.maintenanceRate}%)</span>
+                      <span className="text-red-400">-{formatCurrency(assumptions.grossRentYear1 * assumptions.maintenanceRate / 100)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Vacancy ({assumptions.vacancyRate}%)</span>
+                      <span className="text-red-400">-{formatCurrency(assumptions.grossRentYear1 * assumptions.vacancyRate / 100)}</span>
+                    </div>
+                    <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-semibold">
+                      <span className="text-white">Net Cash Flow</span>
+                      <span className={`${(assumptions.grossRentYear1 - assumptions.mortgagePayment - assumptions.propertyTaxes - assumptions.insurance - (assumptions.grossRentYear1 * (assumptions.maintenanceRate + assumptions.vacancyRate) / 100)) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {formatCurrency(assumptions.grossRentYear1 - assumptions.mortgagePayment - assumptions.propertyTaxes - assumptions.insurance - (assumptions.grossRentYear1 * (assumptions.maintenanceRate + assumptions.vacancyRate) / 100))}/yr
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Land */}
             {settingsTab === 'land' && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  { key: 'landPricePerAcre', label: 'Price per Acre', prefix: '$' },
-                  { key: 'landPurchase1Acres', label: 'Purchase #1 Acres', suffix: ' ac' },
-                  { key: 'landPurchase2Acres', label: 'Purchase #2 Acres', suffix: ' ac' },
-                ].map(({ key, label, prefix, suffix }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                      <input
-                        type="number"
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                      />
-                      {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
+              <div className="space-y-4">
+                {/* Initial Purchase */}
+                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">🌾 Initial Land Purchase — Age {assumptions.currentAge} (2026)</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Acres</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" value={assumptions.initialAcres} onChange={(e) => setAssumptions({ ...assumptions, initialAcres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">ac</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Price per Acre</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" value={assumptions.landPricePerAcre} onChange={(e) => setAssumptions({ ...assumptions, landPricePerAcre: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Total Cost</label>
+                      <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
+                        {formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre)}
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
+                
+                {/* Equipment & Infrastructure */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-400 mb-2 font-semibold">🚜 Equipment & Infrastructure</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Equipment Cost (Age 32)</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" value={assumptions.equipmentCost} onChange={(e) => setAssumptions({ ...assumptions, equipmentCost: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Infrastructure (Age {assumptions.infrastructureAge})</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" value={assumptions.infrastructureCost} onChange={(e) => setAssumptions({ ...assumptions, infrastructureCost: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Offshore Land */}
+                <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-800">
+                  <div className="text-xs text-cyan-400 mb-2 font-semibold">🏝️ Offshore Land (Family) — Age {assumptions.landPurchase1Age}</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Acres</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" value={assumptions.offshoreAcres} onChange={(e) => setAssumptions({ ...assumptions, offshoreAcres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">ac</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Price per Acre</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" value={assumptions.offshorePricePerAcre} onChange={(e) => setAssumptions({ ...assumptions, offshorePricePerAcre: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Total Cost</label>
+                      <div className="bg-cyan-900/30 rounded px-2 py-2 text-cyan-400 font-medium">
+                        {formatCurrency(assumptions.offshoreAcres * assumptions.offshorePricePerAcre)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Major Expansion */}
+                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">🌲 Major Expansion — Age {assumptions.landPurchase2Age}</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Acres</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" value={assumptions.landPurchase2Acres} onChange={(e) => setAssumptions({ ...assumptions, landPurchase2Acres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">ac</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Est. Price per Acre</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-sm">
+                        ~{formatCurrency(assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation/100, assumptions.landPurchase2Age - assumptions.currentAge))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Est. Total Cost</label>
+                      <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
+                        {formatCurrency(assumptions.landPurchase2Acres * assumptions.landPricePerAcre)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Land Summary */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-2">Land Investment Summary</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total Acres</span>
+                        <span className="text-amber-400 font-bold">{assumptions.initialAcres + assumptions.offshoreAcres + assumptions.landPurchase2Acres} acres</span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-1">
+                        <span className="text-gray-400">Appreciation Rate</span>
+                        <span className="text-amber-400">{assumptions.landAppreciation}%/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Total Investment</span>
+                        <span className="text-amber-400 font-bold">
+                          {formatCurrency(
+                            (assumptions.initialAcres * assumptions.landPricePerAcre) +
+                            (assumptions.offshoreAcres * assumptions.offshorePricePerAcre) +
+                            (assumptions.landPurchase2Acres * assumptions.landPricePerAcre) +
+                            assumptions.equipmentCost + assumptions.infrastructureCost
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Investments */}
+            {settingsTab === 'investments' && (
+              <div className="space-y-4">
+                {/* Annual Contributions */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'k401Contrib', label: '401k Contribution' },
+                      { key: 'iraContrib', label: 'IRA Contribution' },
+                      { key: 'entrepreneurContrib', label: 'Ventures Fund' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Return Rates */}
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Expected Return Rates</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'cCorpReturn', label: 'C-Corp Portfolio' },
+                      { key: 'k401Return', label: '401k Return' },
+                      { key: 'jamieReturn', label: "Jamie's Portfolio" },
+                      { key: 'entrepreneurReturn', label: 'Ventures Return' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <input type="number" step="0.5" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-sm">%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Margin Strategy */}
+                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
+                  <div className="text-xs text-purple-400 mb-2 font-semibold">Margin Trading Strategy (Starts Age {assumptions.marginStartAge})</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Margin Interest Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.25" value={assumptions.marginRate} onChange={(e) => setAssumptions({ ...assumptions, marginRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">% of Portfolio Used</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="2.5" value={assumptions.marginRatio} onChange={(e) => setAssumptions({ ...assumptions, marginRatio: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Spread (Profit)</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {(assumptions.cCorpReturn - assumptions.marginRate).toFixed(1)}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">💡 Borrow at {assumptions.marginRate}%, invest at {assumptions.cCorpReturn}% = {(assumptions.cCorpReturn - assumptions.marginRate).toFixed(1)}% arbitrage</div>
+                </div>
+                
+                {/* Withdrawal Strategy */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-400 mb-2 font-semibold">Retirement Withdrawal</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Safe Withdrawal Rate</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <input type="number" step="0.25" value={assumptions.safeWithdrawalRate} onChange={(e) => setAssumptions({ ...assumptions, safeWithdrawalRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Annual from $1M</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(1000000 * assumptions.safeWithdrawalRate / 100)}/yr
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Expenses */}
             {settingsTab === 'expenses' && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { key: 'livingExpenses', label: 'Living Expenses/yr', prefix: '$' },
-                  { key: 'staffExpensesBase', label: 'Staff (Base)/yr', prefix: '$' },
-                  { key: 'staffExpensesMax', label: 'Staff (Max)/yr', prefix: '$' },
-                  { key: 'k401Contrib', label: '401k Contrib/yr', prefix: '$' },
-                  { key: 'entrepreneurContrib', label: 'Ventures Contrib/yr', prefix: '$' },
-                ].map(({ key, label, prefix }) => (
-                  <div key={key}>
-                    <label className="text-xs text-gray-500 block mb-1">{label}</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2">
-                      {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                      <input
-                        type="number"
-                        step="1000"
-                        value={assumptions[key]}
-                        onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })}
-                        className="bg-transparent w-full py-2 text-white text-sm outline-none"
-                      />
+              <div className="space-y-4">
+                {/* Living Expenses */}
+                <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Annual Living Expenses</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { key: 'livingExpenses', label: 'Base Living Expenses' },
+                      { key: 'healthInsurance', label: 'Health Insurance' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                          <span className="text-gray-500 text-xs">/yr</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Monthly Burn</label>
+                      <div className="bg-red-900/30 rounded px-2 py-2 text-red-400 font-medium">
+                        {formatCurrency((assumptions.livingExpenses + assumptions.healthInsurance) / 12)}/mo
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
+                
+                {/* Staff & Operations */}
+                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">Staff & Operations (Land Business)</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Staff Base (Ages 33-45)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.staffExpensesBase} onChange={(e) => setAssumptions({ ...assumptions, staffExpensesBase: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Staff Max (Ages 46+)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.staffExpensesMax} onChange={(e) => setAssumptions({ ...assumptions, staffExpensesMax: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Scales from → to</label>
+                      <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 text-sm">
+                        {formatCurrency(assumptions.staffExpensesBase)} → {formatCurrency(assumptions.staffExpensesMax)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Expense Summary */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-2">Annual Expense Summary by Phase</div>
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="text-center p-2 rounded bg-blue-900/30">
+                      <div className="text-blue-400 text-xs">Phase 1-2</div>
+                      <div className="text-white font-medium">{formatCurrency(assumptions.livingExpenses)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-purple-900/30">
+                      <div className="text-purple-400 text-xs">Phase 3-4</div>
+                      <div className="text-white font-medium">{formatCurrency(assumptions.livingExpenses + assumptions.staffExpensesBase)}/yr</div>
+                    </div>
+                    <div className="text-center p-2 rounded bg-emerald-900/30">
+                      <div className="text-emerald-400 text-xs">Phase 5+</div>
+                      <div className="text-white font-medium">{formatCurrency(assumptions.livingExpenses + assumptions.staffExpensesMax)}/yr</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Milestones / Timeline */}
+            {settingsTab === 'milestones' && (
+              <div className="space-y-4">
+                {/* Life Milestones */}
+                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
+                  <div className="text-xs text-purple-400 mb-2 font-semibold">Key Life Milestones (Ages)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { key: 'moveOutAge', label: 'Move Out / Rent Starts' },
+                      { key: 'jamieStartAge', label: 'Jamie Attending Starts' },
+                      { key: 'jamieEndAge', label: 'Jamie Stops Contributing' },
+                      { key: 'retirementAge', label: 'Target Retirement' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">Age</span>
+                          <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseInt(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none text-right" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Investment Milestones */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Investment Milestones</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { key: 'marginStartAge', label: 'Margin Trading Starts' },
+                      { key: 'mortgagePaidAge', label: 'Seattle Mortgage Paid' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">Age</span>
+                          <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseInt(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none text-right" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Land Milestones */}
+                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">Land Purchase Timeline</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { key: 'landPurchase1Age', label: 'Offshore Land Purchase' },
+                      { key: 'infrastructureAge', label: 'Infrastructure Build' },
+                      { key: 'landPurchase2Age', label: 'Major Expansion' },
+                    ].map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
+                        <div className="flex items-center bg-gray-800 rounded px-2">
+                          <span className="text-gray-500 text-sm">Age</span>
+                          <input type="number" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseInt(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none text-right" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Visual Timeline */}
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-3">Visual Timeline</div>
+                  <div className="relative">
+                    <div className="h-2 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded-full" />
+                    <div className="flex justify-between mt-2 text-xs">
+                      <div className="text-center">
+                        <div className="text-blue-400">{assumptions.currentAge}</div>
+                        <div className="text-gray-500">Now</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-purple-400">{assumptions.moveOutAge}</div>
+                        <div className="text-gray-500">Move</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-pink-400">{assumptions.jamieStartAge}</div>
+                        <div className="text-gray-500">Jamie</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-amber-400">{assumptions.landPurchase2Age}</div>
+                        <div className="text-gray-500">Expand</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-emerald-400">{assumptions.retirementAge}</div>
+                        <div className="text-gray-500">Retire</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

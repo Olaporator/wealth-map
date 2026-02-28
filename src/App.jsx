@@ -4,14 +4,15 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
 const DESCRIPTIONS = {
-  cCorp: "Olaporations C-Corp holding company that takes management fee from NT at 21% C-Corp tax rate to invest in diversified securities",
+  cCorp: "Olaporations C-Corp — receives management fees from Nimbus Tech surplus, invests pre-tax at 21% rate (taxes paid when distributed)",
   seattle: "10737 3rd Ave NW, Seattle WA 98177 — appreciating ~6%/year with 2-3% rent increases annually once rented (starting age 34)",
   land: "Rural land acquisitions — appreciating ~4%/year",
   jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
   k401: "Tax-advantaged retirement account with $12k annual contributions at 8% average returns",
   freeCash: "Annual surplus after all expenses, contributions, and debt service",
-  netWorth: "Total assets minus liabilities"
+  netWorth: "Total assets minus liabilities",
+  ayoolaIncome: "Ayoola's W2 income — paid directly, separate from C-Corp management fees"
 };
 
 export default function FinancialDashboard() {
@@ -969,7 +970,7 @@ export default function FinancialDashboard() {
                     {[
                       { key: 'phase1AyoolaIncome', label: "Ayoola's W2/1099" },
                       { key: 'phase1JamieIncome', label: "Jamie's Resident Salary" },
-                      { key: 'phase1CCorpContrib', label: 'C-Corp Contribution' },
+                      { key: 'phase1CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>
@@ -996,7 +997,7 @@ export default function FinancialDashboard() {
                     {[
                       { key: 'phase2AyoolaIncome', label: "Ayoola's Income" },
                       { key: 'phase2JamieIncome', label: "Jamie's Income" },
-                      { key: 'phase2CCorpContrib', label: 'C-Corp Contribution' },
+                      { key: 'phase2CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>
@@ -1033,7 +1034,7 @@ export default function FinancialDashboard() {
                       <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Training)</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">C-Corp Contribution</label>
+                      <label className="text-xs text-gray-400 block mb-1">NT Mgmt Fee → C-Corp</label>
                       <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Paused)</div>
                     </div>
                   </div>
@@ -1047,7 +1048,7 @@ export default function FinancialDashboard() {
                     {[
                       { key: 'phase4AyoolaIncome', label: "Ayoola's Income" },
                       { key: 'phase4JamieIncome', label: "Jamie's Attending Salary" },
-                      { key: 'phase4CCorpContrib', label: 'C-Corp Contribution' },
+                      { key: 'phase4CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
                       { key: 'jamieContrib', label: "Jamie's Investment Contrib" },
                     ].map(({ key, label }) => (
                       <div key={key}>

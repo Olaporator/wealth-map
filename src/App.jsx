@@ -263,7 +263,7 @@ export default function FinancialDashboard() {
       const marginNet = marginGain - marginInterest;
 
       const totalIn = ayoolaIncome + jamieIncome + Math.max(0, rentalNet) + marginNet + businessIncome;
-      const totalOut = expenses + staffExpenses + entrepreneurContrib + cCorpContrib + jamieContrib + Math.abs(Math.min(0, rentalNet));
+      const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + Math.abs(Math.min(0, rentalNet));
       const freeCash = totalIn - totalOut;
 
       const netWorth = cCorp + k401 + ira + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan;
@@ -303,7 +303,8 @@ export default function FinancialDashboard() {
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
-          contributions: -(cCorpContrib + jamieContrib + entrepreneurContrib),
+          contributions: -(jamieContrib + entrepreneurContrib),
+          cCorpContrib: cCorpContrib, // separate: NT surplus → C-Corp
         }
       });
     }
@@ -354,6 +355,9 @@ export default function FinancialDashboard() {
             <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
             <div className="text-red-400">− Staff Expenses: {formatCurrency(Math.abs(src.staffExpenses))}</div>
             <div className="text-red-400">− Contributions: {formatCurrency(Math.abs(src.contributions))}</div>
+            {src.cCorpContrib > 0 && (
+              <div className="text-blue-300 text-xs mt-1 border-t border-gray-700 pt-1">NT → C-Corp: {formatCurrency(src.cCorpContrib)}</div>
+            )}
           </div>
         </div>
       );
@@ -616,7 +620,7 @@ export default function FinancialDashboard() {
   const getFreeCashBreakdown = (d) => {
     if (!d) return [];
     const src = d.freeCashSources;
-    return [
+    const items = [
       { label: "Ayoola's Income", value: src.ayoolaIncome, color: 'text-emerald-400' },
       { label: "Jamie's Income", value: src.jamieIncome, color: 'text-pink-400' },
       { label: 'Rental Net', value: src.rentalNet, color: 'text-blue-400' },
@@ -626,6 +630,11 @@ export default function FinancialDashboard() {
       { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
       { label: 'Contributions', value: src.contributions, color: 'text-red-400' },
     ].filter(item => item.value !== 0);
+    
+    if (src.cCorpContrib > 0) {
+      items.push({ label: 'NT → C-Corp (separate)', value: src.cCorpContrib, color: 'text-blue-300' });
+    }
+    return items;
   };
 
   return (

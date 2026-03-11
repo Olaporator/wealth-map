@@ -6,7 +6,7 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 const DESCRIPTIONS = {
   cCorp: "Olaporations C-Corp — receives management fees from Nimbus Tech surplus, invests pre-tax at 21% rate (taxes paid when distributed)",
   seattle: "10737 3rd Ave NW, Seattle WA 98177 — appreciating ~6%/year with 2-3% rent increases annually once rented (starting age 34)",
-  land: "Rural land acquisitions — appreciating ~4%/year",
+  land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
   jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
   k401: "Combined 401k/457 accounts — Ayoola's 401k + Jamie's 401k/457 with 5% employer match",
@@ -44,6 +44,9 @@ export default function FinancialDashboard() {
     // Land Acquisitions
     initialAcres: 20,
     landPricePerAcre: 6000,
+    landDownPaymentPct: 20, // % down payment on land
+    landMortgageRate: 7.5, // land loan interest rate
+    landPrincipalPerAcre: 300, // annual principal paydown per acre owned
     offshoreAcres: 15,
     offshorePricePerAcre: 3000,
     landPurchase1Age: 34,
@@ -138,7 +141,10 @@ export default function FinancialDashboard() {
     let seattleEquity = assumptions.seattleEquityStart;
     let newHomeEquity = 0;
     let acres = assumptions.initialAcres;
-    let landEquity = acres * assumptions.landPricePerAcre;
+    // Land: start with down payment as equity, rest as mortgage
+    const initialLandValue = acres * assumptions.landPricePerAcre;
+    let landEquity = initialLandValue * (assumptions.landDownPaymentPct / 100);
+    let landMortgage = initialLandValue - landEquity;
     let jamieInvestments = 0;
     let entrepreneur = 0;
     let marginLoan = 0;
@@ -234,17 +240,35 @@ export default function FinancialDashboard() {
         newHomeEquity = (newHomeEquity + assumptions.newHomePrincipal) * (1 + assumptions.newHomeAppreciation / 100);
       }
 
-      // Land purchases
-      let newAcres = 0;
-      if (age === assumptions.landPurchase1Age) newAcres = assumptions.landPurchase1Acres;
-      if (age === assumptions.landPurchase2Age) newAcres = assumptions.landPurchase2Acres;
-      acres += newAcres;
-      landEquity = landEquity * (1 + assumptions.landAppreciation / 100);
+      // Land: appreciation applies to total value (equity + mortgage)
+      const totalLandValue = landEquity + landMortgage;
+      const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
+      const appreciationGain = appreciatedValue - totalLandValue;
+      landEquity += appreciationGain; // appreciation goes to equity
+      
+      // Land principal paydown (if there's a mortgage)
+      if (landMortgage > 0) {
+        const landPrincipalPayment = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
+        landMortgage -= landPrincipalPayment;
+        landEquity += landPrincipalPayment;
+      }
+      
+      // Land purchases: offshore at 34, expansion at 40
       if (age === assumptions.landPurchase1Age) {
-        landEquity += assumptions.landPurchase1Acres * assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase1Age - assumptions.currentAge);
+        const purchasePrice = assumptions.landPurchase1Acres * assumptions.offshorePricePerAcre;
+        const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
+        landEquity += downPayment;
+        landMortgage += purchasePrice - downPayment;
+        acres += assumptions.landPurchase1Acres;
       }
       if (age === assumptions.landPurchase2Age) {
-        landEquity += assumptions.landPurchase2Acres * assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase2Age - assumptions.currentAge);
+        // Use appreciated price per acre at time of purchase
+        const appreciatedPricePerAcre = assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase2Age - assumptions.currentAge);
+        const purchasePrice = assumptions.landPurchase2Acres * appreciatedPricePerAcre;
+        const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
+        landEquity += downPayment;
+        landMortgage += purchasePrice - downPayment;
+        acres += assumptions.landPurchase2Acres;
       }
 
       // Jamie's investments
@@ -296,6 +320,8 @@ export default function FinancialDashboard() {
         rentalNet: Math.round(rentalNet),
         acres,
         landEquity: Math.round(landEquity),
+        landMortgage: Math.round(landMortgage),
+        landValue: Math.round(landEquity + landMortgage),
         jamieInvestments: Math.round(jamieInvestments),
         entrepreneur: Math.round(entrepreneur),
         marginLoan: Math.round(marginLoan),
@@ -714,7 +740,9 @@ export default function FinancialDashboard() {
           label={`Land @ ${targetAge1}`}
           value={`${targetData1?.acres || 0} acres`}
           breakdown={[
+            { label: 'Land Value', value: targetData1?.landValue || 0, color: 'text-amber-300' },
             { label: 'Land Equity', value: targetData1?.landEquity || 0, color: 'text-amber-400' },
+            { label: 'Land Mortgage', value: -(targetData1?.landMortgage || 0), color: 'text-red-400' },
           ]}
           borderColor="amber-800"
         />
@@ -863,7 +891,7 @@ export default function FinancialDashboard() {
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="text-xs text-gray-500">Starting Net Worth</div>
                     <div className="text-lg font-bold text-emerald-400">
-                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre))}
+                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100))}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
@@ -975,7 +1003,7 @@ export default function FinancialDashboard() {
                     <span className="text-emerald-400 font-bold">
                       {formatCurrency(
                         assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + 
-                        assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre)
+                        assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)
                       )}
                     </span>
                   </div>
@@ -1291,6 +1319,34 @@ export default function FinancialDashboard() {
             {/* Land */}
             {settingsTab === 'land' && (
               <div className="space-y-4">
+                {/* Land Financing Terms */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">💰 Land Financing Terms</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Down Payment</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="5" value={assumptions.landDownPaymentPct} onChange={(e) => setAssumptions({ ...assumptions, landDownPaymentPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Mortgage Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.25" value={assumptions.landMortgageRate} onChange={(e) => setAssumptions({ ...assumptions, landMortgageRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Principal/Acre/yr</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="50" value={assumptions.landPrincipalPerAcre} onChange={(e) => setAssumptions({ ...assumptions, landPrincipalPerAcre: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Initial Purchase */}
                 <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
                   <div className="text-xs text-amber-400 mb-2 font-semibold">🌾 Initial Land Purchase — Age {assumptions.currentAge} (2026)</div>
@@ -1314,6 +1370,16 @@ export default function FinancialDashboard() {
                       <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
                         {formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre)}
                       </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    <div className="text-xs">
+                      <span className="text-gray-500">Down Payment: </span>
+                      <span className="text-emerald-400">{formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)}</span>
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-gray-500">Mortgage: </span>
+                      <span className="text-red-400">{formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre * (1 - assumptions.landDownPaymentPct / 100))}</span>
                     </div>
                   </div>
                 </div>

@@ -9,7 +9,7 @@ const DESCRIPTIONS = {
   land: "Rural land acquisitions — appreciating ~4%/year",
   jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
-  k401: "Tax-advantaged retirement account with $12k annual contributions at 8% average returns",
+  k401: "Combined 401k/457 accounts — Ayoola's 401k + Jamie's 401k/457 with 5% employer match",
   freeCash: "Annual surplus after all expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities",
   ayoolaIncome: "Ayoola's W2 income — paid directly, separate from C-Corp management fees"
@@ -28,6 +28,7 @@ export default function FinancialDashboard() {
     currentAge: 31,
     cCorpStart: 100000,
     k401Start: 15000,
+    jamie401kStart: 50000,
     iraStart: 5000,
     seattleEquityStart: 30000,
     
@@ -90,6 +91,8 @@ export default function FinancialDashboard() {
     // Annual Contributions
     k401Contrib: 12000,
     iraContrib: 0,
+    jamie401kContrib: 10000, // her contribution
+    jamie401kMatch: 5, // employer match %
     jamieContrib: 70000,
     entrepreneurContrib: 50000,
     
@@ -130,6 +133,7 @@ export default function FinancialDashboard() {
     const years = [];
     let cCorp = assumptions.cCorpStart;
     let k401 = assumptions.k401Start;
+    let jamie401k = assumptions.jamie401kStart;
     let ira = assumptions.iraStart;
     let seattleEquity = assumptions.seattleEquityStart;
     let newHomeEquity = 0;
@@ -143,6 +147,7 @@ export default function FinancialDashboard() {
     for (let age = assumptions.currentAge; age <= 85; age++) {
       let cCorpContrib = 0;
       let k401Contrib = assumptions.k401Contrib;
+      let jamie401kContrib = 0;
       let jamieContrib = 0;
       let entrepreneurContrib = 0;
       let ayoolaIncome = 0;
@@ -157,6 +162,8 @@ export default function FinancialDashboard() {
         cCorpContrib = assumptions.phase1CCorpContrib;
         ayoolaIncome = assumptions.phase1AyoolaIncome;
         jamieIncome = assumptions.phase1JamieIncome;
+        // Jamie's 401k: her contribution + 5% match on her income
+        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       } 
       // Phase 2: Transition (33 to gap year - 1)
       else if (age < assumptions.jamieStartAge - 1) {
@@ -165,6 +172,7 @@ export default function FinancialDashboard() {
         jamieIncome = assumptions.phase2JamieIncome;
         entrepreneurContrib = assumptions.entrepreneurContrib;
         staffExpenses = assumptions.staffExpensesBase;
+        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       }
       // Phase 3: Gap year (jamie start - 1)
       else if (age === assumptions.jamieStartAge - 1) {
@@ -173,6 +181,7 @@ export default function FinancialDashboard() {
         jamieIncome = 0;
         staffExpenses = assumptions.staffExpensesBase;
         entrepreneurContrib = assumptions.entrepreneurContrib;
+        jamie401kContrib = 0; // no income, no contribution
       } 
       // Phase 4: Jamie earning (jamieStartAge to jamieEndAge)
       else if (age <= assumptions.jamieEndAge) {
@@ -183,6 +192,7 @@ export default function FinancialDashboard() {
         staffExpenses = assumptions.staffExpensesBase + Math.min((age - assumptions.jamieStartAge) * 10000, assumptions.staffExpensesMax - assumptions.staffExpensesBase);
         entrepreneurContrib = assumptions.entrepreneurContrib;
         businessIncome = Math.max(0, (age - assumptions.jamieStartAge) * 15000);
+        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       } 
       // Phase 5: Coast mode (after jamieEndAge)
       else {
@@ -194,6 +204,7 @@ export default function FinancialDashboard() {
         entrepreneurContrib = 0;
         businessIncome = assumptions.phase5BusinessIncome + (age - assumptions.jamieEndAge - 1) * assumptions.phase5BusinessGrowth;
         k401Contrib = 0;
+        jamie401kContrib = 0;
       }
 
       // Rental income (after move out)
@@ -208,6 +219,7 @@ export default function FinancialDashboard() {
       // Investment growth
       cCorp = cCorp * (1 + assumptions.cCorpReturn / 100) + cCorpContrib;
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
+      jamie401k = jamie401k * (1 + assumptions.k401Return / 100) + jamie401kContrib;
       ira = ira * (1 + assumptions.cCorpReturn / 100);
       
       // Seattle equity (principal paydown after rental)
@@ -266,7 +278,7 @@ export default function FinancialDashboard() {
       const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + Math.abs(Math.min(0, rentalNet));
       const freeCash = totalIn - totalOut;
 
-      const netWorth = cCorp + k401 + ira + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan;
+      const netWorth = cCorp + k401 + jamie401k + ira + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan;
       
       // Passive income breakdown
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
@@ -277,6 +289,7 @@ export default function FinancialDashboard() {
         year: 2026 + (age - assumptions.currentAge),
         cCorp: Math.round(cCorp),
         k401: Math.round(k401),
+        jamie401k: Math.round(jamie401k),
         ira: Math.round(ira),
         seattleEquity: Math.round(seattleEquity),
         newHomeEquity: Math.round(newHomeEquity),
@@ -328,7 +341,7 @@ export default function FinancialDashboard() {
     if (!ageData) return [];
     return [
       { name: 'C-Corp', value: ageData.cCorp, desc: DESCRIPTIONS.cCorp },
-      { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
+      { name: '401k/IRA', value: ageData.k401 + ageData.jamie401k + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Seattle', value: ageData.seattleEquity, desc: DESCRIPTIONS.seattle },
       { name: 'New Home', value: ageData.newHomeEquity, desc: DESCRIPTIONS.newHome },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
@@ -598,7 +611,7 @@ export default function FinancialDashboard() {
     if (!d) return [];
     return [
       { label: 'C-Corp', value: d.cCorp, color: 'text-blue-400' },
-      { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
+      { label: '401k/IRA', value: d.k401 + d.jamie401k + d.ira, color: 'text-purple-400' },
       { label: 'Seattle Equity', value: d.seattleEquity, color: 'text-emerald-400' },
       { label: 'New Home Equity', value: d.newHomeEquity, color: 'text-green-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
@@ -776,7 +789,7 @@ export default function FinancialDashboard() {
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
                 <td className="p-2 text-right text-blue-400">{formatCurrency(row.cCorp)}</td>
-                <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401)}</td>
+                <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.jamie401k)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
                 <td className="p-2 text-right text-pink-400">{formatCurrency(row.jamieInvestments)}</td>
@@ -850,7 +863,7 @@ export default function FinancialDashboard() {
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="text-xs text-gray-500">Starting Net Worth</div>
                     <div className="text-lg font-bold text-emerald-400">
-                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre))}
+                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre))}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
@@ -932,7 +945,8 @@ export default function FinancialDashboard() {
                   {[
                     { key: 'currentAge', label: 'Current Age', suffix: ' yrs', step: 1 },
                     { key: 'cCorpStart', label: 'C-Corp Balance', prefix: '$', step: 1000 },
-                    { key: 'k401Start', label: '401k Balance', prefix: '$', step: 1000 },
+                    { key: 'k401Start', label: "Ayoola's 401k", prefix: '$', step: 1000 },
+                    { key: 'jamie401kStart', label: "Jamie's 401k/457", prefix: '$', step: 1000 },
                     { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
                     { key: 'seattleEquityStart', label: 'Seattle Home Equity', prefix: '$', step: 1000 },
                     { key: 'initialAcres', label: 'Current Land Owned', suffix: ' acres', step: 1 },
@@ -960,7 +974,7 @@ export default function FinancialDashboard() {
                     <span className="text-xs text-gray-500">Starting Net Worth (Calculated)</span>
                     <span className="text-emerald-400 font-bold">
                       {formatCurrency(
-                        assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + 
+                        assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + 
                         assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre)
                       )}
                     </span>
@@ -1418,7 +1432,8 @@ export default function FinancialDashboard() {
                   <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'k401Contrib', label: '401k Contribution' },
+                      { key: 'k401Contrib', label: "Ayoola's 401k" },
+                      { key: 'jamie401kContrib', label: "Jamie's 401k" },
                       { key: 'iraContrib', label: 'IRA Contribution' },
                       { key: 'entrepreneurContrib', label: 'Ventures Fund' },
                     ].map(({ key, label }) => (
@@ -1431,6 +1446,13 @@ export default function FinancialDashboard() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-3">
+                    <label className="text-xs text-gray-400 block mb-1">Jamie's Employer Match</label>
+                    <div className="flex items-center bg-gray-800 rounded px-2 w-32">
+                      <input type="number" step="0.5" value={assumptions.jamie401kMatch} onChange={(e) => setAssumptions({ ...assumptions, jamie401kMatch: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      <span className="text-gray-500 text-sm">%</span>
+                    </div>
                   </div>
                 </div>
                 

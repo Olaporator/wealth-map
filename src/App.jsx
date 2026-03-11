@@ -118,7 +118,7 @@ export default function FinancialDashboard() {
     
     phase4AyoolaIncome: 50000,
     phase4JamieIncome: 300000,
-    phase4CCorpContrib: 100000,
+    phase4CCorpContrib: 0, // C-Corp only appreciates after 34
     
     phase5AyoolaIncome: 50000,
     phase5BusinessIncome: 150000,
@@ -165,7 +165,7 @@ export default function FinancialDashboard() {
       let staffExpenses = 0;
       let businessIncome = 0;
 
-      // Phase 1: Current state (current age to 32)
+      // Phase 1: Current state (current age to 32) - no staff/ventures yet
       if (age <= 32) {
         cCorpContrib = assumptions.phase1CCorpContrib;
         ayoolaIncome = assumptions.phase1AyoolaIncome;
@@ -173,36 +173,41 @@ export default function FinancialDashboard() {
         // Jamie's 401k: her contribution + 5% match on her income
         jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       } 
-      // Phase 2: Transition (33 to gap year - 1)
-      else if (age < assumptions.jamieStartAge - 1) {
+      // Phase 2: Transition (33-34) - C-Corp continues, staff/ventures start at 25k
+      else if (age <= 34) {
         cCorpContrib = assumptions.phase2CCorpContrib;
         ayoolaIncome = assumptions.phase2AyoolaIncome;
         jamieIncome = assumptions.phase2JamieIncome;
-        entrepreneurContrib = assumptions.entrepreneurContrib;
-        staffExpenses = assumptions.staffExpensesBase;
+        entrepreneurContrib = 25000;
+        staffExpenses = 25000;
         jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       }
-      // Phase 3: Gap year (jamie start - 1)
+      // Phase 3: Gap year (35) - NO C-Corp, staff/ventures 25k
       else if (age === assumptions.jamieStartAge - 1) {
         cCorpContrib = 0;
         ayoolaIncome = assumptions.phase3AyoolaIncome;
         jamieIncome = 0;
-        staffExpenses = assumptions.staffExpensesBase;
-        entrepreneurContrib = assumptions.entrepreneurContrib;
+        staffExpenses = 25000;
+        entrepreneurContrib = 25000;
         jamie401kContrib = 0; // no income, no contribution
       } 
-      // Phase 4: Jamie earning (jamieStartAge to jamieEndAge)
+      // Phase 4: Jamie earning (36-45) - NO C-Corp, staff/ventures 35k until 40, then scale
       else if (age <= assumptions.jamieEndAge) {
-        cCorpContrib = assumptions.phase4CCorpContrib;
+        cCorpContrib = 0; // C-Corp only appreciates, no new contributions
         ayoolaIncome = assumptions.phase4AyoolaIncome;
         jamieIncome = assumptions.phase4JamieIncome;
         jamieContrib = assumptions.jamieContrib;
-        staffExpenses = assumptions.staffExpensesBase + Math.min((age - assumptions.jamieStartAge) * 10000, assumptions.staffExpensesMax - assumptions.staffExpensesBase);
-        entrepreneurContrib = assumptions.entrepreneurContrib;
+        if (age <= 40) {
+          staffExpenses = 35000;
+          entrepreneurContrib = 35000;
+        } else {
+          staffExpenses = 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
+          entrepreneurContrib = 35000;
+        }
         businessIncome = Math.max(0, (age - assumptions.jamieStartAge) * 15000);
         jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       } 
-      // Phase 5: Coast mode (after jamieEndAge)
+      // Phase 5: Coast mode (after 45) - NO C-Corp, full staff, no ventures
       else {
         cCorpContrib = 0;
         ayoolaIncome = assumptions.phase5AyoolaIncome;
@@ -1114,11 +1119,10 @@ export default function FinancialDashboard() {
                 {/* Phase 4 */}
                 <div className="bg-pink-900/20 rounded-lg p-3 border border-pink-800">
                   <div className="text-xs text-pink-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Jamie Attending Surgeon</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
                       { key: 'phase4AyoolaIncome', label: "Ayoola's Income" },
                       { key: 'phase4JamieIncome', label: "Jamie's Attending Salary" },
-                      { key: 'phase4CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
                       { key: 'jamieContrib', label: "Jamie's Investment Contrib" },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1131,7 +1135,8 @@ export default function FinancialDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-2 text-xs text-emerald-400">💰 Peak earning years — {formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr household income</div>
+                  <div className="mt-2 text-xs text-gray-500">C-Corp: no new contributions — only appreciates from here</div>
+                  <div className="mt-1 text-xs text-emerald-400">💰 Peak earning years — {formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr household income</div>
                 </div>
 
                 {/* Phase 5 */}

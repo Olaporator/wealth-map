@@ -4,15 +4,15 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
 const DESCRIPTIONS = {
-  cCorp: "Olaporations C-Corp — receives management fees from Nimbus Tech surplus, invests pre-tax at 21% rate (taxes paid when distributed)",
+  cCorp: "Olaporations C-Corp — receives NT management fees (split from Ayoola's total income), growth taxed at 21% corporate rate",
   seattle: "10737 3rd Ave NW, Seattle WA 98177 — appreciating ~6%/year with 2-3% rent increases annually once rented (starting age 34)",
   land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
   jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
   k401: "Combined 401k/457 accounts — Ayoola's 401k + Jamie's 401k/457 with 5% employer match",
-  freeCash: "Annual surplus after all expenses, contributions, and debt service",
+  freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities",
-  ayoolaIncome: "Ayoola's W2 income — paid directly, separate from C-Corp management fees"
+  ayoolaIncome: "Ayoola's personal W2 — NT total minus C-Corp management fee"
 };
 
 export default function FinancialDashboard() {
@@ -126,7 +126,8 @@ export default function FinancialDashboard() {
     
     // Withdrawal & Taxes
     safeWithdrawalRate: 4,
-    effectiveTaxRate: 25, // average effective tax rate on income
+    effectiveTaxRate: 25, // average effective tax rate on personal income
+    cCorpTaxRate: 21, // corporate tax rate on C-Corp growth
   });
 
   const toggleTooltip = (id) => {
@@ -224,7 +225,11 @@ export default function FinancialDashboard() {
       }
 
       // Investment growth
-      cCorp = cCorp * (1 + assumptions.cCorpReturn / 100) + cCorpContrib;
+      // C-Corp: growth is taxed at 21% corporate rate
+      const cCorpGrowth = cCorp * (assumptions.cCorpReturn / 100);
+      const cCorpTax = cCorpGrowth * (assumptions.cCorpTaxRate / 100);
+      cCorp = cCorp + cCorpGrowth - cCorpTax + cCorpContrib;
+      
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
       jamie401k = jamie401k * (1 + assumptions.k401Return / 100) + jamie401kContrib;
       ira = ira * (1 + assumptions.cCorpReturn / 100);
@@ -299,11 +304,14 @@ export default function FinancialDashboard() {
       const marginGain = marginInvested * (assumptions.cCorpReturn / 100);
       const marginNet = marginGain - marginInterest;
 
-      // Taxable income (W2 + Jamie's income + business income + rental net)
-      const taxableIncome = ayoolaIncome + jamieIncome + businessIncome + Math.max(0, rentalNet);
+      // Ayoola's personal income = total income minus what goes to C-Corp
+      const ayoolaPersonalIncome = ayoolaIncome - cCorpContrib;
+      
+      // Taxable income (personal W2 + Jamie's income + business income + rental net)
+      const taxableIncome = ayoolaPersonalIncome + jamieIncome + businessIncome + Math.max(0, rentalNet);
       const taxes = taxableIncome * (assumptions.effectiveTaxRate / 100);
 
-      const totalIn = ayoolaIncome + jamieIncome + Math.max(0, rentalNet) + marginNet + businessIncome;
+      const totalIn = ayoolaPersonalIncome + jamieIncome + Math.max(0, rentalNet) + marginNet + businessIncome;
       const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + taxes + Math.abs(Math.min(0, rentalNet));
       const freeCash = totalIn - totalOut;
 
@@ -340,7 +348,8 @@ export default function FinancialDashboard() {
         passiveIncome: Math.round(passiveIncome),
         safeWithdrawal: Math.round(safeWithdrawal),
         freeCashSources: {
-          ayoolaIncome,
+          ayoolaPersonalIncome,
+          ayoolaTotalIncome: ayoolaIncome, // for reference
           jamieIncome,
           rentalNet: Math.max(0, rentalNet),
           marginNet,
@@ -349,7 +358,7 @@ export default function FinancialDashboard() {
           staffExpenses: -staffExpenses,
           taxes: -taxes,
           contributions: -(jamieContrib + entrepreneurContrib),
-          cCorpContrib: cCorpContrib, // separate: NT surplus → C-Corp
+          cCorpContrib: cCorpContrib, // NT → C-Corp (not from personal cash)
         }
       });
     }
@@ -392,7 +401,12 @@ export default function FinancialDashboard() {
         <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs">
           <div className="font-bold text-white mb-2">Age {label} — Free Cash: {formatCurrency(row.freeCash)}</div>
           <div className="space-y-1">
-            <div className="text-emerald-400">+ Ayoola's Income: {formatCurrency(src.ayoolaIncome)}</div>
+            {src.cCorpContrib > 0 && (
+              <div className="text-gray-500 text-xs mb-1 pb-1 border-b border-gray-700">
+                NT Total: {formatCurrency(src.ayoolaTotalIncome)} → Personal: {formatCurrency(src.ayoolaPersonalIncome)} + C-Corp: {formatCurrency(src.cCorpContrib)}
+              </div>
+            )}
+            <div className="text-emerald-400">+ Ayoola's W2: {formatCurrency(src.ayoolaPersonalIncome)}</div>
             <div className="text-pink-400">+ Jamie's Income: {formatCurrency(src.jamieIncome)}</div>
             <div className="text-blue-400">+ Rental Net: {formatCurrency(src.rentalNet)}</div>
             <div className="text-cyan-400">+ Margin Arbitrage: {formatCurrency(src.marginNet)}</div>
@@ -401,9 +415,6 @@ export default function FinancialDashboard() {
             <div className="text-red-400">− Staff Expenses: {formatCurrency(Math.abs(src.staffExpenses))}</div>
             <div className="text-orange-400">− Taxes ({assumptions.effectiveTaxRate}%): {formatCurrency(Math.abs(src.taxes))}</div>
             <div className="text-red-400">− Contributions: {formatCurrency(Math.abs(src.contributions))}</div>
-            {src.cCorpContrib > 0 && (
-              <div className="text-blue-300 text-xs mt-1 border-t border-gray-700 pt-1">NT → C-Corp: {formatCurrency(src.cCorpContrib)}</div>
-            )}
           </div>
         </div>
       );
@@ -667,7 +678,7 @@ export default function FinancialDashboard() {
     if (!d) return [];
     const src = d.freeCashSources;
     const items = [
-      { label: "Ayoola's Income", value: src.ayoolaIncome, color: 'text-emerald-400' },
+      { label: "Ayoola's W2", value: src.ayoolaPersonalIncome, color: 'text-emerald-400' },
       { label: "Jamie's Income", value: src.jamieIncome, color: 'text-pink-400' },
       { label: 'Rental Net', value: src.rentalNet, color: 'text-blue-400' },
       { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
@@ -679,7 +690,7 @@ export default function FinancialDashboard() {
     ].filter(item => item.value !== 0);
     
     if (src.cCorpContrib > 0) {
-      items.push({ label: 'NT → C-Corp (separate)', value: src.cCorpContrib, color: 'text-blue-300' });
+      items.push({ label: 'NT → C-Corp', value: src.cCorpContrib, color: 'text-blue-300' });
     }
     return items;
   };
@@ -1607,18 +1618,27 @@ export default function FinancialDashboard() {
                 {/* Taxes */}
                 <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800">
                   <div className="text-xs text-orange-400 mb-2 font-semibold">💰 Taxes</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Effective Tax Rate</label>
+                      <label className="text-xs text-gray-400 block mb-1">Personal Tax Rate</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <input type="number" step="1" value={assumptions.effectiveTaxRate} onChange={(e) => setAssumptions({ ...assumptions, effectiveTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
+                      <div className="text-gray-600 text-xs mt-1">On W2 + Jamie + business + rental</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">C-Corp Tax Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="1" value={assumptions.cCorpTaxRate} onChange={(e) => setAssumptions({ ...assumptions, cCorpTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                      <div className="text-gray-600 text-xs mt-1">On C-Corp investment growth</div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Note</label>
                       <div className="bg-gray-800 rounded px-2 py-2 text-gray-500 text-xs">
-                        Applied to W2 + Jamie's income + business + rental
+                        NT income splits: personal W2 vs C-Corp mgmt fee
                       </div>
                     </div>
                   </div>

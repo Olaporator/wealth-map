@@ -124,8 +124,9 @@ export default function FinancialDashboard() {
     phase5BusinessIncome: 150000,
     phase5BusinessGrowth: 5000,
     
-    // Withdrawal
+    // Withdrawal & Taxes
     safeWithdrawalRate: 4,
+    effectiveTaxRate: 25, // average effective tax rate on income
   });
 
   const toggleTooltip = (id) => {
@@ -298,8 +299,12 @@ export default function FinancialDashboard() {
       const marginGain = marginInvested * (assumptions.cCorpReturn / 100);
       const marginNet = marginGain - marginInterest;
 
+      // Taxable income (W2 + Jamie's income + business income + rental net)
+      const taxableIncome = ayoolaIncome + jamieIncome + businessIncome + Math.max(0, rentalNet);
+      const taxes = taxableIncome * (assumptions.effectiveTaxRate / 100);
+
       const totalIn = ayoolaIncome + jamieIncome + Math.max(0, rentalNet) + marginNet + businessIncome;
-      const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + Math.abs(Math.min(0, rentalNet));
+      const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + taxes + Math.abs(Math.min(0, rentalNet));
       const freeCash = totalIn - totalOut;
 
       const netWorth = cCorp + k401 + jamie401k + ira + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan;
@@ -342,6 +347,7 @@ export default function FinancialDashboard() {
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
+          taxes: -taxes,
           contributions: -(jamieContrib + entrepreneurContrib),
           cCorpContrib: cCorpContrib, // separate: NT surplus → C-Corp
         }
@@ -393,6 +399,7 @@ export default function FinancialDashboard() {
             <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>
             <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
             <div className="text-red-400">− Staff Expenses: {formatCurrency(Math.abs(src.staffExpenses))}</div>
+            <div className="text-orange-400">− Taxes ({assumptions.effectiveTaxRate}%): {formatCurrency(Math.abs(src.taxes))}</div>
             <div className="text-red-400">− Contributions: {formatCurrency(Math.abs(src.contributions))}</div>
             {src.cCorpContrib > 0 && (
               <div className="text-blue-300 text-xs mt-1 border-t border-gray-700 pt-1">NT → C-Corp: {formatCurrency(src.cCorpContrib)}</div>
@@ -667,6 +674,7 @@ export default function FinancialDashboard() {
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
       { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
       { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
+      { label: `Taxes (${assumptions.effectiveTaxRate}%)`, value: src.taxes, color: 'text-orange-400' },
       { label: 'Contributions', value: src.contributions, color: 'text-red-400' },
     ].filter(item => item.value !== 0);
     
@@ -1596,6 +1604,26 @@ export default function FinancialDashboard() {
             {/* Expenses */}
             {settingsTab === 'expenses' && (
               <div className="space-y-4">
+                {/* Taxes */}
+                <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800">
+                  <div className="text-xs text-orange-400 mb-2 font-semibold">💰 Taxes</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Effective Tax Rate</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="1" value={assumptions.effectiveTaxRate} onChange={(e) => setAssumptions({ ...assumptions, effectiveTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Note</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-500 text-xs">
+                        Applied to W2 + Jamie's income + business + rental
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Living Expenses */}
                 <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
                   <div className="text-xs text-red-400 mb-2 font-semibold">Annual Living Expenses</div>

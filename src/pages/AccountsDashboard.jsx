@@ -551,6 +551,11 @@ export default function AccountsDashboard() {
       category = 'Loans & Interest';
       type = 'expense';
     }
+    // Plaid miscategorized merchants
+    else if (name.includes('HAPPY GARDEN DECOR')) {
+      category = 'Shopping';
+      type = 'expense';
+    }
     // Inter-business transfers
     else if (name.includes('OLAPORATIONS') || name.includes('NIMBUS')
       || (name.includes('AAYO TECH') && type === 'expense')) {

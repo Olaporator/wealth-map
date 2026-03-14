@@ -27,43 +27,49 @@ export default function PlanDashboard() {
   const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
 
   const [assumptions, setAssumptions] = useState({
-    // Starting Balances
-    currentAge: 31,
-    cCorpStart: 100000,
-    k401Start: 14819,       // Human Interest 401k (real: $14,818.55)
-    jamie401kStart: 58358,  // TIAA 403b (real: $58,357.98)
-    jamie457Start: 17000,   // TIAA 457 (real: $17,000)
-    iraStart: 5000,
-    seattleEquityStart: 30000,
-    
+    // Starting Balances (real as of March 2026)
+    currentAge: 31,           // Dec birthday — currently 31, turns 32 Dec 2026
+    cCorpStart: 2487,         // Novo Checking (real: $2,486.58)
+    k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
+    jamie401kStart: 58358,    // TIAA 403b (real: $58,357.98)
+    jamie457Start: 17000,     // TIAA 457 (real: $17,000) — 2.2% growth, minimal contributions
+    iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
+    robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
+    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage
+    ccDebtStart: 15547,       // Chase CC $2,130 + Cap One $13,417
+    studentLoanStart: 200000, // Jamie's student loans (~$200K)
+    cashStart: 6835,          // Chase checking $689 + KeyBank checking $3,659 + KeyBank savings $492 + Novo $2,487 — note: $7K influx coming
+
     // Returns & Appreciation
     cCorpReturn: 10,
     k401Return: 8,
+    robinhoodReturn: 10,      // individual brokerage growth
     jamieReturn: 10,
     entrepreneurReturn: 1,
     homeAppreciation: 6,
     newHomeAppreciation: 5,
     landAppreciation: 4,
-    
-    // Land Acquisitions
-    initialAcres: 20,
+
+    // Land Acquisitions — first purchase pushed to age 32
+    initialAcres: 0,          // no land at start (pushed to 32)
     landPricePerAcre: 6000,
-    landDownPaymentPct: 20, // % down payment on land
-    landMortgageRate: 7.5, // land loan interest rate
-    landPrincipalPerAcre: 300, // annual principal paydown per acre owned
-    offshoreAcres: 15,
+    landDownPaymentPct: 20,
+    landMortgageRate: 7.5,
+    landPrincipalPerAcre: 300,
     offshorePricePerAcre: 3000,
-    landPurchase1Age: 34,
-    landPurchase1Acres: 15,
-    landPurchase2Age: 40,
-    landPurchase2Acres: 100,
+    landPurchase1Age: 32,     // initial 20 acres (was at start, now age 32)
+    landPurchase1Acres: 20,
+    landPurchase2Age: 34,     // offshore 15 acres
+    landPurchase2Acres: 15,
+    landPurchase3Age: 40,     // expansion 100 acres
+    landPurchase3Acres: 100,
     equipmentCost: 65000,
     infrastructureCost: 200000,
     infrastructureAge: 38,
-    
+
     // Homes
     seattleCurrentValue: 1100000,
-    seattleMortgageBalance: 970000,
+    seattleMortgageBalance: 965367, // real mortgage balance
     seattleMortgageRate: 3.25,
     newHomePurchasePrice: 600000,
     newHomeDownPayment: 0,
@@ -95,16 +101,19 @@ export default function PlanDashboard() {
     seattlePrincipal: 18000,
     newHomePrincipal: 15000,
     
-    // Annual Contributions
-    k401Contrib: 12000,
+    // Annual Contributions (updated for new budget)
+    k401Contrib: 18000,       // ~20% of Ayoola's NT gross (~$90K) — down from maxing out
+    jamie457Contrib: 1200,    // minimal $100/month to 457
+    jamie457Return: 2.2,      // 457 fund at 2.2% annual
     iraContrib: 0,
-    jamie401kContrib: 10000, // her contribution
-    jamie401kMatch: 5, // employer match %
+    jamie401kContrib: 10000,  // her 5% contribution
+    jamie401kMatch: 5,        // employer match %
     jamieContrib: 70000,
     entrepreneurContrib: 50000,
-    
-    // Expenses
-    livingExpenses: 60000,
+    ccPaydownMonthly: 1250,   // monthly CC surplus for paydown
+
+    // Expenses (new budget: $10,550/mo = $126,600/yr, mortgage handled separately)
+    livingExpenses: 60600,    // $5,050/mo non-mortgage expenses × 12
     staffExpensesBase: 50000,
     staffExpensesMax: 100000,
     healthInsurance: 12000,
@@ -178,14 +187,17 @@ export default function PlanDashboard() {
     let cCorp = assumptions.cCorpStart;
     let k401 = assumptions.k401Start;
     let jamie401k = assumptions.jamie401kStart;
+    let jamie457 = assumptions.jamie457Start;
     let ira = assumptions.iraStart;
+    let robinhood = assumptions.robinhoodStart;
     let seattleEquity = assumptions.seattleEquityStart;
     let newHomeEquity = 0;
     let acres = assumptions.initialAcres;
-    // Land: start with down payment as equity, rest as mortgage
-    const initialLandValue = acres * assumptions.landPricePerAcre;
-    let landEquity = initialLandValue * (assumptions.landDownPaymentPct / 100);
-    let landMortgage = initialLandValue - landEquity;
+    // Land: start with no acres (first purchase at 32)
+    let landEquity = 0;
+    let landMortgage = 0;
+    let ccDebt = assumptions.ccDebtStart;
+    let studentLoans = assumptions.studentLoanStart;
     let jamieInvestments = 0;
     let entrepreneur = 0;
     let marginLoan = 0;
@@ -276,7 +288,23 @@ export default function PlanDashboard() {
       
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
       jamie401k = jamie401k * (1 + assumptions.k401Return / 100) + jamie401kContrib;
+      jamie457 = jamie457 * (1 + assumptions.jamie457Return / 100) + (age <= assumptions.jamieEndAge ? assumptions.jamie457Contrib : 0);
       ira = ira * (1 + assumptions.cCorpReturn / 100);
+      robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100);
+
+      // CC debt paydown (first ~9 months then $0)
+      if (ccDebt > 0) {
+        const annualPaydown = assumptions.ccPaydownMonthly * 12;
+        const interest = ccDebt * 0.20; // ~20% APR blended
+        ccDebt = Math.max(0, ccDebt + interest - annualPaydown);
+      }
+
+      // Student loan payments (~$159/mo = $1,908/yr, 5% interest)
+      if (studentLoans > 0) {
+        const slInterest = studentLoans * 0.05;
+        const slPayment = 1908;
+        studentLoans = Math.max(0, studentLoans + slInterest - slPayment);
+      }
       
       // Seattle equity (principal paydown after rental)
       if (age >= assumptions.moveOutAge) {
@@ -303,22 +331,30 @@ export default function PlanDashboard() {
         landEquity += landPrincipalPayment;
       }
       
-      // Land purchases: offshore at 34, expansion at 40
+      // Land purchase 1: initial 20 acres at age 32
       if (age === assumptions.landPurchase1Age) {
-        const purchasePrice = assumptions.landPurchase1Acres * assumptions.offshorePricePerAcre;
+        const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;
       }
+      // Land purchase 2: offshore 15 acres at age 34
       if (age === assumptions.landPurchase2Age) {
-        // Use appreciated price per acre at time of purchase
-        const appreciatedPricePerAcre = assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase2Age - assumptions.currentAge);
-        const purchasePrice = assumptions.landPurchase2Acres * appreciatedPricePerAcre;
+        const purchasePrice = assumptions.landPurchase2Acres * assumptions.offshorePricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase2Acres;
+      }
+      // Land purchase 3: expansion 100 acres at age 40
+      if (age === assumptions.landPurchase3Age) {
+        const appreciatedPricePerAcre = assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase3Age - assumptions.currentAge);
+        const purchasePrice = assumptions.landPurchase3Acres * appreciatedPricePerAcre;
+        const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
+        landEquity += downPayment;
+        landMortgage += purchasePrice - downPayment;
+        acres += assumptions.landPurchase3Acres;
       }
 
       // Jamie's investments
@@ -359,7 +395,7 @@ export default function PlanDashboard() {
       const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + taxes + Math.abs(Math.min(0, rentalNet));
       const freeCash = totalIn - totalOut;
 
-      const netWorth = cCorp + k401 + jamie401k + ira + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan;
+      const netWorth = cCorp + k401 + jamie401k + jamie457 + ira + robinhood + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan - ccDebt - studentLoans;
       
       // Passive income breakdown
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
@@ -371,7 +407,11 @@ export default function PlanDashboard() {
         cCorp: Math.round(cCorp),
         k401: Math.round(k401),
         jamie401k: Math.round(jamie401k),
+        jamie457: Math.round(jamie457),
         ira: Math.round(ira),
+        robinhood: Math.round(robinhood),
+        ccDebt: Math.round(ccDebt),
+        studentLoans: Math.round(studentLoans),
         seattleEquity: Math.round(seattleEquity),
         newHomeEquity: Math.round(newHomeEquity),
         rentalNet: Math.round(rentalNet),
@@ -426,7 +466,8 @@ export default function PlanDashboard() {
     if (!ageData) return [];
     return [
       { name: 'C-Corp', value: ageData.cCorp, desc: DESCRIPTIONS.cCorp },
-      { name: '401k/IRA', value: ageData.k401 + ageData.jamie401k + ageData.ira, desc: DESCRIPTIONS.k401 },
+      { name: 'Robinhood', value: ageData.robinhood, desc: 'Ayoola individual brokerage — Robinhood' },
+      { name: '401k/403b/457', value: ageData.k401 + ageData.jamie401k + ageData.jamie457 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Seattle', value: ageData.seattleEquity, desc: DESCRIPTIONS.seattle },
       { name: 'New Home', value: ageData.newHomeEquity, desc: DESCRIPTIONS.newHome },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
@@ -476,6 +517,7 @@ export default function PlanDashboard() {
 
   const milestones = [
     { age: 31, label: 'Start', icon: '🚀' },
+    { age: 32, label: '20 Acres', icon: '🌱' },
     { age: 34, label: 'Move & Rent', icon: '🏠' },
     { age: 35, label: 'Gap Year', icon: '⏸️' },
     { age: 36, label: 'Jamie $300K', icon: '💰' },

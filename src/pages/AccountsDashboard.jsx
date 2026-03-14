@@ -594,15 +594,9 @@ export default function AccountsDashboard() {
       && category !== 'Transfer' && category !== 'Income') {
       category = 'Lifestyle & Subs';
     }
-    // Shopping stays Shopping, but some items might be Spillover (travel etc.)
+    // Shopping stays Shopping (travel spillover handled in effectiveTransactions)
     else if (category === 'Shopping') {
-      // Check for travel-related
-      if (name.includes('AIRLINE') || name.includes('HOTEL') || name.includes('AIRBNB')
-        || name.includes('FLIGHT') || name.includes('BOOKING') || name.includes('EXPEDIA')
-        || name.includes('VRBO') || name.includes('TRAVEL')) {
-        category = 'Spillover';
-      }
-      // Otherwise stays Shopping
+      // stays Shopping
     }
 
     return {
@@ -663,19 +657,45 @@ export default function AccountsDashboard() {
   }, []);
 
   // Compute effective categories with spillover applied
+  // Rules: 1) Fill original category budget first
+  //        2) Overflow → Spillover, but only if Spillover isn't full ($500)
+  //        3) Travel/flight purchases always go to Spillover (can exceed cap)
+  //        4) Non-travel overflow stays in original category if Spillover is full
+  const TRAVEL_NAMES = [
+    'AIRLINE', 'AIRLINES', 'HOTEL', 'AIRBNB', 'FLIGHT', 'BOOKING', 'EXPEDIA',
+    'VRBO', 'TRAVEL', 'UNITED', 'DELTA', 'SOUTHWEST', 'AMERICAN AIR', 'JETBLUE',
+    'ALASKA AIR', 'SPIRIT', 'FRONTIER', 'HAWAIIAN AIR', 'MARRIOTT', 'HILTON',
+    'HYATT', 'IHG', 'KAYAK', 'HOPPER', 'PRICELINE', 'ORBITZ', 'TRAVELOCITY',
+  ];
   const effectiveTransactions = useMemo(() => {
     const monthTxns = transactions.filter(t => t.date.startsWith('2026-03') && t.type === 'expense');
-    // Sort by date so earlier-in-month transactions stay in their category
     const sorted = [...monthTxns].sort((a, b) => a.date.localeCompare(b.date));
     const running = {};
+    let spilloverSpent = 0;
+    const spilloverLimit = spilloverBudgetMap['Spillover'] || 500;
     return sorted.map(t => {
       const cat = t.category;
       const amt = Math.abs(t.amount);
+      const name = (t.description || '').toUpperCase();
+      const isTravel = TRAVEL_NAMES.some(tw => name.includes(tw));
+
+      // Travel always goes to Spillover regardless of caps
+      if (isTravel && cat !== 'Housing' && cat !== 'Loans & Interest') {
+        spilloverSpent += amt;
+        return { ...t, category: 'Spillover' };
+      }
+
       if (SPILLABLE_CATEGORIES.includes(cat)) {
         if (!running[cat]) running[cat] = 0;
         running[cat] += amt;
+        // Only spill over if original budget is exceeded
         if (running[cat] > spilloverBudgetMap[cat]) {
-          return { ...t, category: 'Spillover' };
+          // Only move to Spillover if there's room
+          if (spilloverSpent + amt <= spilloverLimit) {
+            spilloverSpent += amt;
+            return { ...t, category: 'Spillover' };
+          }
+          // Spillover full — stays in original over-budget category
         }
       }
       return t;

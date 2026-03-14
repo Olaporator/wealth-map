@@ -649,17 +649,6 @@ export default function AccountsDashboard() {
       .reduce((sum, t) => sum + t.amount, 0);
   }, [transactions]);
 
-  const spendingByCategory = useMemo(() => {
-    const cats = {};
-    effectiveTransactions.forEach(t => {
-      if (!cats[t.category]) cats[t.category] = 0;
-      cats[t.category] += Math.abs(t.amount);
-    });
-    return Object.entries(cats)
-      .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100, color: CATEGORY_COLORS[name] }))
-      .sort((a, b) => b.value - a.value);
-  }, [effectiveTransactions]);
-
   // ─── Spillover logic: overflow from Dining, Shopping, Other → Spillover ──
   const SPILLABLE_CATEGORIES = ['Dining & Delivery', 'Shopping', 'Other'];
   const spilloverBudgetMap = useMemo(() => {
@@ -687,6 +676,17 @@ export default function AccountsDashboard() {
       return t;
     });
   }, [transactions, spilloverBudgetMap]);
+
+  const spendingByCategory = useMemo(() => {
+    const cats = {};
+    effectiveTransactions.forEach(t => {
+      if (!cats[t.category]) cats[t.category] = 0;
+      cats[t.category] += Math.abs(t.amount);
+    });
+    return Object.entries(cats)
+      .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100, color: CATEGORY_COLORS[name] }))
+      .sort((a, b) => b.value - a.value);
+  }, [effectiveTransactions]);
 
   const budgetProgress = useMemo(() => {
     const spent = {};

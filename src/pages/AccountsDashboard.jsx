@@ -282,13 +282,14 @@ const generateMockTransactions = () => {
 // ─── Budget Definitions ─────────────────────────────────────────────────────
 const BUDGETS = [
   { category: 'Housing', monthly: 5500, icon: '🏠', color: '#3B82F6' },
-  { category: 'Food & Dining', monthly: 2000, icon: '🍽️', color: '#F59E0B' },
-  { category: 'Transportation', monthly: 1000, icon: '🚗', color: '#8B5CF6' },
+  { category: 'Groceries', monthly: 1000, icon: '🛒', color: '#22C55E' },
+  { category: 'Dining & Delivery', monthly: 500, icon: '🍽️', color: '#F59E0B' },
+  { category: 'Shopping', monthly: 500, icon: '🛍️', color: '#10B981' },
+  { category: 'Spillover', monthly: 500, icon: '✈️', color: '#38BDF8' },
+  { category: 'Auto / Transport', monthly: 950, icon: '🚗', color: '#8B5CF6' },
   { category: 'Utilities', monthly: 550, icon: '⚡', color: '#06B6D4' },
-  { category: 'Shopping', monthly: 1000, icon: '🛍️', color: '#10B981' },
-  { category: 'Entertainment', monthly: 250, icon: '🎬', color: '#F97316' },
-  { category: 'Healthcare', monthly: 200, icon: '🏥', color: '#EC4899' },
-  { category: 'Business', monthly: 500, icon: '💼', color: '#84CC16' },
+  { category: 'Lifestyle & Subs', monthly: 250, icon: '🎬', color: '#F97316' },
+  { category: 'Other', monthly: 250, icon: '📦', color: '#6B7280' },
   { category: 'Loan Payment', monthly: 160, icon: '🎓', color: '#A855F7' },
   { category: 'Interest & Fees', monthly: 0, icon: '🏦', color: '#EF4444' },
 ];
@@ -315,15 +316,18 @@ const NET_WORTH_HISTORY = [
 
 const CATEGORY_COLORS = {
   'Housing': '#3B82F6',
-  'Food & Dining': '#F59E0B',
-  'Transportation': '#8B5CF6',
-  'Utilities': '#06B6D4',
-  'Healthcare': '#EC4899',
+  'Groceries': '#22C55E',
+  'Dining & Delivery': '#F59E0B',
   'Shopping': '#10B981',
-  'Entertainment': '#F97316',
-  'Business': '#84CC16',
+  'Spillover': '#38BDF8',
+  'Auto / Transport': '#8B5CF6',
+  'Utilities': '#06B6D4',
+  'Lifestyle & Subs': '#F97316',
+  'Healthcare': '#EC4899',
+  'Other': '#6B7280',
   'Transfer': '#9CA3AF',
   'Income': '#10B981',
+  'Business': '#84CC16',
   'Loan Payment': '#A855F7',
   'Interest & Fees': '#EF4444',
   'Uncategorized': '#6B7280',
@@ -482,6 +486,31 @@ export default function AccountsDashboard() {
     isManual: !a.plaid_item_id,
   })) : ACCOUNTS;
 
+  // ─── Grocery store names for splitting Food & Dining ───────────────
+  const GROCERY_NAMES = [
+    'WHOLE FOODS', 'TRADER JOE', 'SAFEWAY', 'COSTCO', 'WALMART', 'QFC',
+    'FRED MEYER', 'AMAZON FRESH', 'TARGET', 'INSTACART', 'PCC', 'NEW ROOTS',
+    'AZURE STANDARD', 'SPROUTS', 'GROCERY', 'KROGER', 'PIGGLY', 'PICK N SAVE',
+    'CENTRAL CO-OP', 'TABLE22', 'FLORA BAKE',
+  ];
+
+  const DELIVERY_DINING_NAMES = [
+    'DOORDASH', 'UBER EATS', 'UBEREATS', 'GRUBHUB', 'POSTMATES',
+    'STARBUCKS', 'COFFEE', 'CAFE', 'RESTAURANT', 'BURGER', 'PIZZA',
+    'INSOMNIA', 'SALT AND STRAW', 'SALT & STRAW', 'TACO', 'SUSHI',
+    'CHIPOTLE', 'BAKERY', 'GRILL', 'KITCHEN', 'BAR ', 'PUB',
+    'VEGGIE GRILL', 'DIN TAI FUNG', 'DIVA ESPRESSO', 'FIREHOUSE COFFEE',
+    'NEXTLEVELBURGER', 'ICE CREAM', 'COOKIE', 'BOBA', 'JUICE', 'SMOOTHIE',
+    'WINGSTOP', 'PANDA EXPRESS', 'CHICK-FIL', 'DREAMLAND', 'MATADOR',
+    'FLATSTICK', 'NAUTICAL BOWLS', 'MIGHTY-O', 'DONUTS', 'EMME',
+  ];
+
+  const SUBSCRIPTION_NAMES = [
+    'NETFLIX', 'SPOTIFY', 'YOUTUBE PREMIUM', 'DISNEY+', 'HULU',
+    'AMAZON PRIME', 'APPLE.COM/BILL', 'OPENAI', 'ADOBE', 'GOOGLE ONE',
+    'AUTOPILOT', 'ROCKET MONEY', 'YMCA', 'CLIFF KEEN',
+  ];
+
   const allTransactions = isLive ? liveTransactions.map(t => {
     const name = (t.name || '').toUpperCase();
     const merchant = (t.merchant_name || '').toUpperCase();
@@ -497,31 +526,69 @@ export default function AccountsDashboard() {
       category = 'Transfer';
       type = 'transfer';
     }
-    // Student loan payments are loan payments, not housing
+    // Student loan payments
     else if (name.includes('UAS EPAYMENT') || name.includes('STUDENT LOAN')
       || name.includes('MOHELA') || name.includes('NELNET') || name.includes('AIDVANTAGE')
       || name.includes('FEDLOAN') || name.includes('GREAT LAKES')) {
       category = 'Loan Payment';
       type = 'expense';
     }
-    // Interest/finance charges stay as-is but get their own category
+    // Interest/finance charges
     else if (name.includes('INTEREST CHARGE') || name.includes('FINANCE CHARGE')
       || name.includes('PURCHASE INTEREST') || name.includes('CASH ADVANCE INTEREST')) {
       category = 'Interest & Fees';
       type = 'expense';
     }
-    // Overdraft and bank fees
+    // Bank fees
     else if (name.includes('OVERDRAFT FEE') || name.includes('NON-CHASE ATM FEE')
       || name.includes('FOREIGN TRANSACTION FEE') || name.includes('CASH ADVANCE FEE')
       || name.includes('TRANSACTION FEE') || name.includes('PLAN FEE')) {
       category = 'Interest & Fees';
       type = 'expense';
     }
-    // Inter-business transfers (NT → Olaporations etc.)
+    // Inter-business transfers
     else if (name.includes('OLAPORATIONS') || name.includes('NIMBUS')
       || (name.includes('AAYO TECH') && type === 'expense')) {
       category = 'Transfer';
       type = 'transfer';
+    }
+    // ─── Split Food & Dining into Groceries vs Dining & Delivery ─────
+    else if (category === 'Food & Dining' || category === 'Food and Drink' || category === 'FOOD_AND_DRINK') {
+      if (GROCERY_NAMES.some(g => name.includes(g) || merchant.includes(g))) {
+        category = 'Groceries';
+      } else {
+        category = 'Dining & Delivery';
+      }
+    }
+    // ─── Remap Plaid categories to budget categories ─────────────────
+    else if (category === 'Transportation') {
+      category = 'Auto / Transport';
+    }
+    else if (category === 'Entertainment') {
+      // Check if it's a subscription
+      if (SUBSCRIPTION_NAMES.some(s => name.includes(s) || merchant.includes(s))) {
+        category = 'Lifestyle & Subs';
+      } else {
+        category = 'Lifestyle & Subs';
+      }
+    }
+    else if (category === 'Healthcare') {
+      category = 'Other';
+    }
+    // Subscriptions that Plaid categorizes as Business or Shopping
+    else if (SUBSCRIPTION_NAMES.some(s => name.includes(s) || merchant.includes(s))
+      && category !== 'Transfer' && category !== 'Income') {
+      category = 'Lifestyle & Subs';
+    }
+    // Shopping stays Shopping, but some items might be Spillover (travel etc.)
+    else if (category === 'Shopping') {
+      // Check for travel-related
+      if (name.includes('AIRLINE') || name.includes('HOTEL') || name.includes('AIRBNB')
+        || name.includes('FLIGHT') || name.includes('BOOKING') || name.includes('EXPEDIA')
+        || name.includes('VRBO') || name.includes('TRAVEL')) {
+        category = 'Spillover';
+      }
+      // Otherwise stays Shopping
     }
 
     return {

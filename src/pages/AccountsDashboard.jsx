@@ -290,8 +290,7 @@ const BUDGETS = [
   { category: 'Utilities', monthly: 550, icon: '⚡', color: '#06B6D4' },
   { category: 'Lifestyle & Subs', monthly: 250, icon: '🎬', color: '#F97316' },
   { category: 'Other', monthly: 250, icon: '📦', color: '#6B7280' },
-  { category: 'Loan Payment', monthly: 160, icon: '🎓', color: '#A855F7' },
-  { category: 'Interest & Fees', monthly: 0, icon: '🏦', color: '#EF4444' },
+  { category: 'Loans & Interest', monthly: 500, icon: '🎓', color: '#A855F7' },
 ];
 
 // Monthly spending history for trend chart
@@ -328,8 +327,7 @@ const CATEGORY_COLORS = {
   'Transfer': '#9CA3AF',
   'Income': '#10B981',
   'Business': '#84CC16',
-  'Loan Payment': '#A855F7',
-  'Interest & Fees': '#EF4444',
+  'Loans & Interest': '#A855F7',
   'Uncategorized': '#6B7280',
 };
 
@@ -537,20 +535,20 @@ export default function AccountsDashboard() {
     else if (name.includes('UAS EPAYMENT') || name.includes('STUDENT LOAN')
       || name.includes('MOHELA') || name.includes('NELNET') || name.includes('AIDVANTAGE')
       || name.includes('FEDLOAN') || name.includes('GREAT LAKES')) {
-      category = 'Loan Payment';
+      category = 'Loans & Interest';
       type = 'expense';
     }
     // Interest/finance charges
     else if (name.includes('INTEREST CHARGE') || name.includes('FINANCE CHARGE')
       || name.includes('PURCHASE INTEREST') || name.includes('CASH ADVANCE INTEREST')) {
-      category = 'Interest & Fees';
+      category = 'Loans & Interest';
       type = 'expense';
     }
     // Bank fees
     else if (name.includes('OVERDRAFT FEE') || name.includes('NON-CHASE ATM FEE')
       || name.includes('FOREIGN TRANSACTION FEE') || name.includes('CASH ADVANCE FEE')
       || name.includes('TRANSACTION FEE') || name.includes('PLAN FEE')) {
-      category = 'Interest & Fees';
+      category = 'Loans & Interest';
       type = 'expense';
     }
     // Inter-business transfers

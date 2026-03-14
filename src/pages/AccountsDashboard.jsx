@@ -281,34 +281,32 @@ const generateMockTransactions = () => {
 
 // ─── Budget Definitions ─────────────────────────────────────────────────────
 const BUDGETS = [
-  { category: 'Housing', monthly: 7800, icon: '🏠', color: '#3B82F6' },
-  { category: 'Food & Dining', monthly: 1200, icon: '🍽️', color: '#F59E0B' },
-  { category: 'Transportation', monthly: 400, icon: '🚗', color: '#8B5CF6' },
-  { category: 'Utilities', monthly: 500, icon: '⚡', color: '#06B6D4' },
-  { category: 'Healthcare', monthly: 500, icon: '🏥', color: '#EC4899' },
-  { category: 'Shopping', monthly: 400, icon: '🛍️', color: '#10B981' },
-  { category: 'Entertainment', monthly: 100, icon: '🎬', color: '#F97316' },
-  { category: 'Business', monthly: 500, icon: '💼', color: '#84CC16' },
+  { category: 'Housing', monthly: 5500, icon: '🏠', color: '#3B82F6' },
+  { category: 'Food & Dining', monthly: 2000, icon: '🍽️', color: '#F59E0B' },
+  { category: 'Transportation', monthly: 1000, icon: '🚗', color: '#8B5CF6' },
+  { category: 'Utilities', monthly: 550, icon: '⚡', color: '#06B6D4' },
+  { category: 'Shopping', monthly: 1000, icon: '🛍️', color: '#10B981' },
+  { category: 'Entertainment', monthly: 250, icon: '🎬', color: '#F97316' },
 ];
 
 // Monthly spending history for trend chart
 const MONTHLY_TRENDS = [
-  { month: 'Oct', income: 26833, spending: 11000, savings: 15833 },
-  { month: 'Nov', income: 26833, spending: 12600, savings: 14233 },
-  { month: 'Dec', income: 26833, spending: 14200, savings: 12633 },
-  { month: 'Jan', income: 26833, spending: 11400, savings: 15433 },
-  { month: 'Feb', income: 26833, spending: 10700, savings: 16133 },
-  { month: 'Mar', income: 26833, spending: 10300, savings: 16533 },
+  { month: 'Oct', income: 11000, spending: 10800, savings: 200 },
+  { month: 'Nov', income: 11000, spending: 11600, savings: -600 },
+  { month: 'Dec', income: 11000, spending: 14920, savings: -3920 },
+  { month: 'Jan', income: 11000, spending: 12400, savings: -1400 },
+  { month: 'Feb', income: 11000, spending: 13400, savings: -2400 },
+  { month: 'Mar', income: 11800, spending: 10550, savings: 1250 },
 ];
 
 // ─── Net Worth History (for real-time tracking) ─────────────────────────────
 const NET_WORTH_HISTORY = [
-  { month: 'Oct', assets: 218000, liabilities: 1174200, netWorth: -956200 },
-  { month: 'Nov', assets: 224500, liabilities: 1173400, netWorth: -948900 },
-  { month: 'Dec', assets: 228200, liabilities: 1172600, netWorth: -944400 },
-  { month: 'Jan', assets: 233800, liabilities: 1171800, netWorth: -938000 },
-  { month: 'Feb', assets: 237400, liabilities: 1171000, netWorth: -933600 },
-  { month: 'Mar', assets: 237769, liabilities: 1172903, netWorth: -935134 },
+  { month: 'Oct', assets: 285000, liabilities: 1181000, netWorth: -896000 },
+  { month: 'Nov', assets: 287000, liabilities: 1180500, netWorth: -893500 },
+  { month: 'Dec', assets: 289000, liabilities: 1180000, netWorth: -891000 },
+  { month: 'Jan', assets: 291000, liabilities: 1181000, netWorth: -890000 },
+  { month: 'Feb', assets: 293000, liabilities: 1181500, netWorth: -888500 },
+  { month: 'Mar', assets: 295000, liabilities: 1180900, netWorth: -885900 },
 ];
 
 const CATEGORY_COLORS = {
@@ -324,8 +322,55 @@ const CATEGORY_COLORS = {
   'Income': '#10B981',
 };
 
+// ─── View Modes Configuration ────────────────────────────────────────
+const VIEW_MODES = {
+  household: {
+    label: 'Household',
+    icon: '🏠',
+    description: 'All personal accounts for both Ayoola & Jamie',
+    accountFilter: (a) => a.institution !== 'Novo',
+  },
+  ayoola: {
+    label: 'Ayoola',
+    icon: '👤',
+    description: 'Ayoola\'s accounts',
+    accountFilter: (a) => ['Chase', 'Robinhood', 'Human Interest', 'Venmo'].includes(a.institution) || a.owner === 'Ayoola' || a.owner === 'Joint',
+  },
+  jamie: {
+    label: 'Jamie',
+    icon: '👥',
+    description: 'Jamie\'s accounts',
+    accountFilter: (a) => ['KeyBank', 'TIAA', 'Federal / Servicer'].includes(a.institution) || a.owner === 'Jamie' || a.owner === 'Joint',
+  },
+  business: {
+    label: 'Business',
+    icon: '💼',
+    description: 'All business accounts',
+    accountFilter: (a) => a.institution === 'Novo' || ['NimbusTech', 'Olaporations'].includes(a.owner),
+  },
+  nimbus: {
+    label: 'NimbusTech',
+    icon: '🚀',
+    description: 'NimbusTech accounts',
+    accountFilter: (a) => a.institution === 'Novo',
+  },
+  olaporations: {
+    label: 'Olaporations',
+    icon: '🎯',
+    description: 'Olaporations accounts',
+    accountFilter: (a) => a.owner === 'Olaporations',
+  },
+  investments: {
+    label: 'Investments',
+    icon: '📈',
+    description: 'All investment & retirement accounts',
+    accountFilter: (a) => a.type === 'investment',
+  },
+};
+
 export default function AccountsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [viewMode, setViewMode] = useState('household');
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -414,7 +459,7 @@ export default function AccountsDashboard() {
   };
 
   // ─── Choose data source ───────────────────────────────────────────────
-  const accounts = isLive ? liveAccounts.map(a => ({
+  const allAccounts = isLive ? liveAccounts.map(a => ({
     id: a.account_id,
     name: a.nickname || a.name,
     institution: a.institution || a.plaid_items?.institution_name || 'Unknown',
@@ -429,7 +474,7 @@ export default function AccountsDashboard() {
     isManual: !a.plaid_item_id,
   })) : ACCOUNTS;
 
-  const transactions = isLive ? liveTransactions.map(t => ({
+  const allTransactions = isLive ? liveTransactions.map(t => ({
     id: t.transaction_id,
     date: t.date,
     description: t.name || t.merchant_name || 'Unknown',
@@ -438,6 +483,17 @@ export default function AccountsDashboard() {
     account: t.account_id,
     type: t.amount > 0 ? 'expense' : t.amount < 0 ? 'income' : 'transfer',
   })) : generateMockTransactions();
+
+  // Filter by active view
+  const accounts = useMemo(() => {
+    const filter = VIEW_MODES[viewMode]?.accountFilter;
+    return filter ? allAccounts.filter(filter) : allAccounts;
+  }, [allAccounts, viewMode]);
+
+  const transactions = useMemo(() => {
+    const accountIds = new Set(accounts.map(a => a.id));
+    return allTransactions.filter(t => accountIds.has(t.account));
+  }, [allTransactions, accounts]);
 
   // ─── Computed Data ──────────────────────────────────────────────────────
   const totalAssets = useMemo(() => {
@@ -585,6 +641,23 @@ export default function AccountsDashboard() {
             Plaid error: {plaidError}
           </div>
         )}
+
+        {/* View Toggle */}
+        <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" style={{ scrollbarWidth: 'none' }}>
+          {Object.entries(VIEW_MODES).map(([key, mode]) => (
+            <button
+              key={key}
+              onClick={() => setViewMode(key)}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                viewMode === key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+            >
+              {mode.icon} {mode.label}
+            </button>
+          ))}
+        </div>
 
         {/* Sub-tabs */}
         <div className="flex gap-1 bg-gray-900 rounded-lg p-1">

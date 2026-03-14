@@ -287,6 +287,10 @@ const BUDGETS = [
   { category: 'Utilities', monthly: 550, icon: '⚡', color: '#06B6D4' },
   { category: 'Shopping', monthly: 1000, icon: '🛍️', color: '#10B981' },
   { category: 'Entertainment', monthly: 250, icon: '🎬', color: '#F97316' },
+  { category: 'Healthcare', monthly: 200, icon: '🏥', color: '#EC4899' },
+  { category: 'Business', monthly: 500, icon: '💼', color: '#84CC16' },
+  { category: 'Loan Payment', monthly: 160, icon: '🎓', color: '#A855F7' },
+  { category: 'Interest & Fees', monthly: 0, icon: '🏦', color: '#EF4444' },
 ];
 
 // Monthly spending history for trend chart
@@ -320,6 +324,9 @@ const CATEGORY_COLORS = {
   'Business': '#84CC16',
   'Transfer': '#9CA3AF',
   'Income': '#10B981',
+  'Loan Payment': '#A855F7',
+  'Interest & Fees': '#EF4444',
+  'Uncategorized': '#6B7280',
 };
 
 // ─── View Modes Configuration ────────────────────────────────────────
@@ -475,15 +482,58 @@ export default function AccountsDashboard() {
     isManual: !a.plaid_item_id,
   })) : ACCOUNTS;
 
-  const allTransactions = isLive ? liveTransactions.map(t => ({
-    id: t.transaction_id,
-    date: t.date,
-    description: t.name || t.merchant_name || 'Unknown',
-    amount: -t.amount, // Plaid: positive = debit; our UI: negative = expense
-    category: t.primary_category || 'Uncategorized',
-    account: t.account_id,
-    type: t.amount > 0 ? 'expense' : t.amount < 0 ? 'income' : 'transfer',
-  })) : generateMockTransactions();
+  const allTransactions = isLive ? liveTransactions.map(t => {
+    const name = (t.name || '').toUpperCase();
+    const merchant = (t.merchant_name || '').toUpperCase();
+    let category = t.primary_category || 'Uncategorized';
+    let type = t.amount > 0 ? 'expense' : t.amount < 0 ? 'income' : 'transfer';
+
+    // ─── Fix Plaid miscategorizations ────────────────────────────────
+    // CC payments are transfers between accounts, not spending
+    if (name.includes('CAPITAL ONE') && (name.includes('PMT') || name.includes('PAYMENT'))
+      || name.includes('PAYMENT TO CHASE CARD')
+      || name.includes('CHASE CARD') && name.includes('PAYMENT')
+      || (merchant.includes('CAPITAL ONE') && name.includes('PMT'))) {
+      category = 'Transfer';
+      type = 'transfer';
+    }
+    // Student loan payments are loan payments, not housing
+    else if (name.includes('UAS EPAYMENT') || name.includes('STUDENT LOAN')
+      || name.includes('MOHELA') || name.includes('NELNET') || name.includes('AIDVANTAGE')
+      || name.includes('FEDLOAN') || name.includes('GREAT LAKES')) {
+      category = 'Loan Payment';
+      type = 'expense';
+    }
+    // Interest/finance charges stay as-is but get their own category
+    else if (name.includes('INTEREST CHARGE') || name.includes('FINANCE CHARGE')
+      || name.includes('PURCHASE INTEREST') || name.includes('CASH ADVANCE INTEREST')) {
+      category = 'Interest & Fees';
+      type = 'expense';
+    }
+    // Overdraft and bank fees
+    else if (name.includes('OVERDRAFT FEE') || name.includes('NON-CHASE ATM FEE')
+      || name.includes('FOREIGN TRANSACTION FEE') || name.includes('CASH ADVANCE FEE')
+      || name.includes('TRANSACTION FEE') || name.includes('PLAN FEE')) {
+      category = 'Interest & Fees';
+      type = 'expense';
+    }
+    // Inter-business transfers (NT → Olaporations etc.)
+    else if (name.includes('OLAPORATIONS') || name.includes('NIMBUS')
+      || (name.includes('AAYO TECH') && type === 'expense')) {
+      category = 'Transfer';
+      type = 'transfer';
+    }
+
+    return {
+      id: t.transaction_id,
+      date: t.date,
+      description: t.name || t.merchant_name || 'Unknown',
+      amount: -t.amount,
+      category,
+      account: t.account_id,
+      type,
+    };
+  }) : generateMockTransactions();
 
   // Filter by active view
   const accounts = useMemo(() => {

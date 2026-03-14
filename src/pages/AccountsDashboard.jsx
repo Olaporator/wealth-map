@@ -444,6 +444,7 @@ export default function AccountsDashboard() {
   // ─── Edit manual account balance ────────────────────────────────────
   const [editingAccount, setEditingAccount] = useState(null);
   const [editBalance, setEditBalance] = useState('');
+  const [expandedBudget, setExpandedBudget] = useState(null);
 
   const handleUpdateBalance = async (accountId) => {
     const newBalance = parseFloat(editBalance);
@@ -548,6 +549,21 @@ export default function AccountsDashboard() {
       spent: Math.round((spent[b.category] || 0) * 100) / 100,
       pct: Math.round(((spent[b.category] || 0) / b.monthly) * 100),
     }));
+  }, [transactions]);
+
+  // Group transactions by budget category for drill-down
+  const budgetTransactions = useMemo(() => {
+    const grouped = {};
+    transactions
+      .filter(t => t.date.startsWith('2026-03') && t.type === 'expense')
+      .forEach(t => {
+        const cat = t.category;
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(t);
+      });
+    // Sort each category's transactions by amount (largest first)
+    Object.values(grouped).forEach(arr => arr.sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)));
+    return grouped;
   }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
@@ -1159,41 +1175,84 @@ export default function AccountsDashboard() {
                 <h3 className="text-sm font-semibold text-gray-300">Category Budgets</h3>
               </div>
               <div className="divide-y divide-gray-800/50">
-                {budgetProgress.map(budget => (
-                  <div key={budget.category} className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span>{budget.icon}</span>
-                        <span className="text-sm text-white">{budget.category}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm text-white">{formatFull(budget.spent)}</span>
-                        <span className="text-gray-500 text-sm"> / {formatFull(budget.monthly)}</span>
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
+                {budgetProgress.map(budget => {
+                  const isExpanded = expandedBudget === budget.category;
+                  const catTxns = budgetTransactions[budget.category] || [];
+                  return (
+                    <div key={budget.category}>
                       <div
-                        className={`h-2 rounded-full transition-all ${
-                          budget.pct > 100 ? 'bg-red-500' : budget.pct > 80 ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`}
-                        style={{ width: `${Math.min(budget.pct, 100)}%` }}
-                      />
+                        className="p-4 cursor-pointer hover:bg-gray-800/50 transition"
+                        onClick={() => setExpandedBudget(isExpanded ? null : budget.category)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span>{budget.icon}</span>
+                            <span className="text-sm text-white">{budget.category}</span>
+                            <span className="text-xs text-gray-600">
+                              {catTxns.length} txn{catTxns.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-right">
+                              <span className="text-sm text-white">{formatFull(budget.spent)}</span>
+                              <span className="text-gray-500 text-sm"> / {formatFull(budget.monthly)}</span>
+                            </div>
+                            <span className={`text-gray-500 text-xs transition-transform ${isExpanded ? 'rotate-180' : ''}`}>▼</span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              budget.pct > 100 ? 'bg-red-500' : budget.pct > 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${Math.min(budget.pct, 100)}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className={`text-xs ${
+                            budget.pct > 100 ? 'text-red-400' : budget.pct > 80 ? 'text-amber-400' : 'text-gray-500'
+                          }`}>
+                            {budget.pct}% used
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {budget.pct <= 100
+                              ? `${formatFull(budget.monthly - budget.spent)} remaining`
+                              : `${formatFull(budget.spent - budget.monthly)} over budget`
+                            }
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Expanded transaction list */}
+                      {isExpanded && catTxns.length > 0 && (
+                        <div className="bg-gray-950/50 border-t border-gray-800/50 px-4 pb-3">
+                          <div className="max-h-64 overflow-y-auto divide-y divide-gray-800/30">
+                            {catTxns.map((t, i) => (
+                              <div key={t.id || i} className="flex items-center justify-between py-2 text-xs">
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-gray-300 truncate">{t.description}</div>
+                                  <div className="text-gray-600">{t.date}</div>
+                                </div>
+                                <div className="text-red-400 font-medium ml-3 whitespace-nowrap">
+                                  {formatFull(Math.abs(t.amount))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-gray-800/50 flex justify-between text-xs">
+                            <span className="text-gray-500">{catTxns.length} transaction{catTxns.length !== 1 ? 's' : ''}</span>
+                            <span className="text-white font-medium">{formatFull(catTxns.reduce((s, t) => s + Math.abs(t.amount), 0))}</span>
+                          </div>
+                        </div>
+                      )}
+                      {isExpanded && catTxns.length === 0 && (
+                        <div className="bg-gray-950/50 border-t border-gray-800/50 px-4 py-3">
+                          <div className="text-xs text-gray-600 text-center">No transactions this month</div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex justify-between mt-1">
-                      <span className={`text-xs ${
-                        budget.pct > 100 ? 'text-red-400' : budget.pct > 80 ? 'text-amber-400' : 'text-gray-500'
-                      }`}>
-                        {budget.pct}% used
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {budget.pct <= 100
-                          ? `${formatFull(budget.monthly - budget.spent)} remaining`
-                          : `${formatFull(budget.spent - budget.monthly)} over budget`
-                        }
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

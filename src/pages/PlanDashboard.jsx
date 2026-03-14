@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
+import { api } from '../lib/api';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
@@ -23,12 +24,15 @@ export default function PlanDashboard() {
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
 
+  const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
+
   const [assumptions, setAssumptions] = useState({
     // Starting Balances
     currentAge: 31,
     cCorpStart: 100000,
-    k401Start: 15000,
-    jamie401kStart: 50000,
+    k401Start: 14819,       // Human Interest 401k (real: $14,818.55)
+    jamie401kStart: 58358,  // TIAA 403b (real: $58,357.98)
+    jamie457Start: 17000,   // TIAA 457 (real: $17,000)
     iraStart: 5000,
     seattleEquityStart: 30000,
     
@@ -129,6 +133,41 @@ export default function PlanDashboard() {
     effectiveTaxRate: 25, // average effective tax rate on personal income
     cCorpTaxRate: 21, // corporate tax rate on C-Corp growth
   });
+
+  // Pull live account balances from Supabase to sync with projections
+  useEffect(() => {
+    if (liveBalancesLoaded) return;
+    api.getAccounts(false).then(data => {
+      if (!data.accounts || data.accounts.length === 0) return;
+      const updates = {};
+      data.accounts.forEach(a => {
+        const bal = Math.abs(a.current_balance || 0);
+        const id = a.account_id;
+        const sub = a.subtype || '';
+        const name = (a.name || '').toLowerCase();
+
+        // Map live accounts to plan assumptions
+        if (id === 'manual_ayoola_401k' || sub === '401k') {
+          if (name.includes('ayoola') || a.owner === 'Ayoola') updates.k401Start = Math.round(bal);
+        }
+        if (id === 'manual_jamie_403b' || sub === '403b') {
+          updates.jamie401kStart = Math.round(bal);
+        }
+        if (id === 'manual_jamie_457' || sub === '457b') {
+          updates.jamie457Start = Math.round(bal);
+        }
+        // C-Corp Novo balance
+        if (name.includes('olaporations') || name.includes('c-corp')) {
+          updates.cCorpStart = Math.round(bal);
+        }
+      });
+
+      if (Object.keys(updates).length > 0) {
+        setAssumptions(prev => ({ ...prev, ...updates }));
+        setLiveBalancesLoaded(true);
+      }
+    }).catch(() => {});
+  }, [liveBalancesLoaded]);
 
   const toggleTooltip = (id) => {
     setActiveTooltip(activeTooltip === id ? null : id);

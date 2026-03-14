@@ -373,18 +373,37 @@ export default function AccountsDashboard() {
     }
   };
 
+  // ─── Edit manual account balance ────────────────────────────────────
+  const [editingAccount, setEditingAccount] = useState(null);
+  const [editBalance, setEditBalance] = useState('');
+
+  const handleUpdateBalance = async (accountId) => {
+    const newBalance = parseFloat(editBalance);
+    if (isNaN(newBalance)) return;
+    try {
+      await api.updateManualAccount(accountId, { current_balance: newBalance });
+      await fetchLiveData(false);
+      setEditingAccount(null);
+      setEditBalance('');
+    } catch (err) {
+      console.error('Failed to update balance:', err);
+    }
+  };
+
   // ─── Choose data source ───────────────────────────────────────────────
   const accounts = isLive ? liveAccounts.map(a => ({
     id: a.account_id,
     name: a.nickname || a.name,
     institution: a.institution || a.plaid_items?.institution_name || 'Unknown',
     type: a.type === 'depository' ? 'checking' : a.type,
+    subtype: a.subtype || '',
     owner: a.owner || 'Unknown',
     icon: a.icon || '🏦',
     color: a.color || '#6B7280',
     balance: Math.abs(a.current_balance || 0),
     available: a.available_balance,
     limit: a.credit_limit,
+    isManual: !a.plaid_item_id,
   })) : ACCOUNTS;
 
   const transactions = isLive ? liveTransactions.map(t => ({
@@ -670,26 +689,67 @@ export default function AccountsDashboard() {
                 {accounts.map(account => (
                   <div
                     key={account.id}
-                    onClick={() => { setSelectedAccount(account.id); setActiveTab('transactions'); }}
+                    onClick={() => {
+                      if (account.isManual) {
+                        setEditingAccount(editingAccount === account.id ? null : account.id);
+                        setEditBalance(account.balance.toString());
+                      } else {
+                        setSelectedAccount(account.id); setActiveTab('transactions');
+                      }
+                    }}
                     className="flex items-center justify-between p-3 bg-gray-800 rounded-lg hover:bg-gray-750 cursor-pointer transition hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{account.icon}</span>
                       <div>
-                        <div className="text-sm font-medium text-white">{account.name}</div>
-                        <div className="text-xs text-gray-500">{account.institution} · {account.owner}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-white">{account.name}</span>
+                          {account.isManual && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-400">Manual</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {account.institution} · {account.owner}
+                          {account.subtype && ` · ${account.subtype}`}
+                        </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`text-sm font-bold ${
-                        account.type === 'loan' || account.type === 'credit' ? 'text-red-400' : 'text-white'
-                      }`}>
-                        {account.type === 'loan' || account.type === 'credit' ? '-' : ''}{formatFull(account.balance)}
-                      </div>
-                      {account.type === 'credit' && (
+                      {editingAccount === account.id ? (
+                        <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                          <span className="text-gray-500 text-sm">$</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={editBalance}
+                            onChange={e => setEditBalance(e.target.value)}
+                            className="w-28 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white outline-none focus:border-emerald-500"
+                            autoFocus
+                            onKeyDown={e => { if (e.key === 'Enter') handleUpdateBalance(account.id); }}
+                          />
+                          <button
+                            onClick={() => handleUpdateBalance(account.id)}
+                            className="text-xs px-2 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-white"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className={`text-sm font-bold ${
+                            account.type === 'loan' || account.type === 'credit' ? 'text-red-400' : 'text-white'
+                          }`}>
+                            {account.type === 'loan' || account.type === 'credit' ? '-' : ''}{formatFull(account.balance)}
+                          </div>
+                          {account.isManual && (
+                            <div className="text-xs text-gray-600">click to edit</div>
+                          )}
+                        </>
+                      )}
+                      {!editingAccount && account.type === 'credit' && (
                         <div className="text-xs text-gray-500">{formatFull(account.available)} available</div>
                       )}
-                      {account.type === 'checking' && account.available && (
+                      {!editingAccount && account.type === 'checking' && account.available && (
                         <div className="text-xs text-gray-500">{formatFull(account.available)} available</div>
                       )}
                     </div>

@@ -75,4 +75,20 @@ export const api = {
       method: 'POST',
       body: { item_id },
     }),
+
+  // Manual accounts (non-Plaid)
+  getManualAccounts: () =>
+    request('/manual-accounts'),
+
+  createManualAccount: (account) =>
+    request('/manual-accounts', {
+      method: 'POST',
+      body: account,
+    }),
+
+  updateManualAccount: (account_id, updates) =>
+    request('/manual-accounts', {
+      method: 'PUT',
+      body: { account_id, ...updates },
+    }),
 };

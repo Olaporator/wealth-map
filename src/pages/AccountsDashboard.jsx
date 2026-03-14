@@ -53,7 +53,20 @@ const ACCOUNTS = [
     available: null,
   },
   {
-    id: 'tiaa',
+    id: 'chase_credit',
+    name: 'Chase Credit Card',
+    institution: 'Chase',
+    type: 'credit',
+    owner: 'Ayoola',
+    icon: '💳',
+    color: '#1D4ED8',
+    plaidInstitutionId: 'ins_3', // Chase
+    balance: 1635.80,
+    available: 13364.20,
+    limit: 15000,
+  },
+  {
+    id: 'tiaa_403b',
     name: 'Jamie 403b',
     institution: 'TIAA',
     type: 'investment',
@@ -61,7 +74,19 @@ const ACCOUNTS = [
     icon: '🏥',
     color: '#EC4899',
     plaidInstitutionId: 'ins_116530', // TIAA
-    balance: 53210.00,
+    balance: 38640.00,
+    available: null,
+  },
+  {
+    id: 'tiaa_457',
+    name: 'Jamie 457 Deferred Comp',
+    institution: 'TIAA',
+    type: 'investment',
+    owner: 'Jamie',
+    icon: '🏛️',
+    color: '#D946EF',
+    plaidInstitutionId: 'ins_116530', // TIAA
+    balance: 14570.00,
     available: null,
   },
   {
@@ -100,6 +125,19 @@ const ACCOUNTS = [
     balance: 968420.00,
     available: null,
     limit: 970000,
+  },
+  {
+    id: 'student_loans',
+    name: 'Jamie Student Loans',
+    institution: 'Federal / Servicer',
+    type: 'loan',
+    owner: 'Jamie',
+    icon: '🎓',
+    color: '#A855F7',
+    plaidInstitutionId: null, // Will need servicer-specific Plaid ID (Mohela, Aidvantage, etc.)
+    balance: 200000.00,
+    available: null,
+    limit: 200000,
   },
   {
     id: 'capitalone',
@@ -191,9 +229,18 @@ const generateMockTransactions = () => {
   txns.push({ id: 't080', date: '2026-03-09', description: 'Amazon.com', amount: -67.42, category: 'Shopping', account: 'capitalone', type: 'expense' });
   txns.push({ id: 't081', date: '2026-03-05', description: 'Target', amount: -45.88, category: 'Shopping', account: 'capitalone', type: 'expense' });
 
+  // Chase credit card charges
+  txns.push({ id: 't083', date: '2026-03-10', description: 'Home Depot', amount: -127.45, category: 'Shopping', account: 'chase_credit', type: 'expense' });
+  txns.push({ id: 't084', date: '2026-03-07', description: 'Safeway', amount: -68.30, category: 'Food & Dining', account: 'chase_credit', type: 'expense' });
+  txns.push({ id: 't085', date: '2026-03-03', description: 'Shell Gas', amount: -54.20, category: 'Transportation', account: 'chase_credit', type: 'expense' });
+
+  // Student loan payment
+  txns.push({ id: 't086', date: '2026-03-05', description: 'Federal Student Loan Payment', amount: -1800.00, category: 'Housing', account: 'keybank_checking', type: 'expense' });
+
   // Retirement contributions
   txns.push({ id: 't090', date: '2026-03-01', description: '401k Contribution - Human Interest', amount: -1000.00, category: 'Transfer', account: 'chase', type: 'transfer' });
   txns.push({ id: 't091', date: '2026-03-01', description: '403b Contribution - TIAA', amount: -833.33, category: 'Transfer', account: 'keybank_checking', type: 'transfer' });
+  txns.push({ id: 't093', date: '2026-03-01', description: '457 Contribution - TIAA (reduced)', amount: -200.00, category: 'Transfer', account: 'keybank_checking', type: 'transfer' });
   txns.push({ id: 't092', date: '2026-03-01', description: 'Robinhood Transfer', amount: -500.00, category: 'Transfer', account: 'chase', type: 'transfer' });
 
   // February transactions for trend data
@@ -209,34 +256,34 @@ const generateMockTransactions = () => {
 
 // ─── Budget Definitions ─────────────────────────────────────────────────────
 const BUDGETS = [
-  { category: 'Housing', monthly: 6000, icon: '🏠', color: '#3B82F6' },
+  { category: 'Housing', monthly: 7800, icon: '🏠', color: '#3B82F6' },
   { category: 'Food & Dining', monthly: 1200, icon: '🍽️', color: '#F59E0B' },
   { category: 'Transportation', monthly: 400, icon: '🚗', color: '#8B5CF6' },
   { category: 'Utilities', monthly: 500, icon: '⚡', color: '#06B6D4' },
   { category: 'Healthcare', monthly: 500, icon: '🏥', color: '#EC4899' },
-  { category: 'Shopping', monthly: 300, icon: '🛍️', color: '#10B981' },
+  { category: 'Shopping', monthly: 400, icon: '🛍️', color: '#10B981' },
   { category: 'Entertainment', monthly: 100, icon: '🎬', color: '#F97316' },
   { category: 'Business', monthly: 500, icon: '💼', color: '#84CC16' },
 ];
 
 // Monthly spending history for trend chart
 const MONTHLY_TRENDS = [
-  { month: 'Oct', income: 26833, spending: 9200, savings: 17633 },
-  { month: 'Nov', income: 26833, spending: 10800, savings: 16033 },
-  { month: 'Dec', income: 26833, spending: 12400, savings: 14433 },
-  { month: 'Jan', income: 26833, spending: 9600, savings: 17233 },
-  { month: 'Feb', income: 26833, spending: 8900, savings: 17933 },
-  { month: 'Mar', income: 26833, spending: 8450, savings: 18383 },
+  { month: 'Oct', income: 26833, spending: 11000, savings: 15833 },
+  { month: 'Nov', income: 26833, spending: 12600, savings: 14233 },
+  { month: 'Dec', income: 26833, spending: 14200, savings: 12633 },
+  { month: 'Jan', income: 26833, spending: 11400, savings: 15433 },
+  { month: 'Feb', income: 26833, spending: 10700, savings: 16133 },
+  { month: 'Mar', income: 26833, spending: 10300, savings: 16533 },
 ];
 
 // ─── Net Worth History (for real-time tracking) ─────────────────────────────
 const NET_WORTH_HISTORY = [
-  { month: 'Oct', assets: 218000, liabilities: 971200, netWorth: -753200 },
-  { month: 'Nov', assets: 224500, liabilities: 970800, netWorth: -746300 },
-  { month: 'Dec', assets: 228200, liabilities: 970400, netWorth: -742200 },
-  { month: 'Jan', assets: 233800, liabilities: 970000, netWorth: -736200 },
-  { month: 'Feb', assets: 237400, liabilities: 969600, netWorth: -732200 },
-  { month: 'Mar', assets: 232329, liabilities: 971268, netWorth: -738939 },
+  { month: 'Oct', assets: 218000, liabilities: 1174200, netWorth: -956200 },
+  { month: 'Nov', assets: 224500, liabilities: 1173400, netWorth: -948900 },
+  { month: 'Dec', assets: 228200, liabilities: 1172600, netWorth: -944400 },
+  { month: 'Jan', assets: 233800, liabilities: 1171800, netWorth: -938000 },
+  { month: 'Feb', assets: 237400, liabilities: 1171000, netWorth: -933600 },
+  { month: 'Mar', assets: 237769, liabilities: 1172903, netWorth: -935134 },
 ];
 
 const CATEGORY_COLORS = {
@@ -688,7 +735,7 @@ export default function AccountsDashboard() {
                   </AreaChart>
                 </ResponsiveContainer>
                 <div className="text-center text-xs text-gray-500 mt-1">
-                  Net worth improving as mortgage pays down — currently negative due to $970K mortgage
+                  Net worth improving as debt pays down — currently negative due to $970K mortgage + $200K student loans
                 </div>
               </div>
             </div>
@@ -698,12 +745,13 @@ export default function AccountsDashboard() {
               <h3 className="text-sm font-semibold text-gray-300 mb-3">🔗 Connected Institutions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
-                  { name: 'Chase', status: 'demo', accounts: 1 },
+                  { name: 'Chase', status: 'demo', accounts: 2 },
                   { name: 'Novo', status: 'demo', accounts: 2 },
                   { name: 'Human Interest', status: 'demo', accounts: 1 },
-                  { name: 'TIAA', status: 'demo', accounts: 1 },
+                  { name: 'TIAA', status: 'demo', accounts: 2 },
                   { name: 'Robinhood', status: 'demo', accounts: 1 },
                   { name: 'KeyBank', status: 'demo', accounts: 2 },
+                  { name: 'Federal Loans', status: 'demo', accounts: 1 },
                   { name: 'Capital One', status: 'demo', accounts: 1 },
                 ].map(inst => (
                   <div key={inst.name} className="bg-gray-800 rounded-lg p-3 text-center">

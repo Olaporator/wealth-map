@@ -512,7 +512,7 @@ export default function AccountsDashboard() {
   const GAS_AUTO_NAMES = [
     'GREENWOOD 76', '76 ', 'SHELL', 'CHEVRON', 'ARCO', 'BP ', 'EXXON',
     'MOBIL', 'TEXACO', 'CITGO', 'VALERO', 'SPEEDWAY', 'CIRCLE K',
-    'WAWA', 'KWIK', 'GAS', 'FUEL', 'PETRO', 'SUNOCO', 'MARATHON',
+    'WAWA', 'KWIK', 'GAS', 'FUEL', 'PETRO', 'SUNOCO', 'MARATHON', '7-ELEVEN', '7 ELEVEN', '711 ',
     'PHILLIPS 66', 'CONOCO', 'SINCLAIR', 'AM PM', 'AMPM',
   ];
 
@@ -593,6 +593,16 @@ export default function AccountsDashboard() {
     else if (SUBSCRIPTION_NAMES.some(s => name.includes(s) || merchant.includes(s))
       && category !== 'Transfer' && category !== 'Income') {
       category = 'Lifestyle & Subs';
+    }
+    // Catch grocery stores Plaid miscategorized as Shopping/other
+    else if (GROCERY_NAMES.some(g => name.includes(g) || merchant.includes(g))
+      && category !== 'Transfer' && category !== 'Income') {
+      category = 'Groceries';
+    }
+    // Catch dining/delivery Plaid miscategorized as Shopping/other
+    else if (DELIVERY_DINING_NAMES.some(d => name.includes(d) || merchant.includes(d))
+      && category !== 'Transfer' && category !== 'Income') {
+      category = 'Dining & Delivery';
     }
     // Shopping stays Shopping (travel spillover handled in effectiveTransactions)
     else if (category === 'Shopping') {

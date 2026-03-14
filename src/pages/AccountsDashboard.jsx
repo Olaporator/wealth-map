@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, Legend, AreaChart, Area } from 'recharts';
+import { api } from '../lib/api';
+import { usePlaidLink } from '../lib/usePlaidLink';
 
 // ─── Account Definitions (Plaid-ready) ─────────────────────────────────────
 // Each account has an institutionId placeholder for Plaid linking
@@ -303,22 +305,110 @@ export default function AccountsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [plaidConnecting, setPlaidConnecting] = useState(false);
 
-  const transactions = useMemo(() => generateMockTransactions(), []);
+  // ─── Live vs Demo Mode ────────────────────────────────────────────────
+  const [isLive, setIsLive] = useState(false);
+  const [liveAccounts, setLiveAccounts] = useState([]);
+  const [liveTransactions, setLiveTransactions] = useState([]);
+  const [liveBudgets, setLiveBudgets] = useState([]);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
+  const [apiError, setApiError] = useState(null);
+
+  // Try to load live data on mount
+  const fetchLiveData = useCallback(async (refresh = false) => {
+    try {
+      setApiError(null);
+      const [accountsData, txnData, budgetData] = await Promise.all([
+        api.getAccounts(refresh),
+        api.getTransactions({ limit: 200 }),
+        api.getBudgets(),
+      ]);
+
+      if (accountsData.accounts && accountsData.accounts.length > 0) {
+        setLiveAccounts(accountsData.accounts);
+        setLiveTransactions(txnData.transactions || []);
+        setLiveBudgets(budgetData.budgets || []);
+        setIsLive(true);
+        setLastSync(new Date());
+      }
+    } catch (err) {
+      console.log('Live API not available, using demo data:', err.message);
+      setApiError(err.message);
+      setIsLive(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveData();
+  }, [fetchLiveData]);
+
+  // Plaid Link hook
+  const { openLink, loading: plaidLoading, error: plaidError } = usePlaidLink({
+    onSuccess: async () => {
+      // After linking, refresh everything
+      await fetchLiveData(true);
+    },
+  });
+
+  // Manual sync
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await api.syncTransactions();
+      await fetchLiveData(true);
+    } catch (err) {
+      console.error('Sync failed:', err);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  // Connect Account button handler — uses real Plaid Link if API is available, else shows info
+  const handleConnectAccount = async () => {
+    try {
+      await openLink();
+    } catch (err) {
+      alert('Plaid Link will be connected once API keys are configured in Vercel Environment Variables.\n\nNeeded:\n• PLAID_CLIENT_ID\n• PLAID_SECRET\n• PLAID_ENV (sandbox)\n• SUPABASE_URL\n• SUPABASE_SERVICE_KEY');
+    }
+  };
+
+  // ─── Choose data source ───────────────────────────────────────────────
+  const accounts = isLive ? liveAccounts.map(a => ({
+    id: a.account_id,
+    name: a.nickname || a.name,
+    institution: a.institution || a.plaid_items?.institution_name || 'Unknown',
+    type: a.type === 'depository' ? 'checking' : a.type,
+    owner: a.owner || 'Unknown',
+    icon: a.icon || '🏦',
+    color: a.color || '#6B7280',
+    balance: Math.abs(a.current_balance || 0),
+    available: a.available_balance,
+    limit: a.credit_limit,
+  })) : ACCOUNTS;
+
+  const transactions = isLive ? liveTransactions.map(t => ({
+    id: t.transaction_id,
+    date: t.date,
+    description: t.name || t.merchant_name || 'Unknown',
+    amount: -t.amount, // Plaid: positive = debit; our UI: negative = expense
+    category: t.primary_category || 'Uncategorized',
+    account: t.account_id,
+    type: t.amount > 0 ? 'expense' : t.amount < 0 ? 'income' : 'transfer',
+  })) : generateMockTransactions();
 
   // ─── Computed Data ──────────────────────────────────────────────────────
   const totalAssets = useMemo(() => {
-    return ACCOUNTS
+    return accounts
       .filter(a => a.type !== 'loan' && a.type !== 'credit')
       .reduce((sum, a) => sum + a.balance, 0);
-  }, []);
+  }, [accounts]);
 
   const totalLiabilities = useMemo(() => {
-    return ACCOUNTS
+    return accounts
       .filter(a => a.type === 'loan' || a.type === 'credit')
       .reduce((sum, a) => sum + a.balance, 0);
-  }, []);
+  }, [accounts]);
 
   const netWorth = totalAssets - totalLiabilities;
 
@@ -390,14 +480,7 @@ export default function AccountsDashboard() {
   const daysInMonth = 31;
   const monthProgress = Math.round((dayOfMonth / daysInMonth) * 100);
 
-  // ─── Plaid Link Handler (placeholder) ─────────────────────────────────
-  const handlePlaidLink = () => {
-    setPlaidConnecting(true);
-    setTimeout(() => {
-      setPlaidConnecting(false);
-      alert('Plaid Link will be connected once API keys are configured. Currently showing demo data.');
-    }, 1500);
-  };
+  // ─── Plaid Link Handler (see handleConnectAccount above) ──────────────
 
   // ─── Tab Navigation ───────────────────────────────────────────────────
   const tabs = [
@@ -415,20 +498,51 @@ export default function AccountsDashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-2xl font-bold text-white">Accounts & Budget</h2>
-            <p className="text-gray-500 text-sm">March 2026 — Real-time financial overview</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-gray-500 text-sm">March 2026</p>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                isLive
+                  ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-700'
+                  : 'bg-amber-900/50 text-amber-400 border border-amber-700'
+              }`}>
+                {isLive ? '● Live' : '● Demo'}
+              </span>
+              {lastSync && (
+                <span className="text-gray-600 text-xs">
+                  Synced {lastSync.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
           </div>
-          <button
-            onClick={handlePlaidLink}
-            disabled={plaidConnecting}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
-          >
-            {plaidConnecting ? (
-              <><span className="animate-spin">⟳</span> Connecting...</>
-            ) : (
-              <><span>🔗</span> Connect Account</>
+          <div className="flex gap-2">
+            {isLive && (
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="px-3 py-2 bg-gray-800 hover:bg-gray-700 disabled:bg-gray-800 rounded-lg text-sm text-gray-300 transition flex items-center gap-1"
+              >
+                <span className={syncing ? 'animate-spin' : ''}>⟳</span>
+                {syncing ? 'Syncing...' : 'Sync'}
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleConnectAccount}
+              disabled={plaidLoading}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 rounded-lg text-sm font-medium transition flex items-center gap-2"
+            >
+              {plaidLoading ? (
+                <><span className="animate-spin">⟳</span> Connecting...</>
+              ) : (
+                <><span>🔗</span> Connect Account</>
+              )}
+            </button>
+          </div>
         </div>
+        {plaidError && (
+          <div className="mb-3 p-2 bg-red-900/20 border border-red-800 rounded-lg text-xs text-red-400">
+            Plaid error: {plaidError}
+          </div>
+        )}
 
         {/* Sub-tabs */}
         <div className="flex gap-1 bg-gray-900 rounded-lg p-1">
@@ -553,7 +667,7 @@ export default function AccountsDashboard() {
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
               <h3 className="text-sm font-semibold text-gray-300 mb-3">Account Balances</h3>
               <div className="space-y-2">
-                {ACCOUNTS.map(account => (
+                {accounts.map(account => (
                   <div
                     key={account.id}
                     onClick={() => { setSelectedAccount(account.id); setActiveTab('transactions'); }}
@@ -597,7 +711,7 @@ export default function AccountsDashboard() {
               </div>
               <div className="space-y-1">
                 {transactions.slice(0, 8).map(txn => {
-                  const account = ACCOUNTS.find(a => a.id === txn.account);
+                  const account = accounts.find(a => a.id === txn.account);
                   return (
                     <div key={txn.id} className="flex items-center justify-between py-2 px-2 hover:bg-gray-800 rounded transition">
                       <div className="flex items-center gap-3">
@@ -630,7 +744,7 @@ export default function AccountsDashboard() {
               { label: 'Investments & Retirement', types: ['investment'], icon: '📈' },
               { label: 'Loans & Credit', types: ['loan', 'credit'], icon: '💳' },
             ].map(group => {
-              const groupAccounts = ACCOUNTS.filter(a => group.types.includes(a.type));
+              const groupAccounts = accounts.filter(a => group.types.includes(a.type));
               const groupTotal = groupAccounts.reduce((sum, a) => sum + a.balance, 0);
               return (
                 <div key={group.label} className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
@@ -744,26 +858,35 @@ export default function AccountsDashboard() {
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
               <h3 className="text-sm font-semibold text-gray-300 mb-3">🔗 Connected Institutions</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {[
-                  { name: 'Chase', status: 'demo', accounts: 2 },
-                  { name: 'Novo', status: 'demo', accounts: 2 },
-                  { name: 'Human Interest', status: 'demo', accounts: 1 },
-                  { name: 'TIAA', status: 'demo', accounts: 2 },
-                  { name: 'Robinhood', status: 'demo', accounts: 1 },
-                  { name: 'KeyBank', status: 'demo', accounts: 2 },
-                  { name: 'Federal Loans', status: 'demo', accounts: 1 },
-                  { name: 'Capital One', status: 'demo', accounts: 1 },
-                ].map(inst => (
-                  <div key={inst.name} className="bg-gray-800 rounded-lg p-3 text-center">
-                    <div className="text-xs font-medium text-white">{inst.name}</div>
-                    <div className="text-xs text-amber-400 mt-1">● Demo Mode</div>
-                    <div className="text-xs text-gray-500">{inst.accounts} account{inst.accounts > 1 ? 's' : ''}</div>
-                  </div>
-                ))}
+                {(() => {
+                  // Group accounts by institution
+                  const institutions = {};
+                  accounts.forEach(a => {
+                    const inst = a.institution || 'Unknown';
+                    if (!institutions[inst]) institutions[inst] = { name: inst, accounts: 0 };
+                    institutions[inst].accounts++;
+                  });
+                  return Object.values(institutions).map(inst => (
+                    <div key={inst.name} className="bg-gray-800 rounded-lg p-3 text-center">
+                      <div className="text-xs font-medium text-white">{inst.name}</div>
+                      <div className={`text-xs mt-1 ${isLive ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {isLive ? '● Connected' : '● Demo Mode'}
+                      </div>
+                      <div className="text-xs text-gray-500">{inst.accounts} account{inst.accounts > 1 ? 's' : ''}</div>
+                    </div>
+                  ));
+                })()}
               </div>
-              <div className="mt-3 p-3 bg-amber-900/20 border border-amber-800 rounded-lg">
-                <div className="text-xs text-amber-400">
-                  ⚠️ Currently showing demo data. Click "Connect Account" to link real accounts via Plaid once API keys are configured.
+              <div className={`mt-3 p-3 rounded-lg ${
+                isLive
+                  ? 'bg-emerald-900/20 border border-emerald-800'
+                  : 'bg-amber-900/20 border border-amber-800'
+              }`}>
+                <div className={`text-xs ${isLive ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {isLive
+                    ? '✓ Live data — accounts synced via Plaid. Click "Connect Account" to add more institutions.'
+                    : '⚠️ Demo mode — configure Plaid & Supabase env vars in Vercel, then click "Connect Account" to link real accounts.'
+                  }
                 </div>
               </div>
             </div>
@@ -790,7 +913,7 @@ export default function AccountsDashboard() {
                 className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none"
               >
                 <option value="">All Accounts</option>
-                {ACCOUNTS.map(a => (
+                {accounts.map(a => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
@@ -801,12 +924,12 @@ export default function AccountsDashboard() {
               <div className="p-3 border-b border-gray-800 flex justify-between items-center">
                 <span className="text-sm text-gray-400">{filteredTransactions.length} transactions</span>
                 <span className="text-xs text-gray-500">
-                  {selectedAccount ? ACCOUNTS.find(a => a.id === selectedAccount)?.name : 'All Accounts'}
+                  {selectedAccount ? accounts.find(a => a.id === selectedAccount)?.name : 'All Accounts'}
                 </span>
               </div>
               <div className="divide-y divide-gray-800/50">
                 {filteredTransactions.map(txn => {
-                  const account = ACCOUNTS.find(a => a.id === txn.account);
+                  const account = accounts.find(a => a.id === txn.account);
                   return (
                     <div key={txn.id} className="flex items-center justify-between p-3 hover:bg-gray-800 transition">
                       <div className="flex items-center gap-3">

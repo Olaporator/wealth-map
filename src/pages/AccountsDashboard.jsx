@@ -491,7 +491,7 @@ export default function AccountsDashboard() {
     'WHOLE FOODS', 'TRADER JOE', 'SAFEWAY', 'COSTCO', 'WALMART', 'QFC',
     'FRED MEYER', 'AMAZON FRESH', 'TARGET', 'INSTACART', 'PCC', 'NEW ROOTS',
     'AZURE STANDARD', 'SPROUTS', 'GROCERY', 'KROGER', 'PIGGLY', 'PICK N SAVE',
-    'CENTRAL CO-OP', 'TABLE22', 'FLORA BAKE',
+    'CENTRAL CO-OP', 'TABLE22', 'FLORA BAKE', 'PRIMO',
   ];
 
   const DELIVERY_DINING_NAMES = [
@@ -509,6 +509,13 @@ export default function AccountsDashboard() {
     'NETFLIX', 'SPOTIFY', 'YOUTUBE PREMIUM', 'DISNEY+', 'HULU',
     'AMAZON PRIME', 'APPLE.COM/BILL', 'OPENAI', 'ADOBE', 'GOOGLE ONE',
     'AUTOPILOT', 'ROCKET MONEY', 'YMCA', 'CLIFF KEEN',
+  ];
+
+  const GAS_AUTO_NAMES = [
+    'GREENWOOD 76', '76 ', 'SHELL', 'CHEVRON', 'ARCO', 'BP ', 'EXXON',
+    'MOBIL', 'TEXACO', 'CITGO', 'VALERO', 'SPEEDWAY', 'CIRCLE K',
+    'WAWA', 'KWIK', 'GAS', 'FUEL', 'PETRO', 'SUNOCO', 'MARATHON',
+    'PHILLIPS 66', 'CONOCO', 'SINCLAIR', 'AM PM', 'AMPM',
   ];
 
   const allTransactions = isLive ? liveTransactions.map(t => {
@@ -551,6 +558,10 @@ export default function AccountsDashboard() {
       || (name.includes('AAYO TECH') && type === 'expense')) {
       category = 'Transfer';
       type = 'transfer';
+    }
+    // Gas stations & auto → Auto / Transport
+    else if (GAS_AUTO_NAMES.some(g => name.includes(g) || merchant.includes(g))) {
+      category = 'Auto / Transport';
     }
     // ─── Split Food & Dining into Groceries vs Dining & Delivery ─────
     else if (category === 'Food & Dining' || category === 'Food and Drink' || category === 'FOOD_AND_DRINK') {
@@ -642,46 +653,68 @@ export default function AccountsDashboard() {
 
   const spendingByCategory = useMemo(() => {
     const cats = {};
-    transactions
-      .filter(t => t.date.startsWith('2026-03') && t.type === 'expense')
-      .forEach(t => {
-        if (!cats[t.category]) cats[t.category] = 0;
-        cats[t.category] += Math.abs(t.amount);
-      });
+    effectiveTransactions.forEach(t => {
+      if (!cats[t.category]) cats[t.category] = 0;
+      cats[t.category] += Math.abs(t.amount);
+    });
     return Object.entries(cats)
       .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100, color: CATEGORY_COLORS[name] }))
       .sort((a, b) => b.value - a.value);
-  }, [transactions]);
+  }, [effectiveTransactions]);
+
+  // ─── Spillover logic: overflow from Dining, Shopping, Other → Spillover ──
+  const SPILLABLE_CATEGORIES = ['Dining & Delivery', 'Shopping', 'Other'];
+  const spilloverBudgetMap = useMemo(() => {
+    const budgetLimits = {};
+    BUDGETS.forEach(b => { budgetLimits[b.category] = b.monthly; });
+    return budgetLimits;
+  }, []);
+
+  // Compute effective categories with spillover applied
+  const effectiveTransactions = useMemo(() => {
+    const monthTxns = transactions.filter(t => t.date.startsWith('2026-03') && t.type === 'expense');
+    // Sort by date so earlier-in-month transactions stay in their category
+    const sorted = [...monthTxns].sort((a, b) => a.date.localeCompare(b.date));
+    const running = {};
+    return sorted.map(t => {
+      const cat = t.category;
+      const amt = Math.abs(t.amount);
+      if (SPILLABLE_CATEGORIES.includes(cat)) {
+        if (!running[cat]) running[cat] = 0;
+        running[cat] += amt;
+        if (running[cat] > spilloverBudgetMap[cat]) {
+          return { ...t, category: 'Spillover' };
+        }
+      }
+      return t;
+    });
+  }, [transactions, spilloverBudgetMap]);
 
   const budgetProgress = useMemo(() => {
     const spent = {};
-    transactions
-      .filter(t => t.date.startsWith('2026-03') && t.type === 'expense')
-      .forEach(t => {
-        if (!spent[t.category]) spent[t.category] = 0;
-        spent[t.category] += Math.abs(t.amount);
-      });
+    effectiveTransactions.forEach(t => {
+      if (!spent[t.category]) spent[t.category] = 0;
+      spent[t.category] += Math.abs(t.amount);
+    });
     return BUDGETS.map(b => ({
       ...b,
       spent: Math.round((spent[b.category] || 0) * 100) / 100,
-      pct: Math.round(((spent[b.category] || 0) / b.monthly) * 100),
+      pct: b.monthly > 0 ? Math.round(((spent[b.category] || 0) / b.monthly) * 100) : (spent[b.category] > 0 ? 100 : 0),
     }));
-  }, [transactions]);
+  }, [effectiveTransactions]);
 
   // Group transactions by budget category for drill-down
   const budgetTransactions = useMemo(() => {
     const grouped = {};
-    transactions
-      .filter(t => t.date.startsWith('2026-03') && t.type === 'expense')
-      .forEach(t => {
-        const cat = t.category;
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(t);
-      });
+    effectiveTransactions.forEach(t => {
+      const cat = t.category;
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(t);
+    });
     // Sort each category's transactions by amount (largest first)
     Object.values(grouped).forEach(arr => arr.sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)));
     return grouped;
-  }, [transactions]);
+  }, [effectiveTransactions]);
 
   const filteredTransactions = useMemo(() => {
     let txns = transactions;

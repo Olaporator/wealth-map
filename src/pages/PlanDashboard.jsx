@@ -41,9 +41,10 @@ export default function PlanDashboard() {
     cashStart: 6835,          // Chase checking $689 + KeyBank checking $3,659 + KeyBank savings $492 + Novo $2,487 — note: $7K influx coming
 
     // Returns & Appreciation
-    cCorpReturn: 10,
-    k401Return: 8,
-    robinhoodReturn: 10,      // individual brokerage growth
+    cCorpReturn: 30,          // Ayoola's fund strategy (~4.5% in 50 days, annualized ~30%)
+    k401Return: 8,            // 401k in standard funds (not self-directed)
+    robinhoodReturn: 30,      // individual brokerage — Ayoola's fund strategy
+    iraReturn: 30,            // Robinhood IRA — same fund strategy
     jamieReturn: 10,
     entrepreneurReturn: 1,
     homeAppreciation: 6,
@@ -289,7 +290,7 @@ export default function PlanDashboard() {
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
       jamie401k = jamie401k * (1 + assumptions.k401Return / 100) + jamie401kContrib;
       jamie457 = jamie457 * (1 + assumptions.jamie457Return / 100) + (age <= assumptions.jamieEndAge ? assumptions.jamie457Contrib : 0);
-      ira = ira * (1 + assumptions.cCorpReturn / 100);
+      ira = ira * (1 + assumptions.iraReturn / 100);
       robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100);
 
       // CC debt paydown (first ~9 months then $0)

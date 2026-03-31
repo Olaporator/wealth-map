@@ -1,5 +1,6 @@
 // POST /api/plaid/create-link-token
 // Creates a Plaid Link token for the frontend to open the Plaid Link modal
+// Supports "update mode" for re-authenticating existing items without re-linking
 import { Configuration, PlaidApi, PlaidEnvironments, Products, CountryCode } from 'plaid';
 
 const config = new Configuration({
@@ -20,24 +21,29 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { products, institution_id } = req.body || {};
+    const { products, institution_id, access_token } = req.body || {};
 
     const request = {
       user: { client_user_id: 'ayoola-wealth-map' },
       client_name: 'Wealth Map',
-      products: products || [Products.Transactions],
       country_codes: [CountryCode.Us],
       language: 'en',
     };
 
-    // If reconnecting a specific institution
-    if (institution_id) {
-      request.institution_id = institution_id;
-    }
+    // Update mode: re-authenticate an existing item without re-linking
+    if (access_token) {
+      request.access_token = access_token;
+    } else {
+      // Normal link mode
+      request.products = products || [Products.Transactions];
 
-    // Add investment products for retirement/brokerage accounts
-    if (products && products.includes('investments')) {
-      request.products = [Products.Investments];
+      if (institution_id) {
+        request.institution_id = institution_id;
+      }
+
+      if (products && products.includes('investments')) {
+        request.products = [Products.Investments];
+      }
     }
 
     const response = await plaid.linkTokenCreate(request);

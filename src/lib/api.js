@@ -59,6 +59,22 @@ export const api = {
   syncTransactions: () =>
     request('/sync', { method: 'POST' }),
 
+  // Plaid Items (status, re-auth)
+  getItems: () =>
+    request('/items'),
+
+  fixItem: (item_id) =>
+    request('/items', {
+      method: 'PATCH',
+      body: { item_id },
+    }),
+
+  getReauthToken: (item_id) =>
+    request('/reauth', {
+      method: 'POST',
+      body: { item_id },
+    }),
+
   // Budgets
   getBudgets: () =>
     request('/budgets'),

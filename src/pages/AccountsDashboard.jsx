@@ -391,8 +391,10 @@ export default function AccountsDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(null);
   const [apiError, setApiError] = useState(null);
+  const [plaidItems, setPlaidItems] = useState([]);
+  const [reauthLoading, setReauthLoading] = useState(null);
 
-  // Try to load live data on mount
+  // Fetch live data (accounts, transactions, budgets)
   const fetchLiveData = useCallback(async (refresh = false) => {
     try {
       setApiError(null);
@@ -416,15 +418,38 @@ export default function AccountsDashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchLiveData();
-  }, [fetchLiveData]);
+  // Fetch Plaid item statuses (to detect which need re-auth)
+  const fetchItemStatuses = useCallback(async () => {
+    try {
+      const data = await api.getItems();
+      setPlaidItems(data.items || []);
+    } catch (err) {
+      console.log('Could not fetch item statuses:', err.message);
+    }
+  }, []);
 
-  // Plaid Link hook
-  const { openLink, loading: plaidLoading, error: plaidError } = usePlaidLink({
+  // On mount: sync all linked accounts first, then fetch fresh data
+  useEffect(() => {
+    const initSync = async () => {
+      setSyncing(true);
+      try {
+        // Sync all active items (uses saved access tokens — no re-login needed)
+        await api.syncTransactions();
+      } catch (err) {
+        console.log('Auto-sync skipped:', err.message);
+      }
+      setSyncing(false);
+      // Now fetch the freshly synced data + item statuses
+      await Promise.all([fetchLiveData(true), fetchItemStatuses()]);
+    };
+    initSync();
+  }, [fetchLiveData, fetchItemStatuses]);
+
+  // Plaid Link hook (supports both new link and re-auth update mode)
+  const { openLink, openReauth, loading: plaidLoading, error: plaidError } = usePlaidLink({
     onSuccess: async () => {
-      // After linking, refresh everything
       await fetchLiveData(true);
+      await fetchItemStatuses();
     },
   });
 
@@ -433,7 +458,7 @@ export default function AccountsDashboard() {
     setSyncing(true);
     try {
       await api.syncTransactions();
-      await fetchLiveData(true);
+      await Promise.all([fetchLiveData(true), fetchItemStatuses()]);
     } catch (err) {
       console.error('Sync failed:', err);
     } finally {
@@ -441,7 +466,20 @@ export default function AccountsDashboard() {
     }
   };
 
-  // Connect Account button handler — uses real Plaid Link if API is available, else shows info
+  // Re-authenticate a broken Plaid item via update mode
+  const handleReauth = async (item) => {
+    setReauthLoading(item.item_id);
+    try {
+      await openReauth(item.item_id);
+    } catch (err) {
+      console.error('Re-auth failed:', err);
+      setApiError(`Re-auth failed for ${item.institution_name}: ${err.message}`);
+    } finally {
+      setReauthLoading(null);
+    }
+  };
+
+  // Connect Account button handler
   const handleConnectAccount = async () => {
     try {
       await openLink();
@@ -840,6 +878,23 @@ export default function AccountsDashboard() {
             Plaid error: {plaidError}
           </div>
         )}
+
+        {/* Re-auth banners for broken Plaid items */}
+        {plaidItems.filter(i => i.needs_reauth).map(item => (
+          <div key={item.item_id} className="mb-3 p-3 bg-amber-900/20 border border-amber-700 rounded-lg flex items-center justify-between">
+            <div>
+              <span className="text-amber-400 text-sm font-medium">⚠ {item.institution_name || 'Institution'}</span>
+              <span className="text-gray-400 text-xs ml-2">needs re-authentication</span>
+            </div>
+            <button
+              onClick={() => handleReauth(item)}
+              disabled={reauthLoading === item.item_id || plaidLoading}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-700 rounded-lg text-xs font-medium transition"
+            >
+              {reauthLoading === item.item_id ? 'Reconnecting...' : 'Reconnect'}
+            </button>
+          </div>
+        ))}
 
         {/* View Toggle */}
         <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" style={{ scrollbarWidth: 'none' }}>

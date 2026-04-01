@@ -23,6 +23,7 @@ export default function PlanDashboard() {
   const [settingsTab, setSettingsTab] = useState('overview');
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
+  const [ntNewWorkEnabled, setNtNewWorkEnabled] = useState(false); // toggle: NT wins additional $5K/mo work
 
   const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
 
@@ -131,6 +132,10 @@ export default function PlanDashboard() {
     phase5BusinessIncome: 150000,
     phase5BusinessGrowth: 5000,
 
+    // NT Additional Work (toggle)
+    ntNewWorkMonthly: 5000,       // $5K/mo additional NT revenue → C-Corp
+    ntNewWorkStartMonth: 7,       // July 2026
+
     // Withdrawal & Taxes
     safeWithdrawalRate: 4,
     effectiveTaxRate: 25,
@@ -238,6 +243,19 @@ export default function PlanDashboard() {
         entrepreneurContrib = 0;
         businessIncome = assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
         k401Contrib = 0;
+      }
+
+      // ─── NT Additional Work (toggle) ────────────────────────────
+      // $5K/mo additional NT revenue → C-Corp for investment, starting July 2026
+      let ntNewWorkIncome = 0;
+      if (ntNewWorkEnabled) {
+        if (age === assumptions.currentAge) {
+          // First year partial: July-Dec = 6 months
+          ntNewWorkIncome = assumptions.ntNewWorkMonthly * 6;
+        } else {
+          ntNewWorkIncome = assumptions.ntNewWorkMonthly * 12;
+        }
+        cCorpContrib += ntNewWorkIncome;
       }
 
       // ─── Seattle Rental (50/50 co-owned) ─────────────────────────
@@ -389,9 +407,11 @@ export default function PlanDashboard() {
         businessIncome: Math.round(businessIncome),
         passiveIncome: Math.round(passiveIncome),
         safeWithdrawal: Math.round(safeWithdrawal),
+        ntNewWorkIncome: Math.round(ntNewWorkIncome),
         freeCashSources: {
           ayoolaPersonalIncome,
           ayoolaTotalIncome: ayoolaIncome,
+          ntNewWork: ntNewWorkIncome,
           rentalShare: ayoolaRentalShare,
           marginNet,
           businessIncome,
@@ -404,7 +424,7 @@ export default function PlanDashboard() {
       });
     }
     return years;
-  }, [assumptions]);
+  }, [assumptions, ntNewWorkEnabled]);
 
   const formatCurrency = (value) => {
     if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -448,6 +468,7 @@ export default function PlanDashboard() {
               </div>
             )}
             <div className="text-emerald-400">+ Ayoola's W2: {formatCurrency(src.ayoolaPersonalIncome)}</div>
+            {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → C-Corp: {formatCurrency(src.ntNewWork)}</div>}
             <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>
             <div className="text-cyan-400">+ Margin Arbitrage: {formatCurrency(src.marginNet)}</div>
             <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>
@@ -719,6 +740,7 @@ export default function PlanDashboard() {
     const src = d.freeCashSources;
     const items = [
       { label: "Ayoola's W2", value: src.ayoolaPersonalIncome, color: 'text-emerald-400' },
+      { label: 'NT New Work → C-Corp', value: src.ntNewWork, color: 'text-lime-400' },
       { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
       { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
@@ -878,7 +900,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.jamie401k)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
-                <td className="p-2 text-right text-pink-400">{formatCurrency(row.jamieInvestments)}</td>
+                <td className="p-2 text-right text-pink-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.entrepreneur)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
@@ -902,8 +924,22 @@ export default function PlanDashboard() {
         <div className="h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded mt-3" />
       </div>
 
+      {/* Scenario Toggles */}
+      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4 flex items-center justify-between">
+        <div>
+          <span className="text-sm text-white font-medium">NT Wins Additional Work</span>
+          <span className="text-xs text-gray-500 ml-2">+$5K/mo → C-Corp from July 2026</span>
+        </div>
+        <button
+          onClick={() => setNtNewWorkEnabled(!ntNewWorkEnabled)}
+          className={`relative w-12 h-6 rounded-full transition-colors ${ntNewWorkEnabled ? 'bg-emerald-500' : 'bg-gray-700'}`}
+        >
+          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${ntNewWorkEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+        </button>
+      </div>
+
       {/* Settings Panel */}
-      <button 
+      <button
         onClick={() => setShowInputs(!showInputs)}
         className="w-full bg-gray-800 rounded-xl p-3 border border-gray-700 mb-4 text-sm text-gray-400 hover:bg-gray-700 transition"
       >

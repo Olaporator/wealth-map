@@ -830,15 +830,17 @@ export default function PlanDashboard() {
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-        <StatCard 
+        <StatCard
           id="rental"
-          label={`Rental Equity @ ${targetAge1}`}
-          value={formatCurrency(targetData1?.seattleEquity || 0)}
+          label={`Seattle 50% Equity @ ${targetAge1}`}
+          value={formatCurrency(targetData1?.seattleEquity50 || 0)}
           breakdown={[
-            { label: 'Seattle Home Equity', value: targetData1?.seattleEquity || 0, color: 'text-emerald-400' },
-            { label: 'Rental Net/yr', value: targetData1?.rentalNet || 0, color: 'text-blue-400' },
+            { label: 'Total Home Equity', value: targetData1?.seattleEquity || 0, color: 'text-gray-400' },
+            { label: 'Your 50% Share', value: targetData1?.seattleEquity50 || 0, color: 'text-emerald-400' },
+            { label: 'Your Rental Share/yr', value: targetData1?.ayoolaRentalShare || 0, color: 'text-blue-400' },
+            { label: 'Total Rental Net/yr', value: targetData1?.rentalNet || 0, color: 'text-gray-500' },
           ]}
-          monthly={formatMonthly(targetData1?.rentalNet || 0)}
+          monthly={formatMonthly(targetData1?.ayoolaRentalShare || 0)}
           borderColor="emerald-800"
         />
         <StatCard 
@@ -879,10 +881,10 @@ export default function PlanDashboard() {
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
               <TableHeader id="cCorp" label="C-Corp" color="text-blue-400" />
-              <TableHeader id="k401" label="401k" color="text-purple-400" />
-              <TableHeader id="seattle" label="Seattle" color="text-emerald-400" />
+              <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
+              <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
+              <TableHeader id="seattle" label="Seattle 50%" color="text-emerald-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" />
-              <TableHeader id="jamie" label="Jamie's" color="text-pink-400" />
               <TableHeader id="ventures" label="Ventures" color="text-cyan-400" />
               <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
@@ -897,10 +899,10 @@ export default function PlanDashboard() {
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
                 <td className="p-2 text-right text-blue-400">{formatCurrency(row.cCorp)}</td>
-                <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.jamie401k)}</td>
-                <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity)}</td>
+                <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
+                <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
+                <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity50)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
-                <td className="p-2 text-right text-pink-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.entrepreneur)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
@@ -985,7 +987,7 @@ export default function PlanDashboard() {
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="text-xs text-gray-500">Starting Net Worth</div>
                     <div className="text-lg font-bold text-emerald-400">
-                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100))}
+                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.robinhoodStart + (assumptions.seattleEquityStart * 0.5) + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100))}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
@@ -1016,22 +1018,22 @@ export default function PlanDashboard() {
                     <div className="text-center p-2 rounded bg-blue-900/30 border border-blue-800">
                       <div className="text-blue-400 font-semibold">Phase 1</div>
                       <div className="text-gray-400">Ages 31-32</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1AyoolaIncome + assumptions.phase1JamieIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1AyoolaIncome)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-purple-900/30 border border-purple-800">
                       <div className="text-purple-400 font-semibold">Phase 2</div>
                       <div className="text-gray-400">Ages 33-34</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2AyoolaIncome + assumptions.phase2JamieIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2AyoolaIncome)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-red-900/30 border border-red-800">
                       <div className="text-red-400 font-semibold">Gap Year</div>
                       <div className="text-gray-400">Age 35</div>
                       <div className="text-yellow-400 font-medium">{formatCurrency(assumptions.phase3AyoolaIncome)}/yr</div>
                     </div>
-                    <div className="text-center p-2 rounded bg-pink-900/30 border border-pink-800">
-                      <div className="text-pink-400 font-semibold">Phase 4</div>
+                    <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
+                      <div className="text-emerald-400 font-semibold">Phase 4</div>
                       <div className="text-gray-400">Ages 36-45</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4AyoolaIncome)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
                       <div className="text-emerald-400 font-semibold">Coast</div>
@@ -1052,8 +1054,8 @@ export default function PlanDashboard() {
                     <div className="text-blue-400 font-semibold">{formatCurrency(assumptions.grossRentYear1)}/yr</div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3 text-center">
-                    <div className="text-xs text-gray-500">Jamie Peak Income</div>
-                    <div className="text-pink-400 font-semibold">{formatCurrency(assumptions.phase4JamieIncome)}/yr</div>
+                    <div className="text-xs text-gray-500">Robinhood Brokerage</div>
+                    <div className="text-orange-400 font-semibold">{formatCurrency(assumptions.robinhoodStart)}</div>
                   </div>
                 </div>
               </div>
@@ -1067,10 +1069,11 @@ export default function PlanDashboard() {
                   {[
                     { key: 'currentAge', label: 'Current Age', suffix: ' yrs', step: 1 },
                     { key: 'cCorpStart', label: 'C-Corp Balance', prefix: '$', step: 1000 },
-                    { key: 'k401Start', label: "Ayoola's 401k", prefix: '$', step: 1000 },
-                    { key: 'jamie401kStart', label: "Jamie's 401k/457", prefix: '$', step: 1000 },
+                    { key: 'robinhoodStart', label: 'Robinhood Brokerage', prefix: '$', step: 1000 },
+                    { key: 'k401Start', label: "401k Balance", prefix: '$', step: 1000 },
                     { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
-                    { key: 'seattleEquityStart', label: 'Seattle Home Equity', prefix: '$', step: 1000 },
+                    { key: 'seattleEquityStart', label: 'Seattle Total Equity (50% counted)', prefix: '$', step: 1000 },
+                    { key: 'ccDebtStart', label: 'CC Debt', prefix: '$', step: 100 },
                     { key: 'initialAcres', label: 'Current Land Owned', suffix: ' acres', step: 1 },
                   ].map(({ key, label, prefix, suffix, step }) => (
                     <div key={key}>
@@ -1096,8 +1099,8 @@ export default function PlanDashboard() {
                     <span className="text-xs text-gray-500">Starting Net Worth (Calculated)</span>
                     <span className="text-emerald-400 font-bold">
                       {formatCurrency(
-                        assumptions.cCorpStart + assumptions.k401Start + assumptions.jamie401kStart + assumptions.iraStart + 
-                        assumptions.seattleEquityStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)
+                        assumptions.cCorpStart + assumptions.robinhoodStart + assumptions.k401Start + assumptions.iraStart +
+                        (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)
                       )}
                     </span>
                   </div>
@@ -1110,12 +1113,12 @@ export default function PlanDashboard() {
               <div className="space-y-4">
                 {/* Phase 1 */}
                 <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
-                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — Current State</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — Current (Solo)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
                       { key: 'phase1AyoolaIncome', label: "Ayoola's W2/1099" },
-                      { key: 'phase1JamieIncome', label: "Jamie's Resident Salary" },
                       { key: 'phase1CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
+                      { key: 'k401Contrib', label: '401k Contrib/yr' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>
@@ -1126,22 +1129,15 @@ export default function PlanDashboard() {
                         </div>
                       </div>
                     ))}
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Total Household</label>
-                      <div className="flex items-center bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {formatCurrency(assumptions.phase1AyoolaIncome + assumptions.phase1JamieIncome)}/yr
-                      </div>
-                    </div>
                   </div>
                 </div>
-                
+
                 {/* Phase 2 */}
                 <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
-                  <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 33-34 — Transition Period</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 33-34 — Transition</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
                       { key: 'phase2AyoolaIncome', label: "Ayoola's Income" },
-                      { key: 'phase2JamieIncome', label: "Jamie's Income" },
                       { key: 'phase2CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1153,19 +1149,13 @@ export default function PlanDashboard() {
                         </div>
                       </div>
                     ))}
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Total Household</label>
-                      <div className="flex items-center bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {formatCurrency(assumptions.phase2AyoolaIncome + assumptions.phase2JamieIncome)}/yr
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 {/* Phase 3 - Gap Year */}
                 <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
-                  <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 35 — Gap Year (Jamie in Fellowship)</div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 35 — Gap Year</div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Ayoola's Income</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
@@ -1175,38 +1165,27 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Jamie's Income</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Training)</div>
-                    </div>
-                    <div>
                       <label className="text-xs text-gray-400 block mb-1">NT Mgmt Fee → C-Corp</label>
                       <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Paused)</div>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">⚠️ Lean year — living off savings + reduced income</div>
+                  <div className="text-xs text-yellow-400 mt-2">Lean year — living off savings + reduced income</div>
                 </div>
 
                 {/* Phase 4 */}
-                <div className="bg-pink-900/20 rounded-lg p-3 border border-pink-800">
-                  <div className="text-xs text-pink-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Jamie Attending Surgeon</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'phase4AyoolaIncome', label: "Ayoola's Income" },
-                      { key: 'phase4JamieIncome', label: "Jamie's Attending Salary" },
-                      { key: 'jamieContrib', label: "Jamie's Investment Contrib" },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          <span className="text-gray-500 text-sm">$</span>
-                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          <span className="text-gray-500 text-xs">/yr</span>
-                        </div>
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Building</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Ayoola's Income</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.phase4AyoolaIncome} onChange={(e) => setAssumptions({ ...assumptions, phase4AyoolaIncome: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">C-Corp: no new contributions — only appreciates from here</div>
-                  <div className="mt-1 text-xs text-emerald-400">💰 Peak earning years — {formatCurrency(assumptions.phase4AyoolaIncome + assumptions.phase4JamieIncome)}/yr household income</div>
+                  <div className="mt-2 text-xs text-gray-500">C-Corp only appreciates — no new contributions. Business income grows from ventures.</div>
                 </div>
 
                 {/* Phase 5 */}
@@ -1592,8 +1571,7 @@ export default function PlanDashboard() {
                   <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'k401Contrib', label: "Ayoola's 401k" },
-                      { key: 'jamie401kContrib', label: "Jamie's 401k" },
+                      { key: 'k401Contrib', label: "401k Contribution" },
                       { key: 'iraContrib', label: 'IRA Contribution' },
                       { key: 'entrepreneurContrib', label: 'Ventures Fund' },
                     ].map(({ key, label }) => (
@@ -1607,13 +1585,6 @@ export default function PlanDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3">
-                    <label className="text-xs text-gray-400 block mb-1">Jamie's Employer Match</label>
-                    <div className="flex items-center bg-gray-800 rounded px-2 w-32">
-                      <input type="number" step="0.5" value={assumptions.jamie401kMatch} onChange={(e) => setAssumptions({ ...assumptions, jamie401kMatch: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                      <span className="text-gray-500 text-sm">%</span>
-                    </div>
-                  </div>
                 </div>
                 
                 {/* Return Rates */}
@@ -1622,8 +1593,9 @@ export default function PlanDashboard() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { key: 'cCorpReturn', label: 'C-Corp Portfolio' },
+                      { key: 'robinhoodReturn', label: 'Robinhood Return' },
                       { key: 'k401Return', label: '401k Return' },
-                      { key: 'jamieReturn', label: "Jamie's Portfolio" },
+                      { key: 'iraReturn', label: 'IRA Return' },
                       { key: 'entrepreneurReturn', label: 'Ventures Return' },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1700,7 +1672,7 @@ export default function PlanDashboard() {
                         <input type="number" step="1" value={assumptions.effectiveTaxRate} onChange={(e) => setAssumptions({ ...assumptions, effectiveTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
-                      <div className="text-gray-600 text-xs mt-1">On W2 + Jamie + business + rental</div>
+                      <div className="text-gray-600 text-xs mt-1">On W2 + business + rental</div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">C-Corp Tax Rate</label>
@@ -1804,8 +1776,6 @@ export default function PlanDashboard() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { key: 'moveOutAge', label: 'Move Out / Rent Starts' },
-                      { key: 'jamieStartAge', label: 'Jamie Attending Starts' },
-                      { key: 'jamieEndAge', label: 'Jamie Stops Contributing' },
                       { key: 'retirementAge', label: 'Target Retirement' },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1871,10 +1841,6 @@ export default function PlanDashboard() {
                       <div className="text-center">
                         <div className="text-purple-400">{assumptions.moveOutAge}</div>
                         <div className="text-gray-500">Move</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-pink-400">{assumptions.jamieStartAge}</div>
-                        <div className="text-gray-500">Jamie</div>
                       </div>
                       <div className="text-center">
                         <div className="text-amber-400">{assumptions.landPurchase2Age}</div>
@@ -1948,27 +1914,6 @@ export default function PlanDashboard() {
               cost: 15000,
               status: targetAge1 >= 35 ? 'complete' : 'upcoming',
               category: 'home'
-            },
-            { 
-              age: 35, 
-              year: 2030, 
-              icon: '👩‍⚕️', 
-              title: "Jamie's Gap Year", 
-              desc: 'Transition year before attending surgeon role',
-              cost: 0,
-              status: targetAge1 >= 35 ? 'complete' : 'upcoming',
-              category: 'income'
-            },
-            { 
-              age: 36, 
-              year: 2031, 
-              icon: '💰', 
-              title: "Jamie's Attending Income Starts", 
-              desc: '$300k/yr surgical income begins',
-              cost: 0,
-              income: 300000,
-              status: targetAge1 >= 36 ? 'complete' : 'upcoming',
-              category: 'income'
             },
             { 
               age: 38, 

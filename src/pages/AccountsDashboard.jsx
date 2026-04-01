@@ -68,30 +68,6 @@ const ACCOUNTS = [
     available: null,
   },
   {
-    id: 'tiaa_403b',
-    name: 'Jamie 403b',
-    institution: 'TIAA',
-    type: 'investment',
-    owner: 'Jamie',
-    icon: '🏥',
-    color: '#EC4899',
-    plaidInstitutionId: 'ins_116530',
-    balance: 58357.98,
-    available: null,
-  },
-  {
-    id: 'tiaa_457',
-    name: 'Jamie 457 Deferred Comp',
-    institution: 'TIAA',
-    type: 'investment',
-    owner: 'Jamie',
-    icon: '🏛️',
-    color: '#D946EF',
-    plaidInstitutionId: 'ins_116530',
-    balance: 17000.00,
-    available: null,
-  },
-  {
     id: 'robinhood_ira',
     name: 'Robinhood Traditional IRA',
     institution: 'Robinhood',
@@ -116,54 +92,17 @@ const ACCOUNTS = [
     available: null,
   },
   {
-    id: 'keybank_checking',
-    name: 'Key Smart Checking',
-    institution: 'KeyBank',
-    type: 'checking',
-    owner: 'Jamie',
-    icon: '🔑',
-    color: '#06B6D4',
-    plaidInstitutionId: 'ins_6896',
-    balance: 3659.18,
-    available: 3659.18,
-  },
-  {
-    id: 'keybank_savings',
-    name: 'Key Active Saver',
-    institution: 'KeyBank',
-    type: 'savings',
-    owner: 'Jamie',
-    icon: '🏦',
-    color: '#0891B2',
-    plaidInstitutionId: 'ins_6896',
-    balance: 492.10,
-    available: 492.10,
-  },
-  {
     id: 'keybank_mortgage',
-    name: 'Home Mortgage',
+    name: 'Seattle Rental Mortgage (50/50)',
     institution: 'KeyBank',
     type: 'loan',
-    owner: 'Jamie',
+    owner: 'Ayoola',
     icon: '🏠',
     color: '#EF4444',
     plaidInstitutionId: 'ins_6896',
     balance: 965367.21,
     available: null,
     limit: 970000,
-  },
-  {
-    id: 'student_loans',
-    name: 'Jamie Student Loans',
-    institution: 'Federal / Servicer',
-    type: 'loan',
-    owner: 'Jamie',
-    icon: '🎓',
-    color: '#A855F7',
-    plaidInstitutionId: null,
-    balance: 200000.00,
-    available: null,
-    limit: 200000,
   },
   {
     id: 'venmo',
@@ -191,7 +130,7 @@ const generateMockTransactions = () => {
     'Entertainment': { icon: '🎬', color: '#F97316', subcats: ['Streaming', 'Movies', 'Games', 'Books'] },
     'Business': { icon: '💼', color: '#84CC16', subcats: ['Software', 'Contractors', 'Cloud Services', 'Office Supplies'] },
     'Transfer': { icon: '↔️', color: '#9CA3AF', subcats: ['401k Contribution', 'Savings Transfer', 'Investment Transfer'] },
-    'Income': { icon: '💰', color: '#10B981', subcats: ['NimbusTech Invoice', 'Jamie Paycheck', 'Rental Income', 'Investment Dividend'] },
+    'Income': { icon: '💰', color: '#10B981', subcats: ['NimbusTech Invoice', 'Rental Income', 'Investment Dividend'] },
   };
 
   const merchants = {
@@ -210,12 +149,11 @@ const generateMockTransactions = () => {
 
   // Income transactions
   txns.push({ id: 't001', date: '2026-03-01', description: 'NimbusTech Consulting Invoice', amount: 16666.67, category: 'Income', account: 'chase', type: 'income' });
-  txns.push({ id: 't002', date: '2026-03-01', description: 'Jamie - University of Washington Medical', amount: 4166.67, category: 'Income', account: 'keybank_checking', type: 'income' });
   txns.push({ id: 't003', date: '2026-03-01', description: 'NT → Olaporations Mgmt Fee', amount: 15000.00, category: 'Transfer', account: 'novo_olaporations', type: 'income' });
   txns.push({ id: 't004', date: '2026-02-28', description: 'Seattle Rental Income - Tenant', amount: 6000.00, category: 'Income', account: 'chase', type: 'income' });
 
   // Housing
-  txns.push({ id: 't010', date: '2026-03-01', description: 'KeyBank Mortgage Payment', amount: -5600.00, category: 'Housing', account: 'keybank_checking', type: 'expense' });
+  txns.push({ id: 't010', date: '2026-03-01', description: 'KeyBank Mortgage Payment', amount: -5600.00, category: 'Housing', account: 'chase', type: 'expense' });
   txns.push({ id: 't011', date: '2026-03-05', description: 'State Farm - Home Insurance', amount: -200.00, category: 'Housing', account: 'chase', type: 'expense' });
 
   // Food & Dining
@@ -259,21 +197,15 @@ const generateMockTransactions = () => {
   txns.push({ id: 't084', date: '2026-03-07', description: 'Safeway', amount: -68.30, category: 'Food & Dining', account: 'chase_credit', type: 'expense' });
   txns.push({ id: 't085', date: '2026-03-03', description: 'Shell Gas', amount: -54.20, category: 'Transportation', account: 'chase_credit', type: 'expense' });
 
-  // Student loan payment
-  txns.push({ id: 't086', date: '2026-03-05', description: 'Federal Student Loan Payment', amount: -1800.00, category: 'Housing', account: 'keybank_checking', type: 'expense' });
-
   // Retirement contributions
   txns.push({ id: 't090', date: '2026-03-01', description: '401k Contribution - Human Interest', amount: -1000.00, category: 'Transfer', account: 'chase', type: 'transfer' });
-  txns.push({ id: 't091', date: '2026-03-01', description: '403b Contribution - TIAA', amount: -833.33, category: 'Transfer', account: 'keybank_checking', type: 'transfer' });
-  txns.push({ id: 't093', date: '2026-03-01', description: '457 Contribution - TIAA (reduced)', amount: -200.00, category: 'Transfer', account: 'keybank_checking', type: 'transfer' });
   txns.push({ id: 't092', date: '2026-03-01', description: 'Robinhood Transfer', amount: -500.00, category: 'Transfer', account: 'chase', type: 'transfer' });
 
   // February transactions for trend data
   txns.push({ id: 't100', date: '2026-02-01', description: 'NimbusTech Consulting Invoice', amount: 16666.67, category: 'Income', account: 'chase', type: 'income' });
-  txns.push({ id: 't101', date: '2026-02-01', description: 'Jamie - UW Medical', amount: 4166.67, category: 'Income', account: 'keybank_checking', type: 'income' });
   txns.push({ id: 't102', date: '2026-02-15', description: 'Whole Foods Market', amount: -165.30, category: 'Food & Dining', account: 'capitalone', type: 'expense' });
   txns.push({ id: 't103', date: '2026-02-10', description: 'Shell Gas', amount: -58.20, category: 'Transportation', account: 'capitalone', type: 'expense' });
-  txns.push({ id: 't104', date: '2026-02-01', description: 'KeyBank Mortgage', amount: -5600.00, category: 'Housing', account: 'keybank_checking', type: 'expense' });
+  txns.push({ id: 't104', date: '2026-02-01', description: 'KeyBank Mortgage', amount: -5600.00, category: 'Housing', account: 'chase', type: 'expense' });
   txns.push({ id: 't105', date: '2026-02-01', description: 'AWS', amount: -232.40, category: 'Business', account: 'novo_nimbus', type: 'expense' });
 
   return txns.sort((a, b) => new Date(b.date) - new Date(a.date));

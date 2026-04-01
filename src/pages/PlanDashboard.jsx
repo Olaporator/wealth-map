@@ -6,14 +6,14 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 
 const DESCRIPTIONS = {
   cCorp: "Olaporations C-Corp — receives NT management fees (split from Ayoola's total income), growth taxed at 21% corporate rate",
-  seattle: "10737 3rd Ave NW, Seattle WA 98177 — appreciating ~6%/year with 2-3% rent increases annually once rented (starting age 34)",
+  seattle: "10737 3rd Ave NW — 50/50 co-owned rental. Both contribute $1K/mo toward costs, reduced $100/yr until breakeven. Profit split 50/50. Either party can trigger sale (other gets first dibs to buy).",
   land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
-  jamie: "Jamie's surgical income invested in diversified portfolio at ~10% returns — contributions start when she begins attending role",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
-  k401: "Combined 401k/457 accounts — Ayoola's 401k + Jamie's 401k/457 with 5% employer match",
+  k401: "Ayoola's 401k + Robinhood IRA",
   freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
-  netWorth: "Total assets minus liabilities",
-  ayoolaIncome: "Ayoola's personal W2 — NT total minus C-Corp management fee"
+  netWorth: "Total assets minus liabilities (Ayoola's share only)",
+  ayoolaIncome: "Ayoola's personal W2 — NT total minus C-Corp management fee",
+  robinhood: "Robinhood Individual Brokerage — Ayoola's fund strategy at ~30% returns",
 };
 
 export default function PlanDashboard() {
@@ -31,21 +31,17 @@ export default function PlanDashboard() {
     currentAge: 31,           // Dec birthday — currently 31, turns 32 Dec 2026
     cCorpStart: 2487,         // Novo Checking (real: $2,486.58)
     k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
-    jamie401kStart: 58358,    // TIAA 403b (real: $58,357.98)
-    jamie457Start: 17000,     // TIAA 457 (real: $17,000) — 2.2% growth, minimal contributions
     iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
     robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
-    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage
+    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage (Ayoola's 50% = $67,317)
     ccDebtStart: 15547,       // Chase CC $2,130 + Cap One $13,417
-    studentLoanStart: 200000, // Jamie's student loans (~$200K)
-    cashStart: 6835,          // Chase checking $689 + KeyBank checking $3,659 + KeyBank savings $492 + Novo $2,487 — note: $7K influx coming
+    cashStart: 6835,          // Chase checking $689 + KeyBank checking $3,659 + KeyBank savings $492 + Novo $2,487
 
     // Returns & Appreciation
     cCorpReturn: 30,          // Ayoola's fund strategy (~4.5% in 50 days, annualized ~30%)
     k401Return: 8,            // 401k in standard funds (not self-directed)
     robinhoodReturn: 30,      // individual brokerage — Ayoola's fund strategy
     iraReturn: 30,            // Robinhood IRA — same fund strategy
-    jamieReturn: 10,
     entrepreneurReturn: 1,
     homeAppreciation: 6,
     newHomeAppreciation: 5,
@@ -68,7 +64,7 @@ export default function PlanDashboard() {
     infrastructureCost: 200000,
     infrastructureAge: 38,
 
-    // Homes
+    // Homes — Seattle is 50/50 co-owned rental after divorce
     seattleCurrentValue: 1100000,
     seattleMortgageBalance: 965367, // real mortgage balance
     seattleMortgageRate: 3.25,
@@ -76,72 +72,69 @@ export default function PlanDashboard() {
     newHomeDownPayment: 0,
     newHomeClosingCosts: 15000,
     newHomeMortgageRate: 6.5,
-    
+
     // Milestone Ages
-    moveOutAge: 34,
-    gapYearAge: 35,
-    jamieStartAge: 36,
-    jamieEndAge: 45,
-    marginStartAge: 36,
+    divorceAge: 31,           // divorce finalizes ~mid 2026
+    jamieMoveOutMonth: 3,     // ~3 months from now (June/July 2026)
+    moveOutAge: 32,           // Ayoola moves to own place (can be earlier)
+    marginStartAge: 33,
     mortgagePaidAge: 64,
     retirementAge: 60,
-    
+
     // Margin Trading
     marginRate: 4.5,
     marginRatio: 32.5,
-    
-    // Rental Property
-    grossRentYear1: 72000,
-    mortgagePayment: 67200,
+
+    // Seattle Rental (50/50 with ex-wife)
+    // Both contribute $1K/mo toward costs, reduced by $100/yr until breakeven
+    grossRentYear1: 72000,        // ~$6K/mo market rent
+    mortgagePayment: 67200,       // annual mortgage
     propertyTaxes: 12000,
     insurance: 2400,
-    maintenanceRate: 10,
+    propertyManagement: 7200,     // ~10% of gross rent for PM company
+    maintenanceRate: 10,          // % of rent for repairs
     vacancyRate: 5,
-    propertyManagement: 0,
     rentGrowth: 2.5,
     seattlePrincipal: 18000,
+    ayoolaRentalContrib: 12000,   // $1K/mo toward rental costs
+    exWifeRentalContrib: 12000,   // $1K/mo from ex-wife
+    contribReductionPerYear: 1200, // reduce by $100/mo each year as rent rises
+
+    // New home for Ayoola
     newHomePrincipal: 15000,
-    
-    // Annual Contributions (updated for new budget)
-    k401Contrib: 18000,       // ~20% of Ayoola's NT gross (~$90K) — down from maxing out
-    jamie457Contrib: 1200,    // minimal $100/month to 457
-    jamie457Return: 2.2,      // 457 fund at 2.2% annual
+
+    // Annual Contributions (Ayoola only — no more Jamie)
+    k401Contrib: 18000,       // ~20% of Ayoola's NT gross (~$90K)
     iraContrib: 0,
-    jamie401kContrib: 10000,  // her 5% contribution
-    jamie401kMatch: 5,        // employer match %
-    jamieContrib: 70000,
     entrepreneurContrib: 50000,
     ccPaydownMonthly: 1250,   // monthly CC surplus for paydown
 
-    // Expenses (new budget: $10,550/mo = $126,600/yr, mortgage handled separately)
+    // Expenses (Ayoola solo: ~$5,050/mo non-mortgage × 12 — will need to adjust post-divorce)
     livingExpenses: 60600,    // $5,050/mo non-mortgage expenses × 12
     staffExpensesBase: 50000,
     staffExpensesMax: 100000,
     healthInsurance: 12000,
-    
-    // Income Phases
-    phase1AyoolaIncome: 200000,
-    phase1JamieIncome: 100000,
+
+    // Income Phases (Ayoola only)
+    phase1AyoolaIncome: 200000,   // current NT income
     phase1CCorpContrib: 180000,
-    
-    phase2AyoolaIncome: 150000,
-    phase2JamieIncome: 100000,
+
+    phase2AyoolaIncome: 150000,   // transition (33-34)
     phase2CCorpContrib: 90000,
-    
-    phase3AyoolaIncome: 50000,
-    
-    phase4AyoolaIncome: 50000,
-    phase4JamieIncome: 300000,
-    phase4CCorpContrib: 0, // C-Corp only appreciates after 34
-    
+
+    phase3AyoolaIncome: 50000,    // gap year (35)
+
+    phase4AyoolaIncome: 50000,    // building phase (36+)
+    phase4CCorpContrib: 0,
+
     phase5AyoolaIncome: 50000,
     phase5BusinessIncome: 150000,
     phase5BusinessGrowth: 5000,
-    
+
     // Withdrawal & Taxes
     safeWithdrawalRate: 4,
-    effectiveTaxRate: 25, // average effective tax rate on personal income
-    cCorpTaxRate: 21, // corporate tax rate on C-Corp growth
+    effectiveTaxRate: 25,
+    cCorpTaxRate: 21,
   });
 
   // Pull live account balances from Supabase to sync with projections
@@ -156,15 +149,9 @@ export default function PlanDashboard() {
         const sub = a.subtype || '';
         const name = (a.name || '').toLowerCase();
 
-        // Map live accounts to plan assumptions
+        // Map live accounts to plan assumptions (Ayoola's only)
         if (id === 'manual_ayoola_401k' || sub === '401k') {
           if (name.includes('ayoola') || a.owner === 'Ayoola') updates.k401Start = Math.round(bal);
-        }
-        if (id === 'manual_jamie_403b' || sub === '403b') {
-          updates.jamie401kStart = Math.round(bal);
-        }
-        if (id === 'manual_jamie_457' || sub === '457b') {
-          updates.jamie457Start = Math.round(bal);
         }
         // C-Corp Novo balance
         if (name.includes('olaporations') || name.includes('c-corp')) {
@@ -187,19 +174,15 @@ export default function PlanDashboard() {
     const years = [];
     let cCorp = assumptions.cCorpStart;
     let k401 = assumptions.k401Start;
-    let jamie401k = assumptions.jamie401kStart;
-    let jamie457 = assumptions.jamie457Start;
     let ira = assumptions.iraStart;
     let robinhood = assumptions.robinhoodStart;
-    let seattleEquity = assumptions.seattleEquityStart;
+    // Seattle equity: Ayoola owns 50% of total equity
+    let seattleEquity = assumptions.seattleEquityStart; // total equity, we'll track 50% in net worth
     let newHomeEquity = 0;
     let acres = assumptions.initialAcres;
-    // Land: start with no acres (first purchase at 32)
     let landEquity = 0;
     let landMortgage = 0;
     let ccDebt = assumptions.ccDebtStart;
-    let studentLoans = assumptions.studentLoanStart;
-    let jamieInvestments = 0;
     let entrepreneur = 0;
     let marginLoan = 0;
     let marginInvested = 0;
@@ -207,48 +190,37 @@ export default function PlanDashboard() {
     for (let age = assumptions.currentAge; age <= 85; age++) {
       let cCorpContrib = 0;
       let k401Contrib = assumptions.k401Contrib;
-      let jamie401kContrib = 0;
-      let jamieContrib = 0;
       let entrepreneurContrib = 0;
       let ayoolaIncome = 0;
-      let jamieIncome = 0;
       let rentalNet = 0;
+      let ayoolaRentalShare = 0; // Ayoola's 50% of rental profit/loss
       let expenses = assumptions.livingExpenses;
       let staffExpenses = 0;
       let businessIncome = 0;
 
-      // Phase 1: Current state (current age to 32) - no staff/ventures yet
+      // Phase 1: Current state (31-32) — Ayoola solo income, C-Corp contributions
       if (age <= 32) {
         cCorpContrib = assumptions.phase1CCorpContrib;
         ayoolaIncome = assumptions.phase1AyoolaIncome;
-        jamieIncome = assumptions.phase1JamieIncome;
-        // Jamie's 401k: her contribution + 5% match on her income
-        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
-      } 
-      // Phase 2: Transition (33-34) - C-Corp continues, staff/ventures start at 25k
+      }
+      // Phase 2: Transition (33-34) — C-Corp continues, staff/ventures start
       else if (age <= 34) {
         cCorpContrib = assumptions.phase2CCorpContrib;
         ayoolaIncome = assumptions.phase2AyoolaIncome;
-        jamieIncome = assumptions.phase2JamieIncome;
         entrepreneurContrib = 25000;
         staffExpenses = 25000;
-        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
       }
-      // Phase 3: Gap year (35) - NO C-Corp, staff/ventures 25k
-      else if (age === assumptions.jamieStartAge - 1) {
+      // Phase 3: Gap year (35)
+      else if (age === 35) {
         cCorpContrib = 0;
         ayoolaIncome = assumptions.phase3AyoolaIncome;
-        jamieIncome = 0;
         staffExpenses = 25000;
         entrepreneurContrib = 25000;
-        jamie401kContrib = 0; // no income, no contribution
-      } 
-      // Phase 4: Jamie earning (36-45) - NO C-Corp, staff/ventures 35k until 40, then scale
-      else if (age <= assumptions.jamieEndAge) {
-        cCorpContrib = 0; // C-Corp only appreciates, no new contributions
+      }
+      // Phase 4: Building phase (36-45)
+      else if (age <= 45) {
+        cCorpContrib = 0;
         ayoolaIncome = assumptions.phase4AyoolaIncome;
-        jamieIncome = assumptions.phase4JamieIncome;
-        jamieContrib = assumptions.jamieContrib;
         if (age <= 40) {
           staffExpenses = 35000;
           entrepreneurContrib = 35000;
@@ -256,83 +228,84 @@ export default function PlanDashboard() {
           staffExpenses = 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
           entrepreneurContrib = 35000;
         }
-        businessIncome = Math.max(0, (age - assumptions.jamieStartAge) * 15000);
-        jamie401kContrib = assumptions.jamie401kContrib + (jamieIncome * assumptions.jamie401kMatch / 100);
-      } 
-      // Phase 5: Coast mode (after 45) - NO C-Corp, full staff, no ventures
+        businessIncome = Math.max(0, (age - 36) * 15000);
+      }
+      // Phase 5: Coast mode (after 45)
       else {
         cCorpContrib = 0;
         ayoolaIncome = assumptions.phase5AyoolaIncome;
-        jamieIncome = 0;
-        jamieContrib = 0;
         staffExpenses = assumptions.staffExpensesMax;
         entrepreneurContrib = 0;
-        businessIncome = assumptions.phase5BusinessIncome + (age - assumptions.jamieEndAge - 1) * assumptions.phase5BusinessGrowth;
+        businessIncome = assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
         k401Contrib = 0;
-        jamie401kContrib = 0;
       }
 
-      // Rental income (after move out)
-      if (age >= assumptions.moveOutAge) {
-        const rentYears = age - assumptions.moveOutAge;
+      // ─── Seattle Rental (50/50 co-owned) ─────────────────────────
+      // Rental starts once Jamie moves out (~mid 2026, modeled from age 32)
+      if (age >= 32) {
+        const rentYears = age - 32;
         const grossRent = assumptions.grossRentYear1 * Math.pow(1 + assumptions.rentGrowth / 100, rentYears);
         const mortgage = age < assumptions.mortgagePaidAge ? assumptions.mortgagePayment : 0;
         const maintenance = grossRent * (assumptions.maintenanceRate / 100);
-        rentalNet = grossRent - mortgage - maintenance;
+        const management = assumptions.propertyManagement;
+        const taxes = assumptions.propertyTaxes;
+        const ins = assumptions.insurance;
+        const totalCosts = mortgage + maintenance + management + taxes + ins;
+
+        // Both contribute toward costs, reducing by $100/mo/yr until $0
+        const ayoolaContrib = Math.max(0, assumptions.ayoolaRentalContrib - (rentYears * assumptions.contribReductionPerYear));
+        const exWifeContrib = Math.max(0, assumptions.exWifeRentalContrib - (rentYears * assumptions.contribReductionPerYear));
+        const totalContribs = ayoolaContrib + exWifeContrib;
+
+        // Net rental P&L: rent + contributions - costs
+        // Surplus goes to escrow for repairs initially, then split 50/50 when profitable
+        rentalNet = grossRent + totalContribs - totalCosts;
+
+        if (rentalNet > 0) {
+          // Profitable: Ayoola gets 50% of profit (contributions stop mattering once profitable)
+          ayoolaRentalShare = rentalNet * 0.5;
+        } else {
+          // Not yet profitable: Ayoola's cost is his contribution
+          ayoolaRentalShare = -ayoolaContrib;
+        }
       }
 
       // Investment growth
-      // C-Corp: growth is taxed at 21% corporate rate
       const cCorpGrowth = cCorp * (assumptions.cCorpReturn / 100);
       const cCorpTax = cCorpGrowth * (assumptions.cCorpTaxRate / 100);
       cCorp = cCorp + cCorpGrowth - cCorpTax + cCorpContrib;
-      
+
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
-      jamie401k = jamie401k * (1 + assumptions.k401Return / 100) + jamie401kContrib;
-      jamie457 = jamie457 * (1 + assumptions.jamie457Return / 100) + (age <= assumptions.jamieEndAge ? assumptions.jamie457Contrib : 0);
       ira = ira * (1 + assumptions.iraReturn / 100);
       robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100);
 
-      // CC debt paydown (first ~9 months then $0)
+      // CC debt paydown
       if (ccDebt > 0) {
         const annualPaydown = assumptions.ccPaydownMonthly * 12;
-        const interest = ccDebt * 0.20; // ~20% APR blended
+        const interest = ccDebt * 0.20;
         ccDebt = Math.max(0, ccDebt + interest - annualPaydown);
       }
 
-      // Student loan payments (~$159/mo = $1,908/yr, 5% interest)
-      if (studentLoans > 0) {
-        const slInterest = studentLoans * 0.05;
-        const slPayment = 1908;
-        studentLoans = Math.max(0, studentLoans + slInterest - slPayment);
-      }
-      
-      // Seattle equity (principal paydown after rental)
-      if (age >= assumptions.moveOutAge) {
-        seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
-      } else {
-        seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100);
-      }
+      // Seattle equity: appreciates, principal paydown (Ayoola owns 50%)
+      seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
 
-      // New home equity
+      // New home equity (when Ayoola moves out)
       if (age >= assumptions.moveOutAge) {
         newHomeEquity = (newHomeEquity + assumptions.newHomePrincipal) * (1 + assumptions.newHomeAppreciation / 100);
       }
 
-      // Land: appreciation applies to total value (equity + mortgage)
+      // Land
       const totalLandValue = landEquity + landMortgage;
       const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
       const appreciationGain = appreciatedValue - totalLandValue;
-      landEquity += appreciationGain; // appreciation goes to equity
-      
-      // Land principal paydown (if there's a mortgage)
+      landEquity += appreciationGain;
+
       if (landMortgage > 0) {
         const landPrincipalPayment = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
         landMortgage -= landPrincipalPayment;
         landEquity += landPrincipalPayment;
       }
-      
-      // Land purchase 1: initial 20 acres at age 32
+
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
@@ -340,7 +313,6 @@ export default function PlanDashboard() {
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;
       }
-      // Land purchase 2: offshore 15 acres at age 34
       if (age === assumptions.landPurchase2Age) {
         const purchasePrice = assumptions.landPurchase2Acres * assumptions.offshorePricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
@@ -348,7 +320,6 @@ export default function PlanDashboard() {
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase2Acres;
       }
-      // Land purchase 3: expansion 100 acres at age 40
       if (age === assumptions.landPurchase3Age) {
         const appreciatedPricePerAcre = assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase3Age - assumptions.currentAge);
         const purchasePrice = assumptions.landPurchase3Acres * appreciatedPricePerAcre;
@@ -358,19 +329,8 @@ export default function PlanDashboard() {
         acres += assumptions.landPurchase3Acres;
       }
 
-      // Jamie's investments
-      if (age >= assumptions.jamieStartAge && age <= assumptions.jamieEndAge) {
-        jamieInvestments = jamieInvestments * (1 + assumptions.jamieReturn / 100) + jamieContrib;
-      } else if (age > assumptions.jamieEndAge) {
-        jamieInvestments = jamieInvestments * (1 + assumptions.jamieReturn / 100);
-      }
-
       // Entrepreneur fund
-      if (age <= assumptions.jamieEndAge) {
-        entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100) + entrepreneurContrib;
-      } else {
-        entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100);
-      }
+      entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100) + entrepreneurContrib;
 
       // Margin trading
       if (age >= assumptions.marginStartAge) {
@@ -385,42 +345,40 @@ export default function PlanDashboard() {
       const marginGain = marginInvested * (assumptions.cCorpReturn / 100);
       const marginNet = marginGain - marginInterest;
 
-      // Ayoola's personal income = total income minus what goes to C-Corp
+      // Ayoola's personal income = total minus C-Corp
       const ayoolaPersonalIncome = ayoolaIncome - cCorpContrib;
-      
-      // Taxable income (personal W2 + Jamie's income + business income + rental net)
-      const taxableIncome = ayoolaPersonalIncome + jamieIncome + businessIncome + Math.max(0, rentalNet);
+
+      // Taxable income (Ayoola only + business + rental share)
+      const taxableIncome = ayoolaPersonalIncome + businessIncome + Math.max(0, ayoolaRentalShare);
       const taxes = taxableIncome * (assumptions.effectiveTaxRate / 100);
 
-      const totalIn = ayoolaPersonalIncome + jamieIncome + Math.max(0, rentalNet) + marginNet + businessIncome;
-      const totalOut = expenses + staffExpenses + entrepreneurContrib + jamieContrib + taxes + Math.abs(Math.min(0, rentalNet));
+      const totalIn = ayoolaPersonalIncome + Math.max(0, ayoolaRentalShare) + marginNet + businessIncome;
+      const totalOut = expenses + staffExpenses + entrepreneurContrib + taxes + Math.abs(Math.min(0, ayoolaRentalShare));
       const freeCash = totalIn - totalOut;
 
-      const netWorth = cCorp + k401 + jamie401k + jamie457 + ira + robinhood + seattleEquity + newHomeEquity + landEquity + jamieInvestments + entrepreneur + marginInvested - marginLoan - ccDebt - studentLoans;
-      
-      // Passive income breakdown
+      // Net worth: Ayoola's share only (50% of Seattle equity)
+      const netWorth = cCorp + k401 + ira + robinhood + (seattleEquity * 0.5) + newHomeEquity + landEquity + entrepreneur + marginInvested - marginLoan - ccDebt;
+
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
-      const passiveIncome = rentalNet + businessIncome + safeWithdrawal;
+      const passiveIncome = ayoolaRentalShare + businessIncome + safeWithdrawal;
 
       years.push({
         age,
         year: 2026 + (age - assumptions.currentAge),
         cCorp: Math.round(cCorp),
         k401: Math.round(k401),
-        jamie401k: Math.round(jamie401k),
-        jamie457: Math.round(jamie457),
         ira: Math.round(ira),
         robinhood: Math.round(robinhood),
         ccDebt: Math.round(ccDebt),
-        studentLoans: Math.round(studentLoans),
         seattleEquity: Math.round(seattleEquity),
+        seattleEquity50: Math.round(seattleEquity * 0.5),
         newHomeEquity: Math.round(newHomeEquity),
         rentalNet: Math.round(rentalNet),
+        ayoolaRentalShare: Math.round(ayoolaRentalShare),
         acres,
         landEquity: Math.round(landEquity),
         landMortgage: Math.round(landMortgage),
         landValue: Math.round(landEquity + landMortgage),
-        jamieInvestments: Math.round(jamieInvestments),
         entrepreneur: Math.round(entrepreneur),
         marginLoan: Math.round(marginLoan),
         marginInvested: Math.round(marginInvested),
@@ -428,22 +386,20 @@ export default function PlanDashboard() {
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
         ayoolaIncome: Math.round(ayoolaIncome),
-        jamieIncome: Math.round(jamieIncome),
         businessIncome: Math.round(businessIncome),
         passiveIncome: Math.round(passiveIncome),
         safeWithdrawal: Math.round(safeWithdrawal),
         freeCashSources: {
           ayoolaPersonalIncome,
-          ayoolaTotalIncome: ayoolaIncome, // for reference
-          jamieIncome,
-          rentalNet: Math.max(0, rentalNet),
+          ayoolaTotalIncome: ayoolaIncome,
+          rentalShare: ayoolaRentalShare,
           marginNet,
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
           taxes: -taxes,
-          contributions: -(jamieContrib + entrepreneurContrib),
-          cCorpContrib: cCorpContrib, // NT → C-Corp (not from personal cash)
+          contributions: -entrepreneurContrib,
+          cCorpContrib,
         }
       });
     }
@@ -467,12 +423,11 @@ export default function PlanDashboard() {
     if (!ageData) return [];
     return [
       { name: 'C-Corp', value: ageData.cCorp, desc: DESCRIPTIONS.cCorp },
-      { name: 'Robinhood', value: ageData.robinhood, desc: 'Ayoola individual brokerage — Robinhood' },
-      { name: '401k/403b/457', value: ageData.k401 + ageData.jamie401k + ageData.jamie457 + ageData.ira, desc: DESCRIPTIONS.k401 },
-      { name: 'Seattle', value: ageData.seattleEquity, desc: DESCRIPTIONS.seattle },
-      { name: 'New Home', value: ageData.newHomeEquity, desc: DESCRIPTIONS.newHome },
+      { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
+      { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
+      { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
+      { name: 'New Home', value: ageData.newHomeEquity, desc: 'Ayoola\'s own home' },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
-      { name: "Jamie's", value: ageData.jamieInvestments, desc: DESCRIPTIONS.jamie },
       { name: 'Ventures', value: ageData.entrepreneur, desc: DESCRIPTIONS.ventures },
     ].filter(d => d.value > 0);
   };
@@ -493,8 +448,7 @@ export default function PlanDashboard() {
               </div>
             )}
             <div className="text-emerald-400">+ Ayoola's W2: {formatCurrency(src.ayoolaPersonalIncome)}</div>
-            <div className="text-pink-400">+ Jamie's Income: {formatCurrency(src.jamieIncome)}</div>
-            <div className="text-blue-400">+ Rental Net: {formatCurrency(src.rentalNet)}</div>
+            <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>
             <div className="text-cyan-400">+ Margin Arbitrage: {formatCurrency(src.marginNet)}</div>
             <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>
             <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
@@ -517,11 +471,10 @@ export default function PlanDashboard() {
   };
 
   const milestones = [
-    { age: 31, label: 'Start', icon: '🚀' },
-    { age: 32, label: '20 Acres', icon: '🌱' },
-    { age: 34, label: 'Move & Rent', icon: '🏠' },
+    { age: 31, label: 'Divorce / Reset', icon: '🔄' },
+    { age: 32, label: '20 Acres + Rent House', icon: '🌱' },
+    { age: 33, label: 'Own Place', icon: '🏠' },
     { age: 35, label: 'Gap Year', icon: '⏸️' },
-    { age: 36, label: 'Jamie $300K', icon: '💰' },
     { age: 40, label: '100 Acres', icon: '🌾' },
     { age: 45, label: 'Coast', icon: '⛵' },
     { age: 60, label: 'Retire', icon: '👑' },
@@ -565,10 +518,10 @@ export default function PlanDashboard() {
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" strokeWidth={2} />
               <Area type="monotone" dataKey="cCorp" stackId="1" stroke="#3B82F6" fill="#3B82F6" name="C-Corp" />
-              <Area type="monotone" dataKey="jamieInvestments" stackId="1" stroke="#EC4899" fill="#EC4899" name="Jamie's" />
+              <Area type="monotone" dataKey="robinhood" stackId="1" stroke="#F97316" fill="#F97316" name="Robinhood" />
               <Area type="monotone" dataKey="landEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
-              <Area type="monotone" dataKey="seattleEquity" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle" />
-              <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k" />
+              <Area type="monotone" dataKey="seattleEquity50" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle (50%)" />
+              <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="entrepreneur" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="Ventures" />
             </AreaChart>
           </ResponsiveContainer>
@@ -742,11 +695,11 @@ export default function PlanDashboard() {
     if (!d) return [];
     return [
       { label: 'C-Corp', value: d.cCorp, color: 'text-blue-400' },
-      { label: '401k/IRA', value: d.k401 + d.jamie401k + d.ira, color: 'text-purple-400' },
-      { label: 'Seattle Equity', value: d.seattleEquity, color: 'text-emerald-400' },
-      { label: 'New Home Equity', value: d.newHomeEquity, color: 'text-green-400' },
+      { label: 'Robinhood', value: d.robinhood, color: 'text-orange-400' },
+      { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
+      { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
+      { label: 'New Home', value: d.newHomeEquity, color: 'text-green-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
-      { label: "Jamie's Investments", value: d.jamieInvestments, color: 'text-pink-400' },
       { label: 'Ventures', value: d.entrepreneur, color: 'text-cyan-400' },
       { label: 'Margin (net)', value: d.marginInvested - d.marginLoan, color: 'text-gray-400' },
     ].filter(item => item.value !== 0);
@@ -756,7 +709,7 @@ export default function PlanDashboard() {
     if (!d) return [];
     return [
       { label: '4% Safe Withdrawal', value: d.safeWithdrawal, color: 'text-emerald-400' },
-      { label: 'Rental Net', value: d.rentalNet, color: 'text-blue-400' },
+      { label: 'Rental (50%)', value: d.ayoolaRentalShare, color: 'text-blue-400' },
       { label: 'Business Income', value: d.businessIncome, color: 'text-amber-400' },
     ].filter(item => item.value !== 0);
   };
@@ -766,8 +719,7 @@ export default function PlanDashboard() {
     const src = d.freeCashSources;
     const items = [
       { label: "Ayoola's W2", value: src.ayoolaPersonalIncome, color: 'text-emerald-400' },
-      { label: "Jamie's Income", value: src.jamieIncome, color: 'text-pink-400' },
-      { label: 'Rental Net', value: src.rentalNet, color: 'text-blue-400' },
+      { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
       { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
       { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
@@ -792,7 +744,7 @@ export default function PlanDashboard() {
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-          Ayoola & Jamie's Wealth Map
+          Ayoola's Wealth Map
         </h1>
         <p className="text-gray-400 text-sm mt-1">Ages 31 → 85</p>
       </div>

@@ -333,23 +333,17 @@ const CATEGORY_COLORS = {
 
 // ─── View Modes Configuration ────────────────────────────────────────
 const VIEW_MODES = {
-  household: {
-    label: 'Household',
-    icon: '🏠',
-    description: 'All personal accounts for both Ayoola & Jamie',
-    accountFilter: (a) => a.institution !== 'Novo',
-  },
-  ayoola: {
-    label: 'Ayoola',
+  personal: {
+    label: 'Personal',
     icon: '👤',
-    description: 'Ayoola\'s accounts',
-    accountFilter: (a) => ['Chase', 'Robinhood', 'Human Interest', 'Venmo'].includes(a.institution) || a.owner === 'Ayoola' || a.owner === 'Joint',
+    description: 'Ayoola\'s personal accounts',
+    accountFilter: (a) => a.institution !== 'Novo' && a.owner !== 'Jamie',
   },
-  jamie: {
-    label: 'Jamie',
-    icon: '👥',
-    description: 'Jamie\'s accounts',
-    accountFilter: (a) => ['KeyBank', 'TIAA', 'Federal / Servicer'].includes(a.institution) || a.owner === 'Jamie' || a.owner === 'Joint',
+  all: {
+    label: 'All',
+    icon: '🏠',
+    description: 'All linked accounts',
+    accountFilter: () => true,
   },
   business: {
     label: 'Business',
@@ -379,7 +373,7 @@ const VIEW_MODES = {
 
 export default function AccountsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [viewMode, setViewMode] = useState('household');
+  const [viewMode, setViewMode] = useState('personal');
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 

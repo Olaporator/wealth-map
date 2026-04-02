@@ -828,7 +828,7 @@ export default function PlanDashboard() {
       items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });
     }
     if (src.venturesContrib < 0) {
-      items.push({ label: `RH → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
+      items.push({ label: `Free Cash → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
     }
     return items;
   };
@@ -1677,7 +1677,7 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">RH → Ventures ({formatCurrency(assumptions.k401ReductionAmount)}/yr)</label>
+                      <label className="text-xs text-gray-400 block mb-1">Free Cash → Ventures</label>
                       <div className="bg-lime-900/30 rounded px-2 py-2 text-lime-400 font-medium">
                         $1K/mo from age {assumptions.k401ReductionAge}
                       </div>

@@ -102,7 +102,7 @@ export default function PlanDashboard() {
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
     landPrincipalPerAcre: 300,
-    landPurchase1Age: 32,     // 50 acres after Seattle sale proceeds
+    landPurchase1Age: 31,     // 50 acres after Seattle sale proceeds
     landPurchase1Acres: 50,
     landHousingCost: 12000,   // ~$1K/mo for basic structure on land
     landDevStartAge: 33,      // start developing home on land
@@ -114,7 +114,7 @@ export default function PlanDashboard() {
     // ═══════════════════════════════════════════════════════════════
     seattleCurrentValue: 1250000,
     seattleMortgageBalance: 960000,
-    seattleSaleAge: 32,           // sell Seattle at 32
+    seattleSaleAge: 31,           // sell Seattle by end of year 31
     seattleSellerFeePct: 6,       // 6% closing costs (agent ~5% + title/excise ~1%)
     seattleMortgageRate: 3.25,
     grossRentYear1: 72000,        // ~$6K/mo market rent

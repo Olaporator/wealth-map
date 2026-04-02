@@ -7,7 +7,7 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'
 const DESCRIPTIONS = {
   seattle: "10737 3rd Ave NW — 50/50 co-owned rental. Both contribute $1K/mo toward costs, reduced $100/yr until breakeven. Profit split 50/50. Either party can trigger sale (other gets first dibs to buy).",
   land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
-  ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
+  qoz: "Qualified Opportunity Zone Fund — Robinhood gains rolled in tax-deferred, 501(c)(3) operates permaculture/community programs on OZ land. After 10yr hold, all new appreciation is tax-free.",
   k401: "Ayoola's 401k + Robinhood IRA",
   freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities (Ayoola's share only)",
@@ -75,7 +75,10 @@ export default function PlanDashboard() {
     robinhoodReturn: 30,      // individual brokerage — aggressive fund strategy (ages 31-34)
     robinhoodReturnPost35: 15, // modest growth from age 35+ (shift to safer allocation)
     iraReturn: 30,            // Robinhood IRA — same fund strategy
-    entrepreneurReturn: 1,    // ventures fund — conservative
+    qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
+    qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
+    qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
+    qozTaxFreeAge: 52,        // 10yr hold = all new gains tax-free
     homeAppreciation: 6,      // Seattle home appreciation
     landAppreciation: 4,      // rural land appreciation
 
@@ -145,8 +148,8 @@ export default function PlanDashboard() {
     phase5BusinessIncome: 150000,
     phase5BusinessGrowth: 5000,
 
-    // Ventures fund contributions (deferred to later phases)
-    entrepreneurContrib: 0,        // $0 for now — will add when cash flow allows
+    // QOZ fund — replaces deferred 100-acre expansion
+    // Roll Robinhood gains into QOZ at age 42, 501(c)(3) operates on land
 
     // ═══════════════════════════════════════════════════════════════
     // MILESTONE AGES
@@ -210,7 +213,7 @@ export default function PlanDashboard() {
     let landMortgage = 0;
     let ccDebt = assumptions.ccDebtStart;
     let cash = assumptions.cashStart; // tracks actual cash reserves
-    let entrepreneur = 0;
+    let qozFund = 0;
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -342,9 +345,13 @@ export default function PlanDashboard() {
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
       robinhood = robinhood * (1 + rhReturn / 100) + netDistributions;
 
-      // Entrepreneur fund
-      const entrepreneurContrib = assumptions.entrepreneurContrib;
-      entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100) + entrepreneurContrib;
+      // QOZ Fund — roll Robinhood gains in at target age, grows tax-free after 10yr hold
+      if (age === assumptions.qozInvestAge) {
+        const qozAmount = Math.min(assumptions.qozInvestAmount, robinhood);
+        robinhood -= qozAmount; // capital gains rolled out of Robinhood (tax-deferred)
+        qozFund += qozAmount;
+      }
+      qozFund = qozFund * (1 + assumptions.qozReturn / 100); // appreciation (tax-free after 10yr hold)
 
       // ═══════════════════════════════════════════════════════════
       // STEP 6: REAL ESTATE EQUITY CHANGES
@@ -380,7 +387,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // STEP 7: NET WORTH (Ayoola's share only)
       // ═══════════════════════════════════════════════════════════
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + entrepreneur - landMortgage;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund - landMortgage;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -400,7 +407,7 @@ export default function PlanDashboard() {
         acres,
         rentalNet: Math.round(rentalNet),
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
-        entrepreneur: Math.round(entrepreneur),
+        qozFund: Math.round(qozFund),
         cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
@@ -458,7 +465,7 @@ export default function PlanDashboard() {
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
-      { name: 'Ventures', value: ageData.entrepreneur, desc: DESCRIPTIONS.ventures },
+      { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
     ].filter(d => d.value > 0);
   };
 
@@ -552,7 +559,7 @@ export default function PlanDashboard() {
               <Area type="monotone" dataKey="landEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
               <Area type="monotone" dataKey="seattleEquity50" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle (50%)" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
-              <Area type="monotone" dataKey="entrepreneur" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="Ventures" />
+              <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
             </AreaChart>
           </ResponsiveContainer>
         );
@@ -728,7 +735,7 @@ export default function PlanDashboard() {
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
       { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
-      { label: 'Ventures', value: d.entrepreneur, color: 'text-cyan-400' },
+      { label: 'QOZ Fund', value: d.qozFund, color: 'text-cyan-400' },
     ].filter(item => item.value !== 0);
   };
 
@@ -889,7 +896,7 @@ export default function PlanDashboard() {
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
               <TableHeader id="seattle" label="Seattle 50%" color="text-emerald-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" />
-              <TableHeader id="ventures" label="Ventures" color="text-cyan-400" />
+              <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
               <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>
@@ -912,7 +919,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity50)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
-                <td className="p-2 text-right text-cyan-400">{formatCurrency(row.entrepreneur)}</td>
+                <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
               </tr>
@@ -1496,13 +1503,34 @@ export default function PlanDashboard() {
                   <div className="text-xs text-yellow-400 mt-2">Down payment sourced from Robinhood brokerage. Mortgage included in $50K living expenses.</div>
                 </div>
 
+                {/* QOZ Expansion */}
+                <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-800">
+                  <div className="text-xs text-cyan-400 mb-2 font-semibold">QOZ Fund — 100-Acre Expansion (Age {assumptions.qozInvestAge})</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Investment Amount</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="10000" value={assumptions.qozInvestAmount} onChange={(e) => setAssumptions({ ...assumptions, qozInvestAmount: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Investment Age</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">Age</span>
+                        <input type="number" step="1" value={assumptions.qozInvestAge} onChange={(e) => setAssumptions({ ...assumptions, qozInvestAge: parseInt(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none text-right" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">Roll Robinhood capital gains into QOZ fund (tax-deferred). 501(c)(3) operates permaculture/community programs on OZ land. After 10yr hold (age {assumptions.qozTaxFreeAge}), all new appreciation is tax-free.</div>
+                </div>
+
                 {/* Deferred Items */}
                 <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
                   <div className="text-xs text-gray-500 mb-2 font-semibold">Deferred (not yet in model)</div>
                   <div className="text-xs text-gray-600 space-y-1">
                     <div>Equipment & Infrastructure — will add when funded</div>
                     <div>Offshore Land (Family) — financing TBD</div>
-                    <div>100-Acre Expansion — financing TBD</div>
                   </div>
                 </div>
                 
@@ -1553,11 +1581,9 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Ventures Fund</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" step="1000" value={assumptions.entrepreneurContrib} onChange={(e) => setAssumptions({ ...assumptions, entrepreneurContrib: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-xs">/yr</span>
+                      <label className="text-xs text-gray-400 block mb-1">QOZ Fund (age {assumptions.qozInvestAge})</label>
+                      <div className="bg-cyan-900/30 rounded px-2 py-2 text-cyan-400 font-medium">
+                        {formatCurrency(assumptions.qozInvestAmount)} (from Robinhood)
                       </div>
                     </div>
                   </div>
@@ -1573,7 +1599,7 @@ export default function PlanDashboard() {
                       { key: 'robinhoodReturnPost35', label: 'Robinhood (35+)' },
                       { key: 'k401Return', label: '401k Return' },
                       { key: 'iraReturn', label: 'IRA Return' },
-                      { key: 'entrepreneurReturn', label: 'Ventures Return' },
+                      { key: 'qozReturn', label: 'QOZ Fund Return' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>

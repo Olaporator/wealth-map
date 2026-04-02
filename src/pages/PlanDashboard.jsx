@@ -48,6 +48,8 @@ export default function PlanDashboard() {
     hoursPerYear: 2080,       // 40 hrs/wk × 52 (conservative; actual pace ~2,250)
     w2Gross: 80000,           // ~$40/hr × 2,000 hrs (user confirmed: high month on stub)
     k401Rate: 20,             // 20% of gross to 401k (from pay stub: $768/$3,840)
+    k401ReductionAge: 32,     // age to reduce 401k by $1K/mo → ventures fund
+    k401ReductionAmount: 12000, // $1K/mo = $12K/yr redirected to ventures
     employerPayrollTaxRate: 8.5, // SS 6.2% + Medicare 1.45% + FUTA/SUI/WA ~0.85%
 
     // Tax withholding (from pay stub actuals)
@@ -75,10 +77,16 @@ export default function PlanDashboard() {
     robinhoodReturn: 30,      // individual brokerage — aggressive fund strategy (ages 31-34)
     robinhoodReturnPost35: 15, // modest growth from age 35+ (shift to safer allocation)
     iraReturn: 30,            // Robinhood IRA — same fund strategy
+    venturesReturn: 1,        // ventures fund — conservative
     qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
     qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
     qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
     qozTaxFreeAge: 52,        // 10yr hold = all new gains tax-free
+
+    // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
+    rhPullStartAge: 33,       // start pulling from Robinhood growth
+    rhPullPersonalPct: 1,     // 1% of Robinhood balance → personal (covers expenses)
+    rhPullQozPct: 1,          // 1% of Robinhood balance → QOZ fund (ongoing contributions)
     homeAppreciation: 6,      // Seattle home appreciation
     landAppreciation: 4,      // rural land appreciation
 
@@ -136,15 +144,15 @@ export default function PlanDashboard() {
     // Phase 2 (36-37): Transition — NT winds down, land ramps up
     phase2NTRevenue: 150000,
 
-    // Phase 3 (38): Gap year — minimal NT work
-    phase3NTRevenue: 50000,
+    // Phase 3 (38): Gap year — W2 maintained at $80K
+    phase3NTRevenue: 80000,
 
-    // Phase 4 (36-45): Building phase — land business growing
-    phase4NTRevenue: 50000,
+    // Phase 4 (39-45): Building phase — land business growing
+    phase4NTRevenue: 80000,
     phase4BusinessIncome: 0,       // starts at 0, grows $15K/yr
 
     // Phase 5 (46+): Coast mode — land business mature
-    phase5NTRevenue: 50000,
+    phase5NTRevenue: 80000,
     phase5BusinessIncome: 150000,
     phase5BusinessGrowth: 5000,
 
@@ -214,6 +222,7 @@ export default function PlanDashboard() {
     let ccDebt = assumptions.ccDebtStart;
     let cash = assumptions.cashStart; // tracks actual cash reserves
     let qozFund = 0;
+    let ventures = 0;
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -266,7 +275,14 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
       // ═══════════════════════════════════════════════════════════
-      const k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
+      let k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
+      let venturesContrib = 0;
+      // At age 32+, redirect $1K/mo from 401k to ventures fund
+      if (age >= assumptions.k401ReductionAge && k401Contrib > 0) {
+        const reduction = Math.min(assumptions.k401ReductionAmount, k401Contrib);
+        k401Contrib -= reduction;
+        venturesContrib = reduction;
+      }
       const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
       const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
       const takeHome = w2Gross - k401Contrib - personalTaxes;
@@ -322,8 +338,18 @@ export default function PlanDashboard() {
       // Note: landMortgagePayment (~$1K/mo) is INCLUDED in livingExpenses ($50K) — Ayoola lives on the land
       const totalPersonalOut = expenses + staffExpenses + additionalTaxes;
 
-      // Total personal inflows
-      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome;
+      // Robinhood growth-based pulls (tax-strategic LTCG harvesting)
+      let rhPullPersonal = 0;
+      let rhPullQoz = 0;
+      if (age >= assumptions.rhPullStartAge && robinhood > 0) {
+        const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
+        const rhGrowth = robinhood * (rhReturn / 100);
+        rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
+        rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+      }
+
+      // Total personal inflows (includes Robinhood pull for expenses)
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
       // Free cash = what's left after everything
       const freeCash = totalPersonalIn - totalPersonalOut;
@@ -341,17 +367,20 @@ export default function PlanDashboard() {
       // IRA: grows on existing balance, no new contributions
       ira = ira * (1 + assumptions.iraReturn / 100);
 
-      // Robinhood: grows on existing balance + receives S-Corp distributions (after-tax)
+      // Robinhood: grows on existing balance + distributions - pulls
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions;
+      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
 
-      // QOZ Fund — roll Robinhood gains in at target age, grows tax-free after 10yr hold
+      // Ventures fund: receives redirected 401k contributions
+      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib;
+
+      // QOZ Fund — lump sum at target age + ongoing Robinhood growth contributions
       if (age === assumptions.qozInvestAge) {
         const qozAmount = Math.min(assumptions.qozInvestAmount, robinhood);
         robinhood -= qozAmount; // capital gains rolled out of Robinhood (tax-deferred)
         qozFund += qozAmount;
       }
-      qozFund = qozFund * (1 + assumptions.qozReturn / 100); // appreciation (tax-free after 10yr hold)
+      qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz; // appreciation + ongoing contributions
 
       // ═══════════════════════════════════════════════════════════
       // STEP 6: REAL ESTATE EQUITY CHANGES
@@ -387,7 +416,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // STEP 7: NET WORTH (Ayoola's share only)
       // ═══════════════════════════════════════════════════════════
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund - landMortgage;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures - landMortgage;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -408,6 +437,10 @@ export default function PlanDashboard() {
         rentalNet: Math.round(rentalNet),
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
         qozFund: Math.round(qozFund),
+        ventures: Math.round(ventures),
+        venturesContrib: Math.round(venturesContrib),
+        rhPullPersonal: Math.round(rhPullPersonal),
+        rhPullQoz: Math.round(rhPullQoz),
         cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
@@ -435,6 +468,9 @@ export default function PlanDashboard() {
           rentalShare: ayoolaRentalShare,
           rentalContrib: -ayoolaContrib,
           landMortgagePayment: -landMortgagePayment,
+          rhPullPersonal,
+          rhPullQoz: -rhPullQoz,
+          venturesContrib: -venturesContrib,
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
@@ -466,6 +502,7 @@ export default function PlanDashboard() {
       { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
+      { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
     ].filter(d => d.value > 0);
   };
 
@@ -560,6 +597,7 @@ export default function PlanDashboard() {
               <Area type="monotone" dataKey="seattleEquity50" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle (50%)" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
+              <Area type="monotone" dataKey="ventures" stackId="1" stroke="#84CC16" fill="#84CC16" name="Ventures" />
             </AreaChart>
           </ResponsiveContainer>
         );
@@ -736,6 +774,7 @@ export default function PlanDashboard() {
       { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
       { label: 'QOZ Fund', value: d.qozFund, color: 'text-cyan-400' },
+      { label: 'Ventures', value: d.ventures, color: 'text-lime-400' },
     ].filter(item => item.value !== 0);
   };
 
@@ -753,6 +792,7 @@ export default function PlanDashboard() {
     const src = d.freeCashSources;
     const items = [
       { label: 'Take-Home Pay', value: src.takeHome, color: 'text-green-400' },
+      { label: 'RH Pull (personal)', value: src.rhPullPersonal, color: 'text-orange-400' },
       { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
       { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
@@ -762,6 +802,12 @@ export default function PlanDashboard() {
 
     if (src.netDistributions > 0) {
       items.push({ label: `S-Corp Distrib → Robinhood`, value: src.netDistributions, color: 'text-blue-400' });
+    }
+    if (src.rhPullQoz < 0) {
+      items.push({ label: `RH Pull → QOZ`, value: src.rhPullQoz, color: 'text-cyan-400' });
+    }
+    if (src.venturesContrib < 0) {
+      items.push({ label: `401k → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
     }
     return items;
   };
@@ -896,6 +942,7 @@ export default function PlanDashboard() {
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
               <TableHeader id="seattle" label="Seattle 50%" color="text-emerald-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" />
+              <TableHeader id="ventures" label="Ventures" color="text-lime-400" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
               <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
@@ -919,6 +966,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity50)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
+                <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
@@ -1222,7 +1270,7 @@ export default function PlanDashboard() {
                       <div className="bg-gray-800 rounded px-2 py-2 text-red-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase3NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">Lean year — NT winds down, land business starting</div>
+                  <div className="text-xs text-yellow-400 mt-2">W2 maintained — NT covers salary, no distributions</div>
                 </div>
 
                 {/* Phase 4 */}
@@ -1569,25 +1617,25 @@ export default function PlanDashboard() {
                   <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions (auto-calculated from W2)</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">401k ({assumptions.k401Rate}% of W2)</label>
+                      <label className="text-xs text-gray-400 block mb-1">401k (age 31: {assumptions.k401Rate}%)</label>
                       <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
                         {formatCurrency(assumptions.w2Gross * assumptions.k401Rate / 100)}/yr
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">S-Corp Distrib → Robinhood</label>
-                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100) * (1 - assumptions.distributionTaxRate / 100))}/yr (after {assumptions.distributionTaxRate}% tax)
+                      <label className="text-xs text-gray-400 block mb-1">401k (age {assumptions.k401ReductionAge}+: reduced)</label>
+                      <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
+                        {formatCurrency(assumptions.w2Gross * assumptions.k401Rate / 100 - assumptions.k401ReductionAmount)}/yr
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">QOZ Fund (age {assumptions.qozInvestAge})</label>
-                      <div className="bg-cyan-900/30 rounded px-2 py-2 text-cyan-400 font-medium">
-                        {formatCurrency(assumptions.qozInvestAmount)} (from Robinhood)
+                      <label className="text-xs text-gray-400 block mb-1">→ Ventures ({formatCurrency(assumptions.k401ReductionAmount)}/yr)</label>
+                      <div className="bg-lime-900/30 rounded px-2 py-2 text-lime-400 font-medium">
+                        $1K/mo from age {assumptions.k401ReductionAge}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">No employer 401k match (confirmed from pay stub)</div>
+                  <div className="text-xs text-gray-500 mt-2">No employer 401k match. At age {assumptions.k401ReductionAge}, $1K/mo redirected from 401k to ventures fund.</div>
                 </div>
                 
                 {/* Return Rates */}
@@ -1599,6 +1647,7 @@ export default function PlanDashboard() {
                       { key: 'robinhoodReturnPost35', label: 'Robinhood (35+)' },
                       { key: 'k401Return', label: '401k Return' },
                       { key: 'iraReturn', label: 'IRA Return' },
+                      { key: 'venturesReturn', label: 'Ventures Return' },
                       { key: 'qozReturn', label: 'QOZ Fund Return' },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1634,6 +1683,35 @@ export default function PlanDashboard() {
                   <div className="text-xs text-gray-500 mt-2">NT surplus after W2 + payroll taxes → taxed as personal income → deposited to Robinhood brokerage</div>
                 </div>
                 
+                {/* Robinhood Growth Pulls */}
+                <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800">
+                  <div className="text-xs text-orange-400 mb-2 font-semibold">Robinhood Growth Pulls (Tax-Strategic LTCG from Age {assumptions.rhPullStartAge})</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Start Age</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">Age</span>
+                        <input type="number" step="1" value={assumptions.rhPullStartAge} onChange={(e) => setAssumptions({ ...assumptions, rhPullStartAge: parseInt(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none text-right" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ Personal (% of growth)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.5" value={assumptions.rhPullPersonalPct} onChange={(e) => setAssumptions({ ...assumptions, rhPullPersonalPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ QOZ Fund (% of growth)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="0.5" value={assumptions.rhPullQozPct} onChange={(e) => setAssumptions({ ...assumptions, rhPullQozPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">Pull {assumptions.rhPullPersonalPct}% of Robinhood growth for personal expenses + {assumptions.rhPullQozPct}% to QOZ fund. Taxed at 15% LTCG rate.</div>
+                </div>
+
                 {/* Withdrawal Strategy */}
                 <div className="bg-gray-800 rounded-lg p-3">
                   <div className="text-xs text-gray-400 mb-2 font-semibold">Retirement Withdrawal</div>

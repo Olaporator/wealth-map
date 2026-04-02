@@ -85,8 +85,8 @@ export default function PlanDashboard() {
 
     // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
     rhPullStartAge: 33,       // start pulling from Robinhood growth
-    rhPullPersonalPct: 1,     // 1% of Robinhood balance → personal (covers expenses)
-    rhPullQozPct: 1,          // 1% of Robinhood balance → QOZ fund (ongoing contributions)
+    rhPullPersonalPct: 2,     // 2% of Robinhood balance → personal (covers expenses)
+    rhPullQozPct: 2,          // 2% of Robinhood balance → QOZ fund (ongoing contributions)
     freeCashToQozPct: 66,     // 66% of positive free cash → QOZ fund
     homeAppreciation: 6,      // Seattle home appreciation
     landAppreciation: 4,      // rural land appreciation

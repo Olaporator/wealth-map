@@ -102,9 +102,11 @@ export default function PlanDashboard() {
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
     landPrincipalPerAcre: 300,
-    landPurchase1Age: 31,     // initial 20 acres (live on this, mortgage included in living expenses)
-    landPurchase1Acres: 20,
+    landPurchase1Age: 32,     // 50 acres after Seattle sale proceeds
+    landPurchase1Acres: 50,
     landHousingCost: 12000,   // ~$1K/mo for basic structure on land
+    landDevStartAge: 33,      // start developing home on land
+    landDevPerYear: 20000,    // $20K/yr from ventures for home development
 
     // ═══════════════════════════════════════════════════════════════
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
@@ -391,8 +393,14 @@ export default function PlanDashboard() {
       const grossGrowth = totalInvested * (rhReturn / 100);
       robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz;
 
-      // Ventures fund: funded from all positive free cash, pays staff expenses
-      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
+      // Land development: $20K/yr from ventures starting at 33 (builds equity)
+      let landDevCost = 0;
+      if (age >= assumptions.landDevStartAge && acres > 0) {
+        landDevCost = assumptions.landDevPerYear;
+      }
+
+      // Ventures fund: funded from all positive free cash, pays staff + land dev
+      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses - landDevCost;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
@@ -416,12 +424,12 @@ export default function PlanDashboard() {
         seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
       }
 
-      // Land: appreciation + principal paydown (mortgage payment already expensed above)
+      // Land: appreciation + principal paydown + development adds equity
       if (landMortgage > 0 || landEquity > 0) {
         const totalLandValue = landEquity + landMortgage;
         const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
         const appreciationGain = appreciatedValue - totalLandValue;
-        landEquity += appreciationGain;
+        landEquity += appreciationGain + landDevCost; // dev spend builds equity
 
         if (landMortgage > 0) {
           const landPrincipal = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);

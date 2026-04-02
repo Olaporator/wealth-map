@@ -350,6 +350,16 @@ export default function PlanDashboard() {
         rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
       }
 
+      // LTCG tax on Robinhood pulls (15% rate)
+      const rhPullTax = (rhPullPersonal + rhPullQoz) * 0.15;
+
+      // ═══════════════════════════════════════════════════════════
+      // TOTAL TAX BURDEN (all sources)
+      // ═══════════════════════════════════════════════════════════
+      const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz;
+      const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
+
       // Total personal inflows (includes Robinhood pull for expenses)
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
@@ -446,6 +456,16 @@ export default function PlanDashboard() {
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
         freeCashToQoz: Math.round(freeCashToQoz),
+        totalTax: Math.round(totalTax),
+        effectiveTaxRate: Math.round(effectiveTaxRate * 10) / 10,
+        taxBreakdown: {
+          w2Tax: Math.round(personalTaxes),
+          distributionTax: Math.round(distributionTax),
+          additionalTax: Math.round(additionalTaxes),
+          rhPullTax: Math.round(rhPullTax),
+          employerPayroll: Math.round(employerPayrollTax),
+          totalGrossIncome: Math.round(totalGrossIncome),
+        },
         cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
@@ -954,6 +974,7 @@ export default function PlanDashboard() {
               <TableHeader id="ventures" label="Ventures" color="text-lime-400" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
               <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
+              <th className="p-2 text-right text-red-400">Tax</th>
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>
           </thead>
@@ -978,6 +999,32 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
+                <td className="p-2 text-right text-red-400 relative group/tax">
+                  <span className="cursor-help">{formatCurrency(row.totalTax)}</span>
+                  <span className="ml-1 text-red-500 text-[9px]">{row.effectiveTaxRate}%</span>
+                  <div className="hidden group-hover/tax:block absolute right-0 bottom-full mb-1 bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs w-56 z-20 shadow-xl">
+                    <div className="font-bold text-white mb-2">Tax Breakdown @ {row.age}</div>
+                    <div className="space-y-1">
+                      {row.taxBreakdown.w2Tax > 0 && <div className="flex justify-between"><span className="text-gray-400">W2 ({assumptions.personalTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.w2Tax)}</span></div>}
+                      {row.taxBreakdown.distributionTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Distrib ({assumptions.distributionTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.distributionTax)}</span></div>}
+                      {row.taxBreakdown.additionalTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Add'l Income (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.additionalTax)}</span></div>}
+                      {row.taxBreakdown.rhPullTax > 0 && <div className="flex justify-between"><span className="text-gray-400">RH LTCG (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.rhPullTax)}</span></div>}
+                      {row.taxBreakdown.employerPayroll > 0 && <div className="flex justify-between"><span className="text-gray-400">Employer Payroll</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.employerPayroll)}</span></div>}
+                      <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-bold">
+                        <span className="text-white">Total</span>
+                        <span className="text-red-400">{formatCurrency(row.totalTax)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-500">
+                        <span>Gross Income</span>
+                        <span>{formatCurrency(row.taxBreakdown.totalGrossIncome)}</span>
+                      </div>
+                      <div className="flex justify-between text-orange-400 font-semibold">
+                        <span>Effective Rate</span>
+                        <span>{row.effectiveTaxRate}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
                 <td className="p-2 text-right font-bold text-white">{formatCurrency(row.netWorth)}</td>
               </tr>
             ))}

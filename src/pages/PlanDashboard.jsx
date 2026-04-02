@@ -87,6 +87,7 @@ export default function PlanDashboard() {
     rhPullStartAge: 33,       // start pulling from Robinhood growth
     rhPullPersonalPct: 1,     // 1% of Robinhood balance → personal (covers expenses)
     rhPullQozPct: 1,          // 1% of Robinhood balance → QOZ fund (ongoing contributions)
+    freeCashToQozPct: 66,     // 66% of positive free cash → QOZ fund
     homeAppreciation: 6,      // Seattle home appreciation
     landAppreciation: 4,      // rural land appreciation
 
@@ -352,7 +353,9 @@ export default function PlanDashboard() {
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
       // Free cash = what's left after everything
-      const freeCash = totalPersonalIn - totalPersonalOut;
+      const grossFreeCash = totalPersonalIn - totalPersonalOut;
+      const freeCashToQoz = Math.max(0, grossFreeCash) * (assumptions.freeCashToQozPct / 100);
+      const freeCash = grossFreeCash - freeCashToQoz;
 
       // Track cumulative cash position
       cash += freeCash;
@@ -380,7 +383,7 @@ export default function PlanDashboard() {
         robinhood -= qozAmount; // capital gains rolled out of Robinhood (tax-deferred)
         qozFund += qozAmount;
       }
-      qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz; // appreciation + ongoing contributions
+      qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz; // appreciation + RH pulls + free cash
 
       // ═══════════════════════════════════════════════════════════
       // STEP 6: REAL ESTATE EQUITY CHANGES
@@ -441,6 +444,7 @@ export default function PlanDashboard() {
         venturesContrib: Math.round(venturesContrib),
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
+        freeCashToQoz: Math.round(freeCashToQoz),
         cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
@@ -470,6 +474,7 @@ export default function PlanDashboard() {
           landMortgagePayment: -landMortgagePayment,
           rhPullPersonal,
           rhPullQoz: -rhPullQoz,
+          freeCashToQoz: -freeCashToQoz,
           venturesContrib: -venturesContrib,
           businessIncome,
           expenses: -expenses,
@@ -805,6 +810,9 @@ export default function PlanDashboard() {
     }
     if (src.rhPullQoz < 0) {
       items.push({ label: `RH Pull → QOZ`, value: src.rhPullQoz, color: 'text-cyan-400' });
+    }
+    if (src.freeCashToQoz < 0) {
+      items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });
     }
     if (src.venturesContrib < 0) {
       items.push({ label: `401k → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
@@ -1709,7 +1717,16 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">Pull {assumptions.rhPullPersonalPct}% of Robinhood growth for personal expenses + {assumptions.rhPullQozPct}% to QOZ fund. Taxed at 15% LTCG rate.</div>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    <div className="col-span-3">
+                      <label className="text-xs text-gray-400 block mb-1">Free Cash → QOZ (%)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <input type="number" step="5" value={assumptions.freeCashToQozPct} onChange={(e) => setAssumptions({ ...assumptions, freeCashToQozPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">RH pulls: {assumptions.rhPullPersonalPct}% personal + {assumptions.rhPullQozPct}% QOZ. Plus {assumptions.freeCashToQozPct}% of positive free cash → QOZ. LTCG at 15%.</div>
                 </div>
 
                 {/* Withdrawal Strategy */}

@@ -37,7 +37,7 @@ export default function PlanDashboard() {
     k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
     iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
     robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
-    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage (total equity; 50% counted)
+    seattleEquityStart: 290000, // $1.25M value - $960K mortgage (total equity; 50% counted)
     ccDebtStart: 0,           // Chase CC paid off, Cap One split 50/50 in divorce → $0
     cashStart: 135,           // $6,835 - $6,700 (CC settlement from savings) ≈ $135
 
@@ -110,8 +110,10 @@ export default function PlanDashboard() {
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
     // Both contribute $1K/mo toward costs, reduced $100/mo/yr until breakeven
     // ═══════════════════════════════════════════════════════════════
-    seattleCurrentValue: 1100000,
-    seattleMortgageBalance: 965367,
+    seattleCurrentValue: 1250000,
+    seattleMortgageBalance: 960000,
+    seattleSaleAge: 32,           // sell Seattle at 32
+    seattleSellerFeePct: 6,       // 6% closing costs (agent ~5% + title/excise ~1%)
     seattleMortgageRate: 3.25,
     grossRentYear1: 72000,        // ~$6K/mo market rent
     mortgagePayment: 67200,       // annual mortgage (P&I)
@@ -293,7 +295,8 @@ export default function PlanDashboard() {
       let ayoolaRentalShare = 0;
       let ayoolaContrib = 0;
 
-      if (age >= 32) {
+      // Seattle rental — only applies before sale
+      if (age >= 32 && age < assumptions.seattleSaleAge) {
         const rentYears = age - 32;
         const grossRent = assumptions.grossRentYear1 * Math.pow(1 + assumptions.rentGrowth / 100, rentYears);
         const mortgage = age < assumptions.mortgagePaidAge ? assumptions.mortgagePayment : 0;
@@ -311,11 +314,12 @@ export default function PlanDashboard() {
         rentalNet = grossRent + totalContribs - totalCosts;
 
         if (rentalNet > 0) {
-          ayoolaRentalShare = rentalNet * 0.5; // 50% of profit
+          ayoolaRentalShare = rentalNet * 0.5;
         } else {
-          ayoolaRentalShare = -ayoolaContrib; // cost is his contribution
+          ayoolaRentalShare = -ayoolaContrib;
         }
       }
+      // After sale: no rental income/costs (ayoolaRentalShare stays 0)
 
       // Land mortgage payment (principal + interest) — comes from personal cash
       let landMortgagePayment = 0;
@@ -397,8 +401,20 @@ export default function PlanDashboard() {
       // STEP 6: REAL ESTATE EQUITY CHANGES
       // ═══════════════════════════════════════════════════════════
 
-      // Seattle: appreciates + principal paydown (50% of equity counted in NW)
-      seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
+      // Seattle: appreciates + principal paydown, OR sell at target age
+      if (age === assumptions.seattleSaleAge && seattleEquity > 0) {
+        // Sell: home value = equity + remaining mortgage, apply appreciation first
+        seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
+        const remainingMortgage = assumptions.seattleMortgageBalance - (age - assumptions.currentAge) * assumptions.seattlePrincipal;
+        const homeValue = seattleEquity + Math.max(0, remainingMortgage);
+        const sellerFees = homeValue * (assumptions.seattleSellerFeePct / 100);
+        const netProceeds = homeValue - Math.max(0, remainingMortgage) - sellerFees;
+        const ayoolaProceeds = netProceeds / 2; // 50% split
+        robinhood += ayoolaProceeds; // proceeds → Robinhood
+        seattleEquity = 0; // property sold
+      } else if (seattleEquity > 0) {
+        seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
+      }
 
       // Land: appreciation + principal paydown (mortgage payment already expensed above)
       if (landMortgage > 0 || landEquity > 0) {

@@ -76,6 +76,9 @@ export default function PlanDashboard() {
     k401Return: 8,            // 401k in standard index funds
     robinhoodReturn: 30,      // individual brokerage — aggressive fund strategy (ages 31-34)
     robinhoodReturnPost35: 15, // modest growth from age 35+ (shift to safer allocation)
+    marginPct: 35,            // 35% of Robinhood equity used as margin
+    marginRateLow: 5,         // margin interest rate below $500K
+    marginRateHigh: 4.5,      // margin interest rate at $500K+
     iraReturn: 30,            // Robinhood IRA — same fund strategy
     venturesReturn: 1,        // ventures fund — conservative
     qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
@@ -333,12 +336,13 @@ export default function PlanDashboard() {
       // Note: staffExpenses paid from ventures fund, NOT personal cash flow
       const totalPersonalOut = expenses + additionalTaxes;
 
-      // Robinhood growth-based pulls (tax-strategic LTCG harvesting)
+      // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
       let rhPullQoz = 0;
       if (age >= assumptions.rhPullStartAge && robinhood > 0) {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-        const rhGrowth = robinhood * (rhReturn / 100);
+        const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
+        const rhGrowth = leveragedBase * (rhReturn / 100);
         rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
         rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
       }
@@ -375,9 +379,14 @@ export default function PlanDashboard() {
       // IRA: grows on existing balance, no new contributions
       ira = ira * (1 + assumptions.iraReturn / 100);
 
-      // Robinhood: grows on existing balance + distributions - pulls
+      // Robinhood: grows on equity + margin leverage, minus margin interest
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
+      const marginBalance = robinhood * (assumptions.marginPct / 100);
+      const marginRate = marginBalance >= 500000 ? assumptions.marginRateHigh : assumptions.marginRateLow;
+      const marginInterest = marginBalance * (marginRate / 100);
+      const totalInvested = robinhood + marginBalance; // equity + borrowed
+      const grossGrowth = totalInvested * (rhReturn / 100);
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz;
 
       // Ventures fund: funded from all positive free cash, pays staff expenses
       ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;

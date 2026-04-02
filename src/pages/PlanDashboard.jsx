@@ -72,7 +72,8 @@ export default function PlanDashboard() {
     // RETURNS & APPRECIATION
     // ═══════════════════════════════════════════════════════════════
     k401Return: 8,            // 401k in standard index funds
-    robinhoodReturn: 30,      // individual brokerage — same fund strategy
+    robinhoodReturn: 30,      // individual brokerage — aggressive fund strategy (ages 31-34)
+    robinhoodReturnPost35: 15, // modest growth from age 35+ (shift to safer allocation)
     iraReturn: 30,            // Robinhood IRA — same fund strategy
     entrepreneurReturn: 1,    // ventures fund — conservative
     homeAppreciation: 6,      // Seattle home appreciation
@@ -338,7 +339,8 @@ export default function PlanDashboard() {
       ira = ira * (1 + assumptions.iraReturn / 100);
 
       // Robinhood: grows on existing balance + receives S-Corp distributions (after-tax)
-      robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100) + netDistributions;
+      const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
+      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions;
 
       // Entrepreneur fund
       const entrepreneurContrib = assumptions.entrepreneurContrib;
@@ -1567,7 +1569,8 @@ export default function PlanDashboard() {
                   <div className="text-xs text-emerald-400 mb-2 font-semibold">Expected Return Rates</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'robinhoodReturn', label: 'Robinhood Return' },
+                      { key: 'robinhoodReturn', label: 'Robinhood (31-34)' },
+                      { key: 'robinhoodReturnPost35', label: 'Robinhood (35+)' },
                       { key: 'k401Return', label: '401k Return' },
                       { key: 'iraReturn', label: 'IRA Return' },
                       { key: 'entrepreneurReturn', label: 'Ventures Return' },

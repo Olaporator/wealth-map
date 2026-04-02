@@ -337,7 +337,8 @@ export default function PlanDashboard() {
       // Total personal outflows
       // Note: ayoolaContrib ($1K/mo rental) is INCLUDED in livingExpenses ($50K) — do NOT add separately
       // Note: landMortgagePayment (~$1K/mo) is INCLUDED in livingExpenses ($50K) — Ayoola lives on the land
-      const totalPersonalOut = expenses + staffExpenses + additionalTaxes;
+      // Note: staffExpenses paid from ventures fund, NOT personal cash flow
+      const totalPersonalOut = expenses + additionalTaxes;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting)
       let rhPullPersonal = 0;
@@ -374,8 +375,8 @@ export default function PlanDashboard() {
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
       robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
 
-      // Ventures fund: receives redirected 401k contributions
-      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib;
+      // Ventures fund: receives redirected 401k contributions, pays staff expenses
+      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
       // QOZ Fund — lump sum at target age + ongoing Robinhood growth contributions
       if (age === assumptions.qozInvestAge) {

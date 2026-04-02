@@ -388,13 +388,8 @@ export default function PlanDashboard() {
       // Ventures fund: receives redirected 401k contributions, pays staff expenses
       ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
-      // QOZ Fund — lump sum at target age + ongoing Robinhood growth contributions
-      if (age === assumptions.qozInvestAge) {
-        const qozAmount = Math.min(assumptions.qozInvestAmount, robinhood);
-        robinhood -= qozAmount; // capital gains rolled out of Robinhood (tax-deferred)
-        qozFund += qozAmount;
-      }
-      qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz; // appreciation + RH pulls + free cash
+      // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
+      qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
 
       // ═══════════════════════════════════════════════════════════
       // STEP 6: REAL ESTATE EQUITY CHANGES
@@ -417,11 +412,14 @@ export default function PlanDashboard() {
         }
       }
 
-      // Land purchase: down payment from Robinhood (personal brokerage)
+      // Land purchase: 50% of 401k used for down payment
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        robinhood -= downPayment; // DOWN PAYMENT FROM ROBINHOOD
+        const from401k = Math.min(k401 * 0.5, downPayment);
+        const fromRobinhood = downPayment - from401k;
+        k401 -= from401k;
+        robinhood -= fromRobinhood;
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;

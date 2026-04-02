@@ -277,11 +277,6 @@ export default function PlanDashboard() {
       // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
       // ═══════════════════════════════════════════════════════════
       let k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
-      let venturesContrib = 0;
-      // At age 32+, pull $1K/mo from Robinhood into ventures fund
-      if (age >= assumptions.k401ReductionAge) {
-        venturesContrib = assumptions.k401ReductionAmount;
-      }
       const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
       const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
       const takeHome = w2Gross - k401Contrib - personalTaxes;
@@ -361,10 +356,11 @@ export default function PlanDashboard() {
       // Total personal inflows (includes Robinhood pull for expenses)
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
-      // Free cash = what's left after everything
+      // Free cash = what's left after everything → all positive free cash to ventures
       const grossFreeCash = totalPersonalIn - totalPersonalOut;
-      const freeCashToQoz = Math.max(0, grossFreeCash) * (assumptions.freeCashToQozPct / 100);
-      const freeCash = grossFreeCash - freeCashToQoz;
+      const venturesContrib = Math.max(0, grossFreeCash);
+      const freeCashToQoz = 0; // QOZ funded only by RH pulls now
+      const freeCash = grossFreeCash - venturesContrib; // effectively 0 when positive
 
       // Track cumulative cash position
       cash += freeCash;
@@ -381,9 +377,9 @@ export default function PlanDashboard() {
 
       // Robinhood: grows on existing balance + distributions - pulls
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz - venturesContrib;
+      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
 
-      // Ventures fund: funded from Robinhood ($1K/mo), pays staff expenses
+      // Ventures fund: funded from all positive free cash, pays staff expenses
       ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash

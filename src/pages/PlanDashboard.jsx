@@ -111,11 +111,11 @@ export default function PlanDashboard() {
     seattleMortgageRate: 3.25,
     grossRentYear1: 72000,        // ~$6K/mo market rent
     mortgagePayment: 67200,       // annual mortgage (P&I)
-    propertyTaxes: 12000,
+    propertyTaxes: 10000,
     insurance: 2400,
     propertyManagement: 7200,     // ~10% of gross rent
-    maintenanceRate: 10,          // % of rent
-    vacancyRate: 5,
+    maintenanceRate: 7,           // % of rent
+    vacancyRate: 3,
     rentGrowth: 2.5,
     seattlePrincipal: 18000,      // annual principal paydown (builds equity)
     ayoolaRentalContrib: 12000,   // $1K/mo toward rental costs

@@ -46,11 +46,10 @@ export default function PlanDashboard() {
     // ═══════════════════════════════════════════════════════════════
     hourlyRate: 40,           // actual Gusto rate
     hoursPerYear: 2080,       // 40 hrs/wk × 52 (conservative; actual pace ~2,250)
-    w2Gross: 80000,           // fallback / minimum reasonable W2 (dynamic calc overrides this)
-    employee401kMax: 23500,   // 2025/2026 employee 401k contribution limit
-    employer401kMatchRate: 25, // employer can contribute up to 25% of W2 to 401k
-    total401kMax: 70000,      // total 415(c) limit (employee + employer)
-    qbiDeductionPct: 20,      // Section 199A — 20% deduction on qualified business income
+    w2Gross: 80000,           // ~$40/hr × 2,000 hrs (user confirmed: high month on stub)
+    k401Rate: 20,             // 20% of gross to 401k (from pay stub: $768/$3,840)
+    k401ReductionAge: 32,     // age to reduce 401k by $1K/mo → ventures fund
+    k401ReductionAmount: 12000, // $1K/mo = $12K/yr redirected to ventures
     employerPayrollTaxRate: 8.5, // SS 6.2% + Medicare 1.45% + FUTA/SUI/WA ~0.85%
 
     // Tax withholding (from pay stub actuals)
@@ -261,42 +260,33 @@ export default function PlanDashboard() {
       }
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 2: OPTIMAL W2 + EMPLOYER 401k + DISTRIBUTIONS (S-Corp)
-      // Strategy: Set W2 to maximize employer 401k (25% of W2),
-      // then distribute remainder with QBI deduction.
-      // W2 × (1 + payrollRate + matchRate) ≤ NT Revenue
+      // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + DISTRIBUTIONS (S-Corp)
+      // Every dollar of NT revenue goes somewhere:
+      //   W2 gross → employee (taxes + 401k + take-home)
+      //   Employer payroll taxes → government
+      //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
       // ═══════════════════════════════════════════════════════════
-      const payrollRate = assumptions.employerPayrollTaxRate / 100;
-      const matchRate = assumptions.employer401kMatchRate / 100;
-      const employer401kCap = assumptions.total401kMax - assumptions.employee401kMax; // $46,500
-
-      // Dynamic W2: highest amount where W2 + payroll + employer 401k ≤ NT revenue
-      const w2ForRevenueCap = ntRevenue / (1 + payrollRate + matchRate);
-      const w2ForEmployerCap = employer401kCap / matchRate; // W2 where employer 401k maxes out
-      const w2Gross = age <= 45
-        ? Math.min(Math.floor(w2ForRevenueCap), Math.floor(w2ForEmployerCap), ntRevenue)
-        : Math.min(assumptions.w2Gross, ntRevenue); // post-45: revert to base W2
-
-      const employerPayrollTax = w2Gross * payrollRate;
-      const employee401k = age <= 45 ? Math.min(assumptions.employee401kMax, w2Gross) : 0;
-      const employer401k = age <= 45 ? Math.min(w2Gross * matchRate, employer401kCap) : 0;
-      const k401Contrib = employee401k + employer401k; // total 401k this year
-
-      const ntOverhead = w2Gross + employerPayrollTax + employer401k;
+      const w2Gross = Math.min(assumptions.w2Gross, ntRevenue); // can't pay more than NT earns
+      const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
+      const ntOverhead = w2Gross + employerPayrollTax;
       const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
-
-      // QBI deduction (Section 199A): 20% off qualified business income
-      const qbiDeduction = grossDistributions * (assumptions.qbiDeductionPct / 100);
-      const taxableDistributions = grossDistributions - qbiDeduction;
-      const distributionTax = taxableDistributions * (assumptions.distributionTaxRate / 100);
+      const distributionTax = grossDistributions * (assumptions.distributionTaxRate / 100);
       const netDistributions = grossDistributions - distributionTax; // after-tax → flows to Robinhood
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 3: W2 → TAXES + TAKE-HOME (401k already computed above)
+      // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
       // ═══════════════════════════════════════════════════════════
-      let venturesContrib = 0; // ventures funded separately now (not from 401k redirect)
+      let k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
+      let venturesContrib = 0;
+      // At age 32+, redirect $1K/mo from 401k to ventures fund
+      if (age >= assumptions.k401ReductionAge && k401Contrib > 0) {
+        const reduction = Math.min(assumptions.k401ReductionAmount, k401Contrib);
+        k401Contrib -= reduction;
+        venturesContrib = reduction;
+      }
+      const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
       const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
-      const takeHome = w2Gross - employee401k - personalTaxes;
+      const takeHome = w2Gross - k401Contrib - personalTaxes;
 
       // ═══════════════════════════════════════════════════════════
       // STEP 4: PERSONAL CASH FLOW (take-home vs expenses)
@@ -385,7 +375,7 @@ export default function PlanDashboard() {
       // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
       // ═══════════════════════════════════════════════════════════
 
-      // 401k: pre-tax growth, contributions = employee (from W2) + employer match (from NT revenue)
+      // 401k: pre-tax growth, contributions come from W2 deduction (already subtracted from take-home)
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
 
       // IRA: grows on existing balance, no new contributions
@@ -395,7 +385,7 @@ export default function PlanDashboard() {
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
       robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
 
-      // Ventures fund: funded separately (staff expenses drawn from it)
+      // Ventures fund: receives redirected 401k contributions, pays staff expenses
       ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
       // QOZ Fund — lump sum at target age + ongoing Robinhood growth contributions
@@ -471,12 +461,9 @@ export default function PlanDashboard() {
         taxBreakdown: {
           w2Tax: Math.round(personalTaxes),
           distributionTax: Math.round(distributionTax),
-          qbiDeduction: Math.round(qbiDeduction),
           additionalTax: Math.round(additionalTaxes),
           rhPullTax: Math.round(rhPullTax),
           employerPayroll: Math.round(employerPayrollTax),
-          employee401k: Math.round(employee401k),
-          employer401k: Math.round(employer401k),
           totalGrossIncome: Math.round(totalGrossIncome),
         },
         cash: Math.round(cash),
@@ -1019,16 +1006,14 @@ export default function PlanDashboard() {
                     <div className="font-bold text-white mb-2">Tax Breakdown @ {row.age}</div>
                     <div className="space-y-1">
                       {row.taxBreakdown.w2Tax > 0 && <div className="flex justify-between"><span className="text-gray-400">W2 ({assumptions.personalTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.w2Tax)}</span></div>}
-                      {row.taxBreakdown.distributionTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Distrib (QBI {assumptions.qbiDeductionPct}% off → {Math.round(assumptions.distributionTaxRate * (1 - assumptions.qbiDeductionPct/100) * 10)/10}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.distributionTax)}</span></div>}
-                      {row.taxBreakdown.qbiDeduction > 0 && <div className="flex justify-between"><span className="text-green-400">QBI Deduction</span><span className="text-green-400">-{formatCurrency(row.taxBreakdown.qbiDeduction)}</span></div>}
+                      {row.taxBreakdown.distributionTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Distrib ({assumptions.distributionTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.distributionTax)}</span></div>}
                       {row.taxBreakdown.additionalTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Add'l Income (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.additionalTax)}</span></div>}
                       {row.taxBreakdown.rhPullTax > 0 && <div className="flex justify-between"><span className="text-gray-400">RH LTCG (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.rhPullTax)}</span></div>}
                       {row.taxBreakdown.employerPayroll > 0 && <div className="flex justify-between"><span className="text-gray-400">Employer Payroll</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.employerPayroll)}</span></div>}
                       <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-bold">
-                        <span className="text-white">Total Tax</span>
+                        <span className="text-white">Total</span>
                         <span className="text-red-400">{formatCurrency(row.totalTax)}</span>
                       </div>
-                      {row.taxBreakdown.employer401k > 0 && <div className="flex justify-between text-green-400"><span>401k (emp {formatCurrency(row.taxBreakdown.employee401k)} + er {formatCurrency(row.taxBreakdown.employer401k)})</span><span>{formatCurrency(row.taxBreakdown.employee401k + row.taxBreakdown.employer401k)}</span></div>}
                       <div className="flex justify-between text-gray-500">
                         <span>Gross Income</span>
                         <span>{formatCurrency(row.taxBreakdown.totalGrossIncome)}</span>

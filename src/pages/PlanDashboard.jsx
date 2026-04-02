@@ -240,16 +240,15 @@ export default function PlanDashboard() {
         ntRevenue = assumptions.phase1NTRevenue;
       } else if (age <= 37) {
         ntRevenue = assumptions.phase2NTRevenue;
-      } else if (age === 38) {
+      } else if (age <= 39) {
         ntRevenue = assumptions.phase3NTRevenue;
-      } else if (age <= 45) {
-        ntRevenue = assumptions.phase4NTRevenue;
-        businessIncome = Math.max(0, (age - 39) * 15000) + assumptions.phase4BusinessIncome;
-        staffExpenses = age <= 40 ? 35000 : 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
       } else {
-        ntRevenue = assumptions.phase5NTRevenue;
-        businessIncome = assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
-        staffExpenses = assumptions.staffExpensesMax;
+        // Age 40+: fully off consulting — no NT revenue, no W2, no distributions
+        ntRevenue = 0;
+        businessIncome = age <= 45
+          ? Math.max(0, (age - 39) * 15000) + assumptions.phase4BusinessIncome
+          : assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
+        staffExpenses = age <= 40 ? 35000 : Math.min(35000 + (age - 40) * 10000, assumptions.staffExpensesMax);
       }
 
       // NT additional work toggle: extra revenue → all to distributions

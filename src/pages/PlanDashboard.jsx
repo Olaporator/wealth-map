@@ -86,7 +86,7 @@ export default function PlanDashboard() {
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
     landPrincipalPerAcre: 300,
-    landPurchase1Age: 32,     // initial 20 acres (live on this)
+    landPurchase1Age: 31,     // initial 20 acres (live on this, mortgage included in living expenses)
     landPurchase1Acres: 20,
     landHousingCost: 12000,   // ~$1K/mo for basic structure on land
 
@@ -326,7 +326,8 @@ export default function PlanDashboard() {
 
       // Total personal outflows
       // Note: ayoolaContrib ($1K/mo rental) is INCLUDED in livingExpenses ($50K) — do NOT add separately
-      const totalPersonalOut = expenses + landMortgagePayment + staffExpenses + additionalTaxes;
+      // Note: landMortgagePayment (~$1K/mo) is INCLUDED in livingExpenses ($50K) — Ayoola lives on the land
+      const totalPersonalOut = expenses + staffExpenses + additionalTaxes;
 
       // Total personal inflows
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome;
@@ -775,17 +776,19 @@ export default function PlanDashboard() {
     if (!d) return [];
     const src = d.freeCashSources;
     const items = [
-      { label: "Ayoola's W2", value: src.ayoolaPersonalIncome, color: 'text-emerald-400' },
-      { label: 'NT New Work → C-Corp', value: src.ntNewWork, color: 'text-lime-400' },
+      { label: "Ayoola's W2", value: src.w2Gross, color: 'text-emerald-400' },
+      { label: 'Take-Home Pay', value: src.takeHome, color: 'text-green-400' },
       { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
+      { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
+      { label: `Taxes (${assumptions.personalTaxRate}%)`, value: src.personalTaxes, color: 'text-orange-400' },
+      { label: '401k Contrib', value: src.k401Contrib, color: 'text-purple-400' },
+      { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
+      { label: 'Land Mortgage', value: src.landMortgagePayment, color: 'text-amber-400' },
+      { label: 'Additional Taxes', value: src.additionalTaxes, color: 'text-orange-300' },
       { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
-      { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
-      { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
-      { label: `Taxes (${assumptions.effectiveTaxRate}%)`, value: src.taxes, color: 'text-orange-400' },
-      { label: 'Contributions', value: src.contributions, color: 'text-red-400' },
-    ].filter(item => item.value !== 0);
-    
+    ].filter(item => item.value !== undefined && item.value !== 0);
+
     if (src.cCorpContrib > 0) {
       items.push({ label: 'NT → C-Corp', value: src.cCorpContrib, color: 'text-blue-300' });
     }
@@ -916,6 +919,7 @@ export default function PlanDashboard() {
           <thead className="sticky top-0 bg-gray-900 z-10">
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
+              <TableHeader id="w2" label="W2" color="text-green-400" />
               <TableHeader id="cCorp" label="C-Corp" color="text-blue-400" />
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
@@ -938,6 +942,7 @@ export default function PlanDashboard() {
                     : 'hover:bg-gray-800/50'}`}
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
+                <td className="p-2 text-right text-green-400">{formatCurrency(row.w2Gross)}</td>
                 <td className="p-2 text-right text-blue-400">{formatCurrency(row.cCorp)}</td>
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>

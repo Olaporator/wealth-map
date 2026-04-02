@@ -315,7 +315,8 @@ export default function PlanDashboard() {
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
       // Total personal outflows
-      const totalPersonalOut = expenses + ayoolaContrib + landMortgagePayment + staffExpenses + additionalTaxes;
+      // Note: ayoolaContrib ($1K/mo rental) is INCLUDED in livingExpenses ($50K) — do NOT add separately
+      const totalPersonalOut = expenses + landMortgagePayment + staffExpenses + additionalTaxes;
 
       // Total personal inflows
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome;
@@ -495,8 +496,7 @@ export default function PlanDashboard() {
             {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → C-Corp: {formatCurrency(src.ntNewWork)}</div>}
             {src.rentalShare !== 0 && <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>}
             {src.businessIncome > 0 && <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>}
-            <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
-            {src.rentalContrib < 0 && <div className="text-red-400">− Rental Contrib: {formatCurrency(Math.abs(src.rentalContrib))}</div>}
+            <div className="text-red-400">− Living (incl ${Math.round(Math.abs(src.rentalContrib)/1000)}K rental): {formatCurrency(Math.abs(src.expenses))}</div>
             {src.landMortgagePayment < 0 && <div className="text-red-400">− Land Mortgage: {formatCurrency(Math.abs(src.landMortgagePayment))}</div>}
             {src.staffExpenses < 0 && <div className="text-red-400">− Staff: {formatCurrency(Math.abs(src.staffExpenses))}</div>}
             {src.additionalTaxes < 0 && <div className="text-orange-400">− Add'l Taxes: {formatCurrency(Math.abs(src.additionalTaxes))}</div>}
@@ -1691,7 +1691,7 @@ export default function PlanDashboard() {
                   <div className="text-xs text-red-400 mb-2 font-semibold">Annual Living Expenses (all-in)</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Total Living (incl. land housing)</label>
+                      <label className="text-xs text-gray-400 block mb-1">Total Living (all-in)</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <span className="text-gray-500 text-sm">$</span>
                         <input type="number" step="1000" value={assumptions.livingExpenses} onChange={(e) => setAssumptions({ ...assumptions, livingExpenses: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
@@ -1699,15 +1699,15 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Seattle Rental Contrib</label>
-                      <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
-                        {formatCurrency(assumptions.ayoolaRentalContrib)}/yr (separate)
+                      <label className="text-xs text-gray-400 block mb-1">Includes</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-xs">
+                        Land housing, bills, utilities, food, travel, Seattle rental contrib ({formatCurrency(assumptions.ayoolaRentalContrib)}/yr)
                       </div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Monthly Burn</label>
                       <div className="bg-red-900/30 rounded px-2 py-2 text-red-400 font-medium">
-                        {formatCurrency(assumptions.livingExpenses / 12)}/mo + {formatCurrency(assumptions.ayoolaRentalContrib / 12)}/mo rental
+                        {formatCurrency(assumptions.livingExpenses / 12)}/mo
                       </div>
                     </div>
                   </div>

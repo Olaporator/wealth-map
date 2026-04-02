@@ -261,26 +261,19 @@ export default function PlanDashboard() {
       }
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 2: OPTIMAL W2 + EMPLOYER 401k + DISTRIBUTIONS (S-Corp)
-      // Strategy: Set W2 to maximize employer 401k (25% of W2),
-      // then distribute remainder with QBI deduction.
-      // W2 × (1 + payrollRate + matchRate) ≤ NT Revenue
+      // STEP 2: W2 + EMPLOYER 401k MATCH + DISTRIBUTIONS (S-Corp)
+      // W2 stays at $80K (IRS-defensible reasonable comp) to maximize
+      // distributions → Robinhood (15-30% returns >> 401k 8%).
+      // Employer 401k match (25% of W2) + QBI deduction on distributions.
       // ═══════════════════════════════════════════════════════════
-      const payrollRate = assumptions.employerPayrollTaxRate / 100;
       const matchRate = assumptions.employer401kMatchRate / 100;
-      const employer401kCap = assumptions.total401kMax - assumptions.employee401kMax; // $46,500
+      const employer401kCap = assumptions.total401kMax - assumptions.employee401kMax;
 
-      // Dynamic W2: highest amount where W2 + payroll + employer 401k ≤ NT revenue
-      const w2ForRevenueCap = ntRevenue / (1 + payrollRate + matchRate);
-      const w2ForEmployerCap = employer401kCap / matchRate; // W2 where employer 401k maxes out
-      const w2Gross = age <= 45
-        ? Math.min(Math.floor(w2ForRevenueCap), Math.floor(w2ForEmployerCap), ntRevenue)
-        : Math.min(assumptions.w2Gross, ntRevenue); // post-45: revert to base W2
-
-      const employerPayrollTax = w2Gross * payrollRate;
+      const w2Gross = Math.min(assumptions.w2Gross, ntRevenue);
+      const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
       const employee401k = age <= 45 ? Math.min(assumptions.employee401kMax, w2Gross) : 0;
       const employer401k = age <= 45 ? Math.min(w2Gross * matchRate, employer401kCap) : 0;
-      const k401Contrib = employee401k + employer401k; // total 401k this year
+      const k401Contrib = employee401k + employer401k;
 
       const ntOverhead = w2Gross + employerPayrollTax + employer401k;
       const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
@@ -289,12 +282,12 @@ export default function PlanDashboard() {
       const qbiDeduction = grossDistributions * (assumptions.qbiDeductionPct / 100);
       const taxableDistributions = grossDistributions - qbiDeduction;
       const distributionTax = taxableDistributions * (assumptions.distributionTaxRate / 100);
-      const netDistributions = grossDistributions - distributionTax; // after-tax → flows to Robinhood
+      const netDistributions = grossDistributions - distributionTax;
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 3: W2 → TAXES + TAKE-HOME (401k already computed above)
+      // STEP 3: W2 → TAXES + TAKE-HOME (401k computed above)
       // ═══════════════════════════════════════════════════════════
-      let venturesContrib = 0; // ventures funded separately now (not from 401k redirect)
+      let venturesContrib = 0;
       const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
       const takeHome = w2Gross - employee401k - personalTaxes;
 

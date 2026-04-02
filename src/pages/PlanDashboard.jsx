@@ -126,13 +126,13 @@ export default function PlanDashboard() {
     // Phase 1-2: NT consulting at capacity
     // Phase 3+: transitioning to land business
     // ═══════════════════════════════════════════════════════════════
-    // Phase 1 (31-32): NT at full capacity
+    // Phase 1 (31-34): NT at full capacity
     phase1NTRevenue: 207000,
 
-    // Phase 2 (33-34): Transition — NT winds down, land ramps up
+    // Phase 2 (35-36): Transition — NT winds down, land ramps up
     phase2NTRevenue: 150000,
 
-    // Phase 3 (35): Gap year — minimal NT work
+    // Phase 3 (37): Gap year — minimal NT work
     phase3NTRevenue: 50000,
 
     // Phase 4 (36-45): Building phase — land business growing
@@ -219,15 +219,15 @@ export default function PlanDashboard() {
       let businessIncome = 0;
       let staffExpenses = 0;
 
-      if (age <= 32) {
+      if (age <= 34) {
         ntRevenue = assumptions.phase1NTRevenue;
-      } else if (age <= 34) {
+      } else if (age <= 36) {
         ntRevenue = assumptions.phase2NTRevenue;
-      } else if (age === 35) {
+      } else if (age === 37) {
         ntRevenue = assumptions.phase3NTRevenue;
       } else if (age <= 45) {
         ntRevenue = assumptions.phase4NTRevenue;
-        businessIncome = Math.max(0, (age - 36) * 15000) + assumptions.phase4BusinessIncome;
+        businessIncome = Math.max(0, (age - 38) * 15000) + assumptions.phase4BusinessIncome;
         staffExpenses = age <= 40 ? 35000 : 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
       } else {
         ntRevenue = assumptions.phase5NTRevenue;
@@ -1019,24 +1019,24 @@ export default function PlanDashboard() {
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
                     <div className="text-center p-2 rounded bg-blue-900/30 border border-blue-800">
                       <div className="text-blue-400 font-semibold">Phase 1</div>
-                      <div className="text-gray-400">Ages 31-32</div>
+                      <div className="text-gray-400">Ages 31-34</div>
                       <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1NTRevenue)}/yr</div>
                       <div className="text-gray-500">→ Distrib: {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-purple-900/30 border border-purple-800">
                       <div className="text-purple-400 font-semibold">Phase 2</div>
-                      <div className="text-gray-400">Ages 33-34</div>
+                      <div className="text-gray-400">Ages 35-36</div>
                       <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2NTRevenue)}/yr</div>
                       <div className="text-gray-500">→ Distrib: {formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-red-900/30 border border-red-800">
                       <div className="text-red-400 font-semibold">Gap Year</div>
-                      <div className="text-gray-400">Age 35</div>
+                      <div className="text-gray-400">Age 37</div>
                       <div className="text-yellow-400 font-medium">{formatCurrency(assumptions.phase3NTRevenue)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
                       <div className="text-emerald-400 font-semibold">Phase 4</div>
-                      <div className="text-gray-400">Ages 36-45</div>
+                      <div className="text-gray-400">Ages 38-45</div>
                       <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4NTRevenue)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
@@ -1151,7 +1151,7 @@ export default function PlanDashboard() {
 
                 {/* Phase 1 */}
                 <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
-                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — NT Full Capacity</div>
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-34 — NT Full Capacity</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">NT Total Revenue</label>
@@ -1173,7 +1173,7 @@ export default function PlanDashboard() {
 
                 {/* Phase 2 */}
                 <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
-                  <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 33-34 — Transition</div>
+                  <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 35-36 — Transition</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">NT Total Revenue</label>
@@ -1195,7 +1195,7 @@ export default function PlanDashboard() {
 
                 {/* Phase 3 */}
                 <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
-                  <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 35 — Gap Year</div>
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 37 — Gap Year</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">NT Revenue (reduced)</label>
@@ -1218,7 +1218,7 @@ export default function PlanDashboard() {
 
                 {/* Phase 4 */}
                 <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
-                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Building</div>
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 4: Ages 38-45 — Building</div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">NT Revenue (maintenance)</label>

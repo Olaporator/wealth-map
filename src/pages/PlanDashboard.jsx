@@ -48,8 +48,8 @@ export default function PlanDashboard() {
     hoursPerYear: 2080,       // 40 hrs/wk × 52 (conservative; actual pace ~2,250)
     w2Gross: 80000,           // ~$40/hr × 2,000 hrs (user confirmed: high month on stub)
     k401Rate: 20,             // 20% of gross to 401k (from pay stub: $768/$3,840)
-    k401ReductionAge: 32,     // age to reduce 401k by $1K/mo → ventures fund
-    k401ReductionAmount: 12000, // $1K/mo = $12K/yr redirected to ventures
+    k401ReductionAge: 32,     // age to start $1K/mo from Robinhood → ventures fund
+    k401ReductionAmount: 12000, // $1K/mo = $12K/yr from Robinhood to ventures
     employerPayrollTaxRate: 8.5, // SS 6.2% + Medicare 1.45% + FUTA/SUI/WA ~0.85%
 
     // Tax withholding (from pay stub actuals)
@@ -278,11 +278,9 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       let k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
       let venturesContrib = 0;
-      // At age 32+, redirect $1K/mo from 401k to ventures fund
-      if (age >= assumptions.k401ReductionAge && k401Contrib > 0) {
-        const reduction = Math.min(assumptions.k401ReductionAmount, k401Contrib);
-        k401Contrib -= reduction;
-        venturesContrib = reduction;
+      // At age 32+, pull $1K/mo from Robinhood into ventures fund
+      if (age >= assumptions.k401ReductionAge) {
+        venturesContrib = assumptions.k401ReductionAmount;
       }
       const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
       const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
@@ -383,9 +381,9 @@ export default function PlanDashboard() {
 
       // Robinhood: grows on existing balance + distributions - pulls
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz;
+      robinhood = robinhood * (1 + rhReturn / 100) + netDistributions - rhPullPersonal - rhPullQoz - venturesContrib;
 
-      // Ventures fund: receives redirected 401k contributions, pays staff expenses
+      // Ventures fund: funded from Robinhood ($1K/mo), pays staff expenses
       ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
@@ -834,7 +832,7 @@ export default function PlanDashboard() {
       items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });
     }
     if (src.venturesContrib < 0) {
-      items.push({ label: `401k → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
+      items.push({ label: `RH → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
     }
     return items;
   };
@@ -1677,19 +1675,19 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">401k (age {assumptions.k401ReductionAge}+: reduced)</label>
+                      <label className="text-xs text-gray-400 block mb-1">401k ({assumptions.k401Rate}% of W2)</label>
                       <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
                         {formatCurrency(assumptions.w2Gross * assumptions.k401Rate / 100 - assumptions.k401ReductionAmount)}/yr
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ Ventures ({formatCurrency(assumptions.k401ReductionAmount)}/yr)</label>
+                      <label className="text-xs text-gray-400 block mb-1">RH → Ventures ({formatCurrency(assumptions.k401ReductionAmount)}/yr)</label>
                       <div className="bg-lime-900/30 rounded px-2 py-2 text-lime-400 font-medium">
                         $1K/mo from age {assumptions.k401ReductionAge}
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">No employer 401k match. At age {assumptions.k401ReductionAge}, $1K/mo redirected from 401k to ventures fund.</div>
+                  <div className="text-xs text-gray-500 mt-2">At age {assumptions.k401ReductionAge}, $1K/mo pulled from Robinhood into ventures fund.</div>
                 </div>
                 
                 {/* Return Rates */}

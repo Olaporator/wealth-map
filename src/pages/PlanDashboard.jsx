@@ -5,15 +5,16 @@ import { api } from '../lib/api';
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
 const DESCRIPTIONS = {
-  cCorp: "Olaporations C-Corp — receives NT management fees (split from Ayoola's total income), growth taxed at 21% corporate rate",
   seattle: "10737 3rd Ave NW — 50/50 co-owned rental. Both contribute $1K/mo toward costs, reduced $100/yr until breakeven. Profit split 50/50. Either party can trigger sale (other gets first dibs to buy).",
   land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
   ventures: "Entrepreneurship fund for side projects — conservative 1% annual return assumption",
   k401: "Ayoola's 401k + Robinhood IRA",
   freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities (Ayoola's share only)",
-  ayoolaIncome: "Ayoola's personal W2 — NT total minus C-Corp management fee",
-  robinhood: "Robinhood Individual Brokerage — Ayoola's fund strategy at ~30% returns",
+  ayoolaIncome: "Ayoola's W2 salary from NimbusTech S-Corp",
+  robinhood: "Robinhood Individual Brokerage — receives S-Corp distributions + Ayoola's fund strategy at ~30% returns",
+  distributions: "S-Corp distributions — NT revenue minus W2 salary and employer payroll taxes, taxed as personal income, flows to Robinhood",
+  w2: "W2 salary from NimbusTech S-Corp — $40/hr via Gusto",
 };
 
 export default function PlanDashboard() {
@@ -33,7 +34,6 @@ export default function PlanDashboard() {
     // STARTING BALANCES (real as of April 2026, post-divorce settlement)
     // ═══════════════════════════════════════════════════════════════
     currentAge: 31,           // Dec birthday — currently 31, turns 32 Dec 2026
-    cCorpStart: 2487,         // Novo/Olaporations C-Corp (real: $2,486.58)
     k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
     iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
     robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
@@ -57,20 +57,20 @@ export default function PlanDashboard() {
     personalTaxRate: 13.25,   // total tax as % of gross (from stub: $509/$3,840)
 
     // ═══════════════════════════════════════════════════════════════
-    // NT REVENUE → C-CORP FLOW
-    // Total NT revenue - W2 gross - employer payroll taxes = C-Corp mgmt fee
+    // NT REVENUE → S-CORP FLOW (pass-through)
+    // Total NT revenue - W2 gross - employer payroll taxes = S-Corp distributions
+    // Distributions taxed at personal rate, then flow to Robinhood
     // ═══════════════════════════════════════════════════════════════
     ntTotalRevenue: 207000,   // total NimbusTech consulting revenue/yr
-    // C-Corp gets: $200K - $92K W2 - ~$8K payroll taxes = ~$100K/yr
+    distributionTaxRate: 24,  // federal + state on S-Corp distributions (pass-through)
 
-    // NT Additional Work (toggle): extra $5K/mo revenue → all to C-Corp
+    // NT Additional Work (toggle): extra $5K/mo revenue → distributions
     ntNewWorkMonthly: 5000,
     ntNewWorkStartMonth: 7,   // July 2026
 
     // ═══════════════════════════════════════════════════════════════
     // RETURNS & APPRECIATION
     // ═══════════════════════════════════════════════════════════════
-    cCorpReturn: 30,          // Ayoola's fund strategy (~4.5% in 50 days, annualized ~30%)
     k401Return: 8,            // 401k in standard index funds
     robinhoodReturn: 30,      // individual brokerage — same fund strategy
     iraReturn: 30,            // Robinhood IRA — same fund strategy
@@ -122,8 +122,8 @@ export default function PlanDashboard() {
     staffExpensesMax: 100000,
 
     // ═══════════════════════════════════════════════════════════════
-    // INCOME PHASES (Ayoola only — net personal after C-Corp split)
-    // Phase 1-2: NT consulting + C-Corp
+    // INCOME PHASES (NT S-Corp → W2 salary + distributions)
+    // Phase 1-2: NT consulting at capacity
     // Phase 3+: transitioning to land business
     // ═══════════════════════════════════════════════════════════════
     // Phase 1 (31-32): NT at full capacity
@@ -151,19 +151,13 @@ export default function PlanDashboard() {
     // MILESTONE AGES
     // ═══════════════════════════════════════════════════════════════
     moveOutAge: 32,           // moves to land
-    marginStartAge: 33,
     mortgagePaidAge: 64,
     retirementAge: 60,
-
-    // Margin Trading
-    marginRate: 4.5,
-    marginRatio: 32.5,
 
     // ═══════════════════════════════════════════════════════════════
     // TAXES & WITHDRAWAL
     // ═══════════════════════════════════════════════════════════════
     safeWithdrawalRate: 4,
-    cCorpTaxRate: 21,         // Federal only (C-Corp in Wyoming = 0% state)
   });
 
   // Pull live account balances from Supabase to sync with projections
@@ -181,10 +175,6 @@ export default function PlanDashboard() {
         // Map live accounts to plan assumptions (Ayoola's only)
         if (id === 'manual_ayoola_401k' || sub === '401k') {
           if (name.includes('ayoola') || a.owner === 'Ayoola') updates.k401Start = Math.round(bal);
-        }
-        // C-Corp Novo balance
-        if (name.includes('olaporations') || name.includes('c-corp')) {
-          updates.cCorpStart = Math.round(bal);
         }
       });
 
@@ -210,7 +200,6 @@ export default function PlanDashboard() {
 
   const data = useMemo(() => {
     const years = [];
-    let cCorp = assumptions.cCorpStart;
     let k401 = assumptions.k401Start;
     let ira = assumptions.iraStart;
     let robinhood = assumptions.robinhoodStart;
@@ -221,8 +210,6 @@ export default function PlanDashboard() {
     let ccDebt = assumptions.ccDebtStart;
     let cash = assumptions.cashStart; // tracks actual cash reserves
     let entrepreneur = 0;
-    let marginLoan = 0;
-    let marginInvested = 0;
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -248,7 +235,7 @@ export default function PlanDashboard() {
         staffExpenses = assumptions.staffExpensesMax;
       }
 
-      // NT additional work toggle: extra revenue → all to C-Corp
+      // NT additional work toggle: extra revenue → all to distributions
       let ntNewWorkIncome = 0;
       if (ntNewWorkEnabled) {
         if (age === assumptions.currentAge) {
@@ -259,16 +246,18 @@ export default function PlanDashboard() {
       }
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + C-CORP
+      // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + DISTRIBUTIONS (S-Corp)
       // Every dollar of NT revenue goes somewhere:
       //   W2 gross → employee (taxes + 401k + take-home)
       //   Employer payroll taxes → government
-      //   Remainder → C-Corp management fee
+      //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
       // ═══════════════════════════════════════════════════════════
       const w2Gross = Math.min(assumptions.w2Gross, ntRevenue); // can't pay more than NT earns
       const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
       const ntOverhead = w2Gross + employerPayrollTax;
-      const cCorpContrib = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
+      const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
+      const distributionTax = grossDistributions * (assumptions.distributionTaxRate / 100);
+      const netDistributions = grossDistributions - distributionTax; // after-tax → flows to Robinhood
 
       // ═══════════════════════════════════════════════════════════
       // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
@@ -342,17 +331,14 @@ export default function PlanDashboard() {
       // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
       // ═══════════════════════════════════════════════════════════
 
-      // C-Corp: growth taxed at 21% federal (Wyoming = 0% state), plus new contributions
-      const cCorpGrowth = cCorp * (assumptions.cCorpReturn / 100);
-      const cCorpTax = cCorpGrowth * (assumptions.cCorpTaxRate / 100);
-      cCorp = cCorp + cCorpGrowth - cCorpTax + cCorpContrib;
-
       // 401k: pre-tax growth, contributions come from W2 deduction (already subtracted from take-home)
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
 
-      // IRA & Robinhood: grow on existing balances, no new contributions
+      // IRA: grows on existing balance, no new contributions
       ira = ira * (1 + assumptions.iraReturn / 100);
-      robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100);
+
+      // Robinhood: grows on existing balance + receives S-Corp distributions (after-tax)
+      robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100) + netDistributions;
 
       // Entrepreneur fund
       const entrepreneurContrib = assumptions.entrepreneurContrib;
@@ -379,35 +365,20 @@ export default function PlanDashboard() {
         }
       }
 
-      // Land purchase: down payment comes from C-Corp (reduces C-Corp balance)
+      // Land purchase: down payment from Robinhood (personal brokerage)
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        cCorp -= downPayment; // DOWN PAYMENT SOURCED FROM C-CORP
+        robinhood -= downPayment; // DOWN PAYMENT FROM ROBINHOOD
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;
       }
 
       // ═══════════════════════════════════════════════════════════
-      // STEP 7: MARGIN TRADING (borrows against C-Corp)
+      // STEP 7: NET WORTH (Ayoola's share only)
       // ═══════════════════════════════════════════════════════════
-      if (age >= assumptions.marginStartAge) {
-        const maxMargin = cCorp * (assumptions.marginRatio / 100);
-        marginLoan = maxMargin;
-        marginInvested = marginInvested * (1 + assumptions.cCorpReturn / 100);
-        const newBorrowing = Math.max(0, maxMargin - (marginInvested / (1 + assumptions.cCorpReturn / 100)));
-        marginInvested += newBorrowing;
-      }
-
-      const marginInterest = marginLoan * (assumptions.marginRate / 100);
-      const marginGain = marginInvested * (assumptions.cCorpReturn / 100);
-      const marginNet = marginGain - marginInterest;
-
-      // ═══════════════════════════════════════════════════════════
-      // STEP 8: NET WORTH (Ayoola's share only)
-      // ═══════════════════════════════════════════════════════════
-      const netWorth = cCorp + k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + entrepreneur + marginInvested - marginLoan - landMortgage;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + entrepreneur - landMortgage;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -415,7 +386,6 @@ export default function PlanDashboard() {
       years.push({
         age,
         year: 2026 + (age - assumptions.currentAge),
-        cCorp: Math.round(cCorp),
         k401: Math.round(k401),
         ira: Math.round(ira),
         robinhood: Math.round(robinhood),
@@ -429,9 +399,6 @@ export default function PlanDashboard() {
         rentalNet: Math.round(rentalNet),
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
         entrepreneur: Math.round(entrepreneur),
-        marginLoan: Math.round(marginLoan),
-        marginInvested: Math.round(marginInvested),
-        marginNet: Math.round(marginNet),
         cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
@@ -439,6 +406,9 @@ export default function PlanDashboard() {
         w2Gross: Math.round(w2Gross),
         takeHome: Math.round(takeHome),
         k401Contrib: Math.round(k401Contrib),
+        grossDistributions: Math.round(grossDistributions),
+        netDistributions: Math.round(netDistributions),
+        distributionTax: Math.round(distributionTax),
         businessIncome: Math.round(businessIncome),
         passiveIncome: Math.round(passiveIncome),
         safeWithdrawal: Math.round(safeWithdrawal),
@@ -447,14 +417,15 @@ export default function PlanDashboard() {
           takeHome,
           w2Gross,
           ntRevenue,
-          cCorpContrib,
+          grossDistributions,
+          netDistributions,
+          distributionTax: -distributionTax,
           ntNewWork: ntNewWorkIncome,
           k401Contrib: -k401Contrib,
           personalTaxes: -personalTaxes,
           rentalShare: ayoolaRentalShare,
           rentalContrib: -ayoolaContrib,
           landMortgagePayment: -landMortgagePayment,
-          marginNet,
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
@@ -481,7 +452,6 @@ export default function PlanDashboard() {
   const getPieData = (ageData) => {
     if (!ageData) return [];
     return [
-      { name: 'C-Corp', value: ageData.cCorp, desc: DESCRIPTIONS.cCorp },
       { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
@@ -501,10 +471,10 @@ export default function PlanDashboard() {
           <div className="font-bold text-white mb-2">Age {label} — Free Cash: {formatCurrency(row.freeCash)}</div>
           <div className="space-y-1">
             <div className="text-gray-500 text-xs mb-1 pb-1 border-b border-gray-700">
-              NT Revenue: {formatCurrency(src.ntRevenue)} → W2: {formatCurrency(src.w2Gross)} + C-Corp: {formatCurrency(src.cCorpContrib)}
+              NT Revenue: {formatCurrency(src.ntRevenue)} → W2: {formatCurrency(src.w2Gross)} + Distrib: {formatCurrency(src.netDistributions)} (→ Robinhood)
             </div>
             <div className="text-emerald-400">+ Take-Home Pay: {formatCurrency(src.takeHome)}</div>
-            {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → C-Corp: {formatCurrency(src.ntNewWork)}</div>}
+            {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → Distributions: {formatCurrency(src.ntNewWork)}</div>}
             {src.rentalShare !== 0 && <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>}
             {src.businessIncome > 0 && <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>}
             <div className="text-red-400">− Living (incl ${Math.round(Math.abs(src.rentalContrib)/1000)}K rental): {formatCurrency(Math.abs(src.expenses))}</div>
@@ -576,7 +546,6 @@ export default function PlanDashboard() {
               <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} tickFormatter={formatCurrency} />
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" strokeWidth={2} />
-              <Area type="monotone" dataKey="cCorp" stackId="1" stroke="#3B82F6" fill="#3B82F6" name="C-Corp" />
               <Area type="monotone" dataKey="robinhood" stackId="1" stroke="#F97316" fill="#F97316" name="Robinhood" />
               <Area type="monotone" dataKey="landEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
               <Area type="monotone" dataKey="seattleEquity50" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle (50%)" />
@@ -753,13 +722,11 @@ export default function PlanDashboard() {
   const getNetWorthBreakdown = (d) => {
     if (!d) return [];
     return [
-      { label: 'C-Corp', value: d.cCorp, color: 'text-blue-400' },
       { label: 'Robinhood', value: d.robinhood, color: 'text-orange-400' },
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
       { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
       { label: 'Ventures', value: d.entrepreneur, color: 'text-cyan-400' },
-      { label: 'Margin (net)', value: d.marginInvested - d.marginLoan, color: 'text-gray-400' },
     ].filter(item => item.value !== 0);
   };
 
@@ -776,21 +743,16 @@ export default function PlanDashboard() {
     if (!d) return [];
     const src = d.freeCashSources;
     const items = [
-      { label: "Ayoola's W2", value: src.w2Gross, color: 'text-emerald-400' },
       { label: 'Take-Home Pay', value: src.takeHome, color: 'text-green-400' },
       { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
-      { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
-      { label: `Taxes (${assumptions.personalTaxRate}%)`, value: src.personalTaxes, color: 'text-orange-400' },
-      { label: '401k Contrib', value: src.k401Contrib, color: 'text-purple-400' },
-      { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
-      { label: 'Land Mortgage', value: src.landMortgagePayment, color: 'text-amber-400' },
-      { label: 'Additional Taxes', value: src.additionalTaxes, color: 'text-orange-300' },
-      { label: 'Margin Arbitrage', value: src.marginNet, color: 'text-cyan-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
+      { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
+      { label: 'Staff Expenses', value: src.staffExpenses, color: 'text-red-400' },
+      { label: 'Additional Taxes', value: src.additionalTaxes, color: 'text-orange-300' },
     ].filter(item => item.value !== undefined && item.value !== 0);
 
-    if (src.cCorpContrib > 0) {
-      items.push({ label: 'NT → C-Corp', value: src.cCorpContrib, color: 'text-blue-300' });
+    if (src.netDistributions > 0) {
+      items.push({ label: `S-Corp Distrib → Robinhood`, value: src.netDistributions, color: 'text-blue-400' });
     }
     return items;
   };
@@ -920,7 +882,7 @@ export default function PlanDashboard() {
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
               <TableHeader id="w2" label="W2" color="text-green-400" />
-              <TableHeader id="cCorp" label="C-Corp" color="text-blue-400" />
+              <TableHeader id="distributions" label="Distrib" color="text-blue-400" />
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
               <TableHeader id="seattle" label="Seattle 50%" color="text-emerald-400" />
@@ -943,7 +905,7 @@ export default function PlanDashboard() {
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
                 <td className="p-2 text-right text-green-400">{formatCurrency(row.w2Gross)}</td>
-                <td className="p-2 text-right text-blue-400">{formatCurrency(row.cCorp)}</td>
+                <td className="p-2 text-right text-blue-400">{formatCurrency(row.netDistributions)}</td>
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity50)}</td>
@@ -975,7 +937,7 @@ export default function PlanDashboard() {
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4 flex items-center justify-between">
         <div>
           <span className="text-sm text-white font-medium">NT Wins Additional Work</span>
-          <span className="text-xs text-gray-500 ml-2">+$5K/mo → C-Corp from July 2026</span>
+          <span className="text-xs text-gray-500 ml-2">+$5K/mo → S-Corp distributions from July 2026</span>
         </div>
         <button
           onClick={() => setNtNewWorkEnabled(!ntNewWorkEnabled)}
@@ -1032,7 +994,7 @@ export default function PlanDashboard() {
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="text-xs text-gray-500">Starting Net Worth</div>
                     <div className="text-lg font-bold text-emerald-400">
-                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.robinhoodStart + (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart)}
+                      {formatCurrency(assumptions.robinhoodStart + assumptions.k401Start + assumptions.iraStart + (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart)}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
@@ -1053,19 +1015,19 @@ export default function PlanDashboard() {
                 
                 {/* Income Phase Summary */}
                 <div className="bg-gray-800 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-3">NT Revenue by Phase (W2: {formatCurrency(assumptions.w2Gross)} + C-Corp gets remainder)</div>
+                  <div className="text-xs text-gray-500 mb-3">NT Revenue by Phase (W2: {formatCurrency(assumptions.w2Gross)} + distributions for remainder)</div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
                     <div className="text-center p-2 rounded bg-blue-900/30 border border-blue-800">
                       <div className="text-blue-400 font-semibold">Phase 1</div>
                       <div className="text-gray-400">Ages 31-32</div>
                       <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1NTRevenue)}/yr</div>
-                      <div className="text-gray-500">→ C-Corp: {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
+                      <div className="text-gray-500">→ Distrib: {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-purple-900/30 border border-purple-800">
                       <div className="text-purple-400 font-semibold">Phase 2</div>
                       <div className="text-gray-400">Ages 33-34</div>
                       <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2NTRevenue)}/yr</div>
-                      <div className="text-gray-500">→ C-Corp: {formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
+                      <div className="text-gray-500">→ Distrib: {formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-red-900/30 border border-red-800">
                       <div className="text-red-400 font-semibold">Gap Year</div>
@@ -1110,7 +1072,6 @@ export default function PlanDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {[
                     { key: 'currentAge', label: 'Current Age', suffix: ' yrs', step: 1 },
-                    { key: 'cCorpStart', label: 'C-Corp Balance', prefix: '$', step: 1000 },
                     { key: 'robinhoodStart', label: 'Robinhood Brokerage', prefix: '$', step: 1000 },
                     { key: 'k401Start', label: "401k Balance", prefix: '$', step: 1000 },
                     { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
@@ -1141,7 +1102,7 @@ export default function PlanDashboard() {
                     <span className="text-xs text-gray-500">Starting Net Worth (Calculated)</span>
                     <span className="text-emerald-400 font-bold">
                       {formatCurrency(
-                        assumptions.cCorpStart + assumptions.robinhoodStart + assumptions.k401Start + assumptions.iraStart +
+                        assumptions.robinhoodStart + assumptions.k401Start + assumptions.iraStart +
                         (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart
                       )}
                     </span>
@@ -1204,7 +1165,7 @@ export default function PlanDashboard() {
                       <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">{formatCurrency(assumptions.w2Gross)}</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <label className="text-xs text-gray-400 block mb-1">→ Distributions</label>
                       <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                   </div>
@@ -1226,7 +1187,7 @@ export default function PlanDashboard() {
                       <div className="bg-purple-900/30 rounded px-2 py-2 text-purple-400 font-medium">{formatCurrency(Math.min(assumptions.w2Gross, assumptions.phase2NTRevenue))}</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <label className="text-xs text-gray-400 block mb-1">→ Distributions</label>
                       <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                   </div>
@@ -1248,7 +1209,7 @@ export default function PlanDashboard() {
                       <div className="bg-red-900/30 rounded px-2 py-2 text-yellow-400 font-medium">{formatCurrency(Math.min(assumptions.w2Gross, assumptions.phase3NTRevenue))}</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <label className="text-xs text-gray-400 block mb-1">→ Distributions</label>
                       <div className="bg-gray-800 rounded px-2 py-2 text-red-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase3NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                   </div>
@@ -1271,7 +1232,7 @@ export default function PlanDashboard() {
                       <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 text-sm">+$15K/yr from age 36</div>
                     </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">C-Corp compound grows on existing balance. Land business income ramps $15K/yr.</div>
+                  <div className="mt-2 text-xs text-gray-500">S-Corp distributions flow to Robinhood. Land business income ramps $15K/yr.</div>
                 </div>
 
                 {/* Phase 5 */}
@@ -1522,7 +1483,7 @@ export default function PlanDashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div className="text-xs">
-                      <span className="text-gray-500">Down Payment (from C-Corp): </span>
+                      <span className="text-gray-500">Down Payment (from Robinhood): </span>
                       <span className="text-emerald-400">{formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)}</span>
                     </div>
                     <div className="text-xs">
@@ -1530,7 +1491,7 @@ export default function PlanDashboard() {
                       <span className="text-red-400">{formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre * (1 - assumptions.landDownPaymentPct / 100))}</span>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">Down payment sourced from C-Corp. Mortgage P&I deducted from personal cash flow.</div>
+                  <div className="text-xs text-yellow-400 mt-2">Down payment sourced from Robinhood brokerage. Mortgage included in $50K living expenses.</div>
                 </div>
 
                 {/* Deferred Items */}
@@ -1584,9 +1545,9 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">C-Corp (auto from NT split)</label>
+                      <label className="text-xs text-gray-400 block mb-1">S-Corp Distrib → Robinhood</label>
                       <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}/yr
+                        {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100) * (1 - assumptions.distributionTaxRate / 100))}/yr (after {assumptions.distributionTaxRate}% tax)
                       </div>
                     </div>
                     <div>
@@ -1606,7 +1567,6 @@ export default function PlanDashboard() {
                   <div className="text-xs text-emerald-400 mb-2 font-semibold">Expected Return Rates</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'cCorpReturn', label: 'C-Corp Portfolio' },
                       { key: 'robinhoodReturn', label: 'Robinhood Return' },
                       { key: 'k401Return', label: '401k Return' },
                       { key: 'iraReturn', label: 'IRA Return' },
@@ -1623,32 +1583,26 @@ export default function PlanDashboard() {
                   </div>
                 </div>
                 
-                {/* Margin Strategy */}
-                <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
-                  <div className="text-xs text-purple-400 mb-2 font-semibold">Margin Trading Strategy (Starts Age {assumptions.marginStartAge})</div>
-                  <div className="grid grid-cols-3 gap-3">
+                {/* S-Corp Distribution Tax */}
+                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">S-Corp Distributions</div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Margin Interest Rate</label>
+                      <label className="text-xs text-gray-400 block mb-1">Distribution Tax Rate</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="0.25" value={assumptions.marginRate} onChange={(e) => setAssumptions({ ...assumptions, marginRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" step="1" value={assumptions.distributionTaxRate} onChange={(e) => setAssumptions({ ...assumptions, distributionTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
+                      <div className="text-gray-600 text-xs mt-1">Federal + state on pass-through income</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">% of Portfolio Used</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="2.5" value={assumptions.marginRatio} onChange={(e) => setAssumptions({ ...assumptions, marginRatio: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">%</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Spread (Profit)</label>
+                      <label className="text-xs text-gray-400 block mb-1">After-Tax to Robinhood</label>
                       <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {(assumptions.cCorpReturn - assumptions.marginRate).toFixed(1)}%
+                        {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100) * (1 - assumptions.distributionTaxRate / 100))}/yr
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">💡 Borrow at {assumptions.marginRate}%, invest at {assumptions.cCorpReturn}% = {(assumptions.cCorpReturn - assumptions.marginRate).toFixed(1)}% arbitrage</div>
+                  <div className="text-xs text-gray-500 mt-2">NT surplus after W2 + payroll taxes → taxed as personal income → deposited to Robinhood brokerage</div>
                 </div>
                 
                 {/* Withdrawal Strategy */}
@@ -1689,12 +1643,12 @@ export default function PlanDashboard() {
                       <div className="text-gray-600 text-xs mt-1">Fed + FICA + WA LTCI (from stub)</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">C-Corp Tax Rate</label>
+                      <label className="text-xs text-gray-400 block mb-1">S-Corp Distribution Tax</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="1" value={assumptions.cCorpTaxRate} onChange={(e) => setAssumptions({ ...assumptions, cCorpTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" step="1" value={assumptions.distributionTaxRate} onChange={(e) => setAssumptions({ ...assumptions, distributionTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
-                      <div className="text-gray-600 text-xs mt-1">Federal only (Wyoming = 0% state)</div>
+                      <div className="text-gray-600 text-xs mt-1">Federal + state on pass-through income</div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Annual Tax Burden</label>
@@ -1809,7 +1763,6 @@ export default function PlanDashboard() {
                   <div className="text-xs text-blue-400 mb-2 font-semibold">Investment Milestones</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
-                      { key: 'marginStartAge', label: 'Margin Trading Starts' },
                       { key: 'mortgagePaidAge', label: 'Seattle Mortgage Paid' },
                     ].map(({ key, label }) => (
                       <div key={key}>

@@ -269,7 +269,7 @@ export default function PlanDashboard() {
       //   Employer payroll taxes → government
       //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
       // ═══════════════════════════════════════════════════════════
-      const w2Gross = Math.min(assumptions.w2Gross, ntRevenue); // can't pay more than NT earns
+      const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40
       const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
       const ntOverhead = w2Gross + employerPayrollTax;
       const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;

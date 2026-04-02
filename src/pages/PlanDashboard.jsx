@@ -28,56 +28,128 @@ export default function PlanDashboard() {
   const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
 
   const [assumptions, setAssumptions] = useState({
-    // Starting Balances (real as of March 2026)
+    // ═══════════════════════════════════════════════════════════════
+    // STARTING BALANCES (real as of April 2026, post-divorce settlement)
+    // ═══════════════════════════════════════════════════════════════
     currentAge: 31,           // Dec birthday — currently 31, turns 32 Dec 2026
-    cCorpStart: 2487,         // Novo Checking (real: $2,486.58)
+    cCorpStart: 2487,         // Novo/Olaporations C-Corp (real: $2,486.58)
     k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
     iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
     robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
-    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage (Ayoola's 50% = $67,317)
-    ccDebtStart: 15547,       // Chase CC $2,130 + Cap One $13,417
-    cashStart: 6835,          // Chase checking $689 + KeyBank checking $3,659 + KeyBank savings $492 + Novo $2,487
+    seattleEquityStart: 134633, // $1.1M value - $965,367 mortgage (total equity; 50% counted)
+    ccDebtStart: 0,           // Chase CC paid off, Cap One split 50/50 in divorce → $0
+    cashStart: 135,           // $6,835 - $6,700 (CC settlement from savings) ≈ $135
 
-    // Returns & Appreciation
+    // ═══════════════════════════════════════════════════════════════
+    // W2 INCOME (from Gusto pay stub: $40/hr via AAYO Tech / Nimbus Tech)
+    // ═══════════════════════════════════════════════════════════════
+    hourlyRate: 40,           // actual Gusto rate
+    hoursPerYear: 2080,       // 40 hrs/wk × 52 (conservative; actual pace ~2,250)
+    w2Gross: 80000,           // ~$40/hr × 2,000 hrs (user confirmed: high month on stub)
+    k401Rate: 20,             // 20% of gross to 401k (from pay stub: $768/$3,840)
+    employerPayrollTaxRate: 8.5, // SS 6.2% + Medicare 1.45% + FUTA/SUI/WA ~0.85%
+
+    // Tax withholding (from pay stub actuals)
+    federalTaxRate: 5,        // federal income tax on W2 (after 401k deduction)
+    ficaRate: 7.65,           // SS 6.2% + Medicare 1.45% (employee side)
+    stateTaxRate: 0.58,       // WA LTCI only (no state income tax in WA; will change with move)
+    personalTaxRate: 13.25,   // total tax as % of gross (from stub: $509/$3,840)
+
+    // ═══════════════════════════════════════════════════════════════
+    // NT REVENUE → C-CORP FLOW
+    // Total NT revenue - W2 gross - employer payroll taxes = C-Corp mgmt fee
+    // ═══════════════════════════════════════════════════════════════
+    ntTotalRevenue: 207000,   // total NimbusTech consulting revenue/yr
+    // C-Corp gets: $200K - $92K W2 - ~$8K payroll taxes = ~$100K/yr
+
+    // NT Additional Work (toggle): extra $5K/mo revenue → all to C-Corp
+    ntNewWorkMonthly: 5000,
+    ntNewWorkStartMonth: 7,   // July 2026
+
+    // ═══════════════════════════════════════════════════════════════
+    // RETURNS & APPRECIATION
+    // ═══════════════════════════════════════════════════════════════
     cCorpReturn: 30,          // Ayoola's fund strategy (~4.5% in 50 days, annualized ~30%)
-    k401Return: 8,            // 401k in standard funds (not self-directed)
-    robinhoodReturn: 30,      // individual brokerage — Ayoola's fund strategy
+    k401Return: 8,            // 401k in standard index funds
+    robinhoodReturn: 30,      // individual brokerage — same fund strategy
     iraReturn: 30,            // Robinhood IRA — same fund strategy
-    entrepreneurReturn: 1,
-    homeAppreciation: 6,
-    newHomeAppreciation: 5,
-    landAppreciation: 4,
+    entrepreneurReturn: 1,    // ventures fund — conservative
+    homeAppreciation: 6,      // Seattle home appreciation
+    landAppreciation: 4,      // rural land appreciation
 
-    // Land Acquisitions — first purchase pushed to age 32
-    initialAcres: 0,          // no land at start (pushed to 32)
+    // ═══════════════════════════════════════════════════════════════
+    // LAND (first 20-acre purchase — Ayoola will live on this land)
+    // Equipment, infrastructure, offshore, expansion DEFERRED
+    // ═══════════════════════════════════════════════════════════════
     landPricePerAcre: 6000,
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
     landPrincipalPerAcre: 300,
-    offshorePricePerAcre: 3000,
-    landPurchase1Age: 32,     // initial 20 acres (was at start, now age 32)
+    landPurchase1Age: 32,     // initial 20 acres (live on this)
     landPurchase1Acres: 20,
-    landPurchase2Age: 34,     // offshore 15 acres
-    landPurchase2Acres: 15,
-    landPurchase3Age: 40,     // expansion 100 acres
-    landPurchase3Acres: 100,
-    equipmentCost: 65000,
-    infrastructureCost: 200000,
-    infrastructureAge: 38,
+    landHousingCost: 12000,   // ~$1K/mo for basic structure on land
 
-    // Homes — Seattle is 50/50 co-owned rental after divorce
+    // ═══════════════════════════════════════════════════════════════
+    // SEATTLE RENTAL (50/50 co-owned with ex-wife)
+    // Both contribute $1K/mo toward costs, reduced $100/mo/yr until breakeven
+    // ═══════════════════════════════════════════════════════════════
     seattleCurrentValue: 1100000,
-    seattleMortgageBalance: 965367, // real mortgage balance
+    seattleMortgageBalance: 965367,
     seattleMortgageRate: 3.25,
-    newHomePurchasePrice: 600000,
-    newHomeDownPayment: 0,
-    newHomeClosingCosts: 15000,
-    newHomeMortgageRate: 6.5,
+    grossRentYear1: 72000,        // ~$6K/mo market rent
+    mortgagePayment: 67200,       // annual mortgage (P&I)
+    propertyTaxes: 12000,
+    insurance: 2400,
+    propertyManagement: 7200,     // ~10% of gross rent
+    maintenanceRate: 10,          // % of rent
+    vacancyRate: 5,
+    rentGrowth: 2.5,
+    seattlePrincipal: 18000,      // annual principal paydown (builds equity)
+    ayoolaRentalContrib: 12000,   // $1K/mo toward rental costs
+    exWifeRentalContrib: 12000,   // $1K/mo from ex-wife
+    contribReductionPerYear: 1200, // reduce by $100/mo each year
 
-    // Milestone Ages
-    divorceAge: 31,           // divorce finalizes ~mid 2026
-    jamieMoveOutMonth: 3,     // ~3 months from now (June/July 2026)
-    moveOutAge: 32,           // Ayoola moves to own place (can be earlier)
+    // ═══════════════════════════════════════════════════════════════
+    // PERSONAL EXPENSES (post-divorce, all-in including land housing)
+    // ═══════════════════════════════════════════════════════════════
+    livingExpenses: 50000,    // $50K/yr all-in (housing on land, bills, utilities, food, travel)
+    // Note: Seattle rental contrib ($12K/yr) is SEPARATE — tracked in rental section
+    // Note: 401k ($18.4K) and taxes ($12.2K) deducted before take-home, NOT here
+
+    // Future expenses (deferred — will add back when funded)
+    staffExpensesBase: 50000,
+    staffExpensesMax: 100000,
+
+    // ═══════════════════════════════════════════════════════════════
+    // INCOME PHASES (Ayoola only — net personal after C-Corp split)
+    // Phase 1-2: NT consulting + C-Corp
+    // Phase 3+: transitioning to land business
+    // ═══════════════════════════════════════════════════════════════
+    // Phase 1 (31-32): NT at full capacity
+    phase1NTRevenue: 207000,
+
+    // Phase 2 (33-34): Transition — NT winds down, land ramps up
+    phase2NTRevenue: 150000,
+
+    // Phase 3 (35): Gap year — minimal NT work
+    phase3NTRevenue: 50000,
+
+    // Phase 4 (36-45): Building phase — land business growing
+    phase4NTRevenue: 50000,
+    phase4BusinessIncome: 0,       // starts at 0, grows $15K/yr
+
+    // Phase 5 (46+): Coast mode — land business mature
+    phase5NTRevenue: 50000,
+    phase5BusinessIncome: 150000,
+    phase5BusinessGrowth: 5000,
+
+    // Ventures fund contributions (deferred to later phases)
+    entrepreneurContrib: 0,        // $0 for now — will add when cash flow allows
+
+    // ═══════════════════════════════════════════════════════════════
+    // MILESTONE AGES
+    // ═══════════════════════════════════════════════════════════════
+    moveOutAge: 32,           // moves to land
     marginStartAge: 33,
     mortgagePaidAge: 64,
     retirementAge: 60,
@@ -86,60 +158,11 @@ export default function PlanDashboard() {
     marginRate: 4.5,
     marginRatio: 32.5,
 
-    // Seattle Rental (50/50 with ex-wife)
-    // Both contribute $1K/mo toward costs, reduced by $100/yr until breakeven
-    grossRentYear1: 72000,        // ~$6K/mo market rent
-    mortgagePayment: 67200,       // annual mortgage
-    propertyTaxes: 12000,
-    insurance: 2400,
-    propertyManagement: 7200,     // ~10% of gross rent for PM company
-    maintenanceRate: 10,          // % of rent for repairs
-    vacancyRate: 5,
-    rentGrowth: 2.5,
-    seattlePrincipal: 18000,
-    ayoolaRentalContrib: 12000,   // $1K/mo toward rental costs
-    exWifeRentalContrib: 12000,   // $1K/mo from ex-wife
-    contribReductionPerYear: 1200, // reduce by $100/mo each year as rent rises
-
-    // New home for Ayoola
-    newHomePrincipal: 15000,
-
-    // Annual Contributions (Ayoola only — no more Jamie)
-    k401Contrib: 18000,       // ~20% of Ayoola's NT gross (~$90K)
-    iraContrib: 0,
-    entrepreneurContrib: 50000,
-    ccPaydownMonthly: 1250,   // monthly CC surplus for paydown
-
-    // Expenses (Ayoola solo: ~$5,050/mo non-mortgage × 12 — will need to adjust post-divorce)
-    livingExpenses: 60600,    // $5,050/mo non-mortgage expenses × 12
-    staffExpensesBase: 50000,
-    staffExpensesMax: 100000,
-    healthInsurance: 12000,
-
-    // Income Phases (Ayoola only)
-    phase1AyoolaIncome: 200000,   // current NT income
-    phase1CCorpContrib: 180000,
-
-    phase2AyoolaIncome: 150000,   // transition (33-34)
-    phase2CCorpContrib: 90000,
-
-    phase3AyoolaIncome: 50000,    // gap year (35)
-
-    phase4AyoolaIncome: 50000,    // building phase (36+)
-    phase4CCorpContrib: 0,
-
-    phase5AyoolaIncome: 50000,
-    phase5BusinessIncome: 150000,
-    phase5BusinessGrowth: 5000,
-
-    // NT Additional Work (toggle)
-    ntNewWorkMonthly: 5000,       // $5K/mo additional NT revenue → C-Corp
-    ntNewWorkStartMonth: 7,       // July 2026
-
-    // Withdrawal & Taxes
+    // ═══════════════════════════════════════════════════════════════
+    // TAXES & WITHDRAWAL
+    // ═══════════════════════════════════════════════════════════════
     safeWithdrawalRate: 4,
-    effectiveTaxRate: 25,
-    cCorpTaxRate: 21,
+    cCorpTaxRate: 21,         // Federal only (C-Corp in Wyoming = 0% state)
   });
 
   // Pull live account balances from Supabase to sync with projections
@@ -181,176 +204,182 @@ export default function PlanDashboard() {
     let k401 = assumptions.k401Start;
     let ira = assumptions.iraStart;
     let robinhood = assumptions.robinhoodStart;
-    // Seattle equity: Ayoola owns 50% of total equity
-    let seattleEquity = assumptions.seattleEquityStart; // total equity, we'll track 50% in net worth
-    let newHomeEquity = 0;
-    let acres = assumptions.initialAcres;
+    let seattleEquity = assumptions.seattleEquityStart; // total equity (50% counted in NW)
+    let acres = 0;
     let landEquity = 0;
     let landMortgage = 0;
     let ccDebt = assumptions.ccDebtStart;
+    let cash = assumptions.cashStart; // tracks actual cash reserves
     let entrepreneur = 0;
     let marginLoan = 0;
     let marginInvested = 0;
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
-      let cCorpContrib = 0;
-      let k401Contrib = assumptions.k401Contrib;
-      let entrepreneurContrib = 0;
-      let ayoolaIncome = 0;
-      let rentalNet = 0;
-      let ayoolaRentalShare = 0; // Ayoola's 50% of rental profit/loss
-      let expenses = assumptions.livingExpenses;
-      let staffExpenses = 0;
+      // ═══════════════════════════════════════════════════════════
+      // STEP 1: DETERMINE NT REVENUE FOR THIS YEAR (phase-based)
+      // ═══════════════════════════════════════════════════════════
+      let ntRevenue = 0;
       let businessIncome = 0;
+      let staffExpenses = 0;
 
-      // Phase 1: Current state (31-32) — Ayoola solo income, C-Corp contributions
       if (age <= 32) {
-        cCorpContrib = assumptions.phase1CCorpContrib;
-        ayoolaIncome = assumptions.phase1AyoolaIncome;
-      }
-      // Phase 2: Transition (33-34) — C-Corp continues, staff/ventures start
-      else if (age <= 34) {
-        cCorpContrib = assumptions.phase2CCorpContrib;
-        ayoolaIncome = assumptions.phase2AyoolaIncome;
-        entrepreneurContrib = 25000;
-        staffExpenses = 25000;
-      }
-      // Phase 3: Gap year (35)
-      else if (age === 35) {
-        cCorpContrib = 0;
-        ayoolaIncome = assumptions.phase3AyoolaIncome;
-        staffExpenses = 25000;
-        entrepreneurContrib = 25000;
-      }
-      // Phase 4: Building phase (36-45)
-      else if (age <= 45) {
-        cCorpContrib = 0;
-        ayoolaIncome = assumptions.phase4AyoolaIncome;
-        if (age <= 40) {
-          staffExpenses = 35000;
-          entrepreneurContrib = 35000;
-        } else {
-          staffExpenses = 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
-          entrepreneurContrib = 35000;
-        }
-        businessIncome = Math.max(0, (age - 36) * 15000);
-      }
-      // Phase 5: Coast mode (after 45)
-      else {
-        cCorpContrib = 0;
-        ayoolaIncome = assumptions.phase5AyoolaIncome;
-        staffExpenses = assumptions.staffExpensesMax;
-        entrepreneurContrib = 0;
+        ntRevenue = assumptions.phase1NTRevenue;
+      } else if (age <= 34) {
+        ntRevenue = assumptions.phase2NTRevenue;
+      } else if (age === 35) {
+        ntRevenue = assumptions.phase3NTRevenue;
+      } else if (age <= 45) {
+        ntRevenue = assumptions.phase4NTRevenue;
+        businessIncome = Math.max(0, (age - 36) * 15000) + assumptions.phase4BusinessIncome;
+        staffExpenses = age <= 40 ? 35000 : 35000 + Math.min((age - 40) * 10000, assumptions.staffExpensesMax - 35000);
+      } else {
+        ntRevenue = assumptions.phase5NTRevenue;
         businessIncome = assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
-        k401Contrib = 0;
+        staffExpenses = assumptions.staffExpensesMax;
       }
 
-      // ─── NT Additional Work (toggle) ────────────────────────────
-      // $5K/mo additional NT revenue → C-Corp for investment, starting July 2026
+      // NT additional work toggle: extra revenue → all to C-Corp
       let ntNewWorkIncome = 0;
       if (ntNewWorkEnabled) {
         if (age === assumptions.currentAge) {
-          // First year partial: July-Dec = 6 months
-          ntNewWorkIncome = assumptions.ntNewWorkMonthly * 6;
+          ntNewWorkIncome = assumptions.ntNewWorkMonthly * 6; // Jul-Dec partial year
         } else {
           ntNewWorkIncome = assumptions.ntNewWorkMonthly * 12;
         }
-        cCorpContrib += ntNewWorkIncome;
       }
 
-      // ─── Seattle Rental (50/50 co-owned) ─────────────────────────
-      // Rental starts once Jamie moves out (~mid 2026, modeled from age 32)
+      // ═══════════════════════════════════════════════════════════
+      // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + C-CORP
+      // Every dollar of NT revenue goes somewhere:
+      //   W2 gross → employee (taxes + 401k + take-home)
+      //   Employer payroll taxes → government
+      //   Remainder → C-Corp management fee
+      // ═══════════════════════════════════════════════════════════
+      const w2Gross = Math.min(assumptions.w2Gross, ntRevenue); // can't pay more than NT earns
+      const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
+      const ntOverhead = w2Gross + employerPayrollTax;
+      const cCorpContrib = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
+
+      // ═══════════════════════════════════════════════════════════
+      // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
+      // ═══════════════════════════════════════════════════════════
+      const k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
+      const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
+      const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
+      const takeHome = w2Gross - k401Contrib - personalTaxes;
+
+      // ═══════════════════════════════════════════════════════════
+      // STEP 4: PERSONAL CASH FLOW (take-home vs expenses)
+      // ═══════════════════════════════════════════════════════════
+      let expenses = assumptions.livingExpenses; // $50K all-in
+
+      // Seattle rental contribution (separate from living expenses)
+      let rentalNet = 0;
+      let ayoolaRentalShare = 0;
+      let ayoolaContrib = 0;
+
       if (age >= 32) {
         const rentYears = age - 32;
         const grossRent = assumptions.grossRentYear1 * Math.pow(1 + assumptions.rentGrowth / 100, rentYears);
         const mortgage = age < assumptions.mortgagePaidAge ? assumptions.mortgagePayment : 0;
         const maintenance = grossRent * (assumptions.maintenanceRate / 100);
+        const vacancy = grossRent * (assumptions.vacancyRate / 100);
         const management = assumptions.propertyManagement;
-        const taxes = assumptions.propertyTaxes;
+        const propTaxes = assumptions.propertyTaxes;
         const ins = assumptions.insurance;
-        const totalCosts = mortgage + maintenance + management + taxes + ins;
+        const totalCosts = mortgage + maintenance + vacancy + management + propTaxes + ins;
 
-        // Both contribute toward costs, reducing by $100/mo/yr until $0
-        const ayoolaContrib = Math.max(0, assumptions.ayoolaRentalContrib - (rentYears * assumptions.contribReductionPerYear));
+        ayoolaContrib = Math.max(0, assumptions.ayoolaRentalContrib - (rentYears * assumptions.contribReductionPerYear));
         const exWifeContrib = Math.max(0, assumptions.exWifeRentalContrib - (rentYears * assumptions.contribReductionPerYear));
         const totalContribs = ayoolaContrib + exWifeContrib;
 
-        // Net rental P&L: rent + contributions - costs
-        // Surplus goes to escrow for repairs initially, then split 50/50 when profitable
         rentalNet = grossRent + totalContribs - totalCosts;
 
         if (rentalNet > 0) {
-          // Profitable: Ayoola gets 50% of profit (contributions stop mattering once profitable)
-          ayoolaRentalShare = rentalNet * 0.5;
+          ayoolaRentalShare = rentalNet * 0.5; // 50% of profit
         } else {
-          // Not yet profitable: Ayoola's cost is his contribution
-          ayoolaRentalShare = -ayoolaContrib;
+          ayoolaRentalShare = -ayoolaContrib; // cost is his contribution
         }
       }
 
-      // Investment growth
+      // Land mortgage payment (principal + interest) — comes from personal cash
+      let landMortgagePayment = 0;
+      if (landMortgage > 0) {
+        const landInterest = landMortgage * (assumptions.landMortgageRate / 100);
+        const landPrincipal = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
+        landMortgagePayment = landInterest + landPrincipal;
+      }
+
+      // Business income taxes (on rental share + business income)
+      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + businessIncome;
+      const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
+
+      // Total personal outflows
+      const totalPersonalOut = expenses + ayoolaContrib + landMortgagePayment + staffExpenses + additionalTaxes;
+
+      // Total personal inflows
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome;
+
+      // Free cash = what's left after everything
+      const freeCash = totalPersonalIn - totalPersonalOut;
+
+      // Track cumulative cash position
+      cash += freeCash;
+
+      // ═══════════════════════════════════════════════════════════
+      // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
+      // ═══════════════════════════════════════════════════════════
+
+      // C-Corp: growth taxed at 21% federal (Wyoming = 0% state), plus new contributions
       const cCorpGrowth = cCorp * (assumptions.cCorpReturn / 100);
       const cCorpTax = cCorpGrowth * (assumptions.cCorpTaxRate / 100);
       cCorp = cCorp + cCorpGrowth - cCorpTax + cCorpContrib;
 
+      // 401k: pre-tax growth, contributions come from W2 deduction (already subtracted from take-home)
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
+
+      // IRA & Robinhood: grow on existing balances, no new contributions
       ira = ira * (1 + assumptions.iraReturn / 100);
       robinhood = robinhood * (1 + assumptions.robinhoodReturn / 100);
 
-      // CC debt paydown
-      if (ccDebt > 0) {
-        const annualPaydown = assumptions.ccPaydownMonthly * 12;
-        const interest = ccDebt * 0.20;
-        ccDebt = Math.max(0, ccDebt + interest - annualPaydown);
-      }
+      // Entrepreneur fund
+      const entrepreneurContrib = assumptions.entrepreneurContrib;
+      entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100) + entrepreneurContrib;
 
-      // Seattle equity: appreciates, principal paydown (Ayoola owns 50%)
+      // ═══════════════════════════════════════════════════════════
+      // STEP 6: REAL ESTATE EQUITY CHANGES
+      // ═══════════════════════════════════════════════════════════
+
+      // Seattle: appreciates + principal paydown (50% of equity counted in NW)
       seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
 
-      // New home equity (when Ayoola moves out)
-      if (age >= assumptions.moveOutAge) {
-        newHomeEquity = (newHomeEquity + assumptions.newHomePrincipal) * (1 + assumptions.newHomeAppreciation / 100);
+      // Land: appreciation + principal paydown (mortgage payment already expensed above)
+      if (landMortgage > 0 || landEquity > 0) {
+        const totalLandValue = landEquity + landMortgage;
+        const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
+        const appreciationGain = appreciatedValue - totalLandValue;
+        landEquity += appreciationGain;
+
+        if (landMortgage > 0) {
+          const landPrincipal = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
+          landMortgage -= landPrincipal;
+          landEquity += landPrincipal;
+        }
       }
 
-      // Land
-      const totalLandValue = landEquity + landMortgage;
-      const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
-      const appreciationGain = appreciatedValue - totalLandValue;
-      landEquity += appreciationGain;
-
-      if (landMortgage > 0) {
-        const landPrincipalPayment = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
-        landMortgage -= landPrincipalPayment;
-        landEquity += landPrincipalPayment;
-      }
-
+      // Land purchase: down payment comes from C-Corp (reduces C-Corp balance)
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
+        cCorp -= downPayment; // DOWN PAYMENT SOURCED FROM C-CORP
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;
       }
-      if (age === assumptions.landPurchase2Age) {
-        const purchasePrice = assumptions.landPurchase2Acres * assumptions.offshorePricePerAcre;
-        const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        landEquity += downPayment;
-        landMortgage += purchasePrice - downPayment;
-        acres += assumptions.landPurchase2Acres;
-      }
-      if (age === assumptions.landPurchase3Age) {
-        const appreciatedPricePerAcre = assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation / 100, assumptions.landPurchase3Age - assumptions.currentAge);
-        const purchasePrice = assumptions.landPurchase3Acres * appreciatedPricePerAcre;
-        const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        landEquity += downPayment;
-        landMortgage += purchasePrice - downPayment;
-        acres += assumptions.landPurchase3Acres;
-      }
 
-      // Entrepreneur fund
-      entrepreneur = entrepreneur * (1 + assumptions.entrepreneurReturn / 100) + entrepreneurContrib;
-
-      // Margin trading
+      // ═══════════════════════════════════════════════════════════
+      // STEP 7: MARGIN TRADING (borrows against C-Corp)
+      // ═══════════════════════════════════════════════════════════
       if (age >= assumptions.marginStartAge) {
         const maxMargin = cCorp * (assumptions.marginRatio / 100);
         marginLoan = maxMargin;
@@ -363,22 +392,13 @@ export default function PlanDashboard() {
       const marginGain = marginInvested * (assumptions.cCorpReturn / 100);
       const marginNet = marginGain - marginInterest;
 
-      // Ayoola's personal income = total minus C-Corp
-      const ayoolaPersonalIncome = ayoolaIncome - cCorpContrib;
-
-      // Taxable income (Ayoola only + business + rental share)
-      const taxableIncome = ayoolaPersonalIncome + businessIncome + Math.max(0, ayoolaRentalShare);
-      const taxes = taxableIncome * (assumptions.effectiveTaxRate / 100);
-
-      const totalIn = ayoolaPersonalIncome + Math.max(0, ayoolaRentalShare) + marginNet + businessIncome;
-      const totalOut = expenses + staffExpenses + entrepreneurContrib + taxes + Math.abs(Math.min(0, ayoolaRentalShare));
-      const freeCash = totalIn - totalOut;
-
-      // Net worth: Ayoola's share only (50% of Seattle equity)
-      const netWorth = cCorp + k401 + ira + robinhood + (seattleEquity * 0.5) + newHomeEquity + landEquity + entrepreneur + marginInvested - marginLoan - ccDebt;
+      // ═══════════════════════════════════════════════════════════
+      // STEP 8: NET WORTH (Ayoola's share only)
+      // ═══════════════════════════════════════════════════════════
+      const netWorth = cCorp + k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + entrepreneur + marginInvested - marginLoan - landMortgage;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
-      const passiveIncome = ayoolaRentalShare + businessIncome + safeWithdrawal;
+      const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
 
       years.push({
         age,
@@ -390,36 +410,43 @@ export default function PlanDashboard() {
         ccDebt: Math.round(ccDebt),
         seattleEquity: Math.round(seattleEquity),
         seattleEquity50: Math.round(seattleEquity * 0.5),
-        newHomeEquity: Math.round(newHomeEquity),
-        rentalNet: Math.round(rentalNet),
-        ayoolaRentalShare: Math.round(ayoolaRentalShare),
-        acres,
         landEquity: Math.round(landEquity),
         landMortgage: Math.round(landMortgage),
         landValue: Math.round(landEquity + landMortgage),
+        acres,
+        rentalNet: Math.round(rentalNet),
+        ayoolaRentalShare: Math.round(ayoolaRentalShare),
         entrepreneur: Math.round(entrepreneur),
         marginLoan: Math.round(marginLoan),
         marginInvested: Math.round(marginInvested),
         marginNet: Math.round(marginNet),
+        cash: Math.round(cash),
         freeCash: Math.round(freeCash),
         netWorth: Math.round(netWorth),
-        ayoolaIncome: Math.round(ayoolaIncome),
+        ayoolaIncome: Math.round(ntRevenue),
+        w2Gross: Math.round(w2Gross),
+        takeHome: Math.round(takeHome),
+        k401Contrib: Math.round(k401Contrib),
         businessIncome: Math.round(businessIncome),
         passiveIncome: Math.round(passiveIncome),
         safeWithdrawal: Math.round(safeWithdrawal),
         ntNewWorkIncome: Math.round(ntNewWorkIncome),
         freeCashSources: {
-          ayoolaPersonalIncome,
-          ayoolaTotalIncome: ayoolaIncome,
+          takeHome,
+          w2Gross,
+          ntRevenue,
+          cCorpContrib,
           ntNewWork: ntNewWorkIncome,
+          k401Contrib: -k401Contrib,
+          personalTaxes: -personalTaxes,
           rentalShare: ayoolaRentalShare,
+          rentalContrib: -ayoolaContrib,
+          landMortgagePayment: -landMortgagePayment,
           marginNet,
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
-          taxes: -taxes,
-          contributions: -entrepreneurContrib,
-          cCorpContrib,
+          additionalTaxes: -additionalTaxes,
         }
       });
     }
@@ -446,7 +473,6 @@ export default function PlanDashboard() {
       { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
-      { name: 'New Home', value: ageData.newHomeEquity, desc: 'Ayoola\'s own home' },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
       { name: 'Ventures', value: ageData.entrepreneur, desc: DESCRIPTIONS.ventures },
     ].filter(d => d.value > 0);
@@ -462,20 +488,21 @@ export default function PlanDashboard() {
         <div className="bg-gray-900 border border-gray-700 rounded-lg p-3 text-xs">
           <div className="font-bold text-white mb-2">Age {label} — Free Cash: {formatCurrency(row.freeCash)}</div>
           <div className="space-y-1">
-            {src.cCorpContrib > 0 && (
-              <div className="text-gray-500 text-xs mb-1 pb-1 border-b border-gray-700">
-                NT Total: {formatCurrency(src.ayoolaTotalIncome)} → Personal: {formatCurrency(src.ayoolaPersonalIncome)} + C-Corp: {formatCurrency(src.cCorpContrib)}
-              </div>
-            )}
-            <div className="text-emerald-400">+ Ayoola's W2: {formatCurrency(src.ayoolaPersonalIncome)}</div>
+            <div className="text-gray-500 text-xs mb-1 pb-1 border-b border-gray-700">
+              NT Revenue: {formatCurrency(src.ntRevenue)} → W2: {formatCurrency(src.w2Gross)} + C-Corp: {formatCurrency(src.cCorpContrib)}
+            </div>
+            <div className="text-emerald-400">+ Take-Home Pay: {formatCurrency(src.takeHome)}</div>
             {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → C-Corp: {formatCurrency(src.ntNewWork)}</div>}
-            <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>
-            <div className="text-cyan-400">+ Margin Arbitrage: {formatCurrency(src.marginNet)}</div>
-            <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>
+            {src.rentalShare !== 0 && <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>}
+            {src.businessIncome > 0 && <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>}
             <div className="text-red-400">− Living Expenses: {formatCurrency(Math.abs(src.expenses))}</div>
-            <div className="text-red-400">− Staff Expenses: {formatCurrency(Math.abs(src.staffExpenses))}</div>
-            <div className="text-orange-400">− Taxes ({assumptions.effectiveTaxRate}%): {formatCurrency(Math.abs(src.taxes))}</div>
-            <div className="text-red-400">− Contributions: {formatCurrency(Math.abs(src.contributions))}</div>
+            {src.rentalContrib < 0 && <div className="text-red-400">− Rental Contrib: {formatCurrency(Math.abs(src.rentalContrib))}</div>}
+            {src.landMortgagePayment < 0 && <div className="text-red-400">− Land Mortgage: {formatCurrency(Math.abs(src.landMortgagePayment))}</div>}
+            {src.staffExpenses < 0 && <div className="text-red-400">− Staff: {formatCurrency(Math.abs(src.staffExpenses))}</div>}
+            {src.additionalTaxes < 0 && <div className="text-orange-400">− Add'l Taxes: {formatCurrency(Math.abs(src.additionalTaxes))}</div>}
+            <div className="text-gray-500 text-xs mt-1 pt-1 border-t border-gray-700">
+              401k: {formatCurrency(Math.abs(src.k401Contrib))}/yr | W2 Tax: {formatCurrency(Math.abs(src.personalTaxes))}/yr (pre-deducted)
+            </div>
           </div>
         </div>
       );
@@ -719,7 +746,6 @@ export default function PlanDashboard() {
       { label: 'Robinhood', value: d.robinhood, color: 'text-orange-400' },
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
       { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
-      { label: 'New Home', value: d.newHomeEquity, color: 'text-green-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
       { label: 'Ventures', value: d.entrepreneur, color: 'text-cyan-400' },
       { label: 'Margin (net)', value: d.marginInvested - d.marginLoan, color: 'text-gray-400' },
@@ -987,18 +1013,13 @@ export default function PlanDashboard() {
                   <div className="bg-gray-800 rounded-lg p-3">
                     <div className="text-xs text-gray-500">Starting Net Worth</div>
                     <div className="text-lg font-bold text-emerald-400">
-                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.robinhoodStart + (assumptions.seattleEquityStart * 0.5) + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100))}
+                      {formatCurrency(assumptions.cCorpStart + assumptions.k401Start + assumptions.iraStart + assumptions.robinhoodStart + (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart)}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Total Land Investment</div>
-                    <div className="text-lg font-bold text-amber-400">
-                      {formatCurrency(
-                        (assumptions.initialAcres * assumptions.landPricePerAcre) +
-                        (assumptions.offshoreAcres * assumptions.offshorePricePerAcre) +
-                        (assumptions.landPurchase2Acres * assumptions.landPricePerAcre) +
-                        assumptions.equipmentCost + assumptions.infrastructureCost
-                      )}
+                    <div className="text-xs text-gray-500">Annual Take-Home</div>
+                    <div className="text-lg font-bold text-emerald-400">
+                      {formatCurrency(assumptions.w2Gross - assumptions.w2Gross * assumptions.k401Rate / 100 - assumptions.w2Gross * assumptions.personalTaxRate / 100)}
                     </div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
@@ -1006,39 +1027,41 @@ export default function PlanDashboard() {
                     <div className="text-lg font-bold text-purple-400">{assumptions.retirementAge}</div>
                   </div>
                   <div className="bg-gray-800 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Total Planned Acres</div>
-                    <div className="text-lg font-bold text-amber-400">{assumptions.initialAcres + assumptions.offshoreAcres + assumptions.landPurchase2Acres}</div>
+                    <div className="text-xs text-gray-500">Initial Land Purchase</div>
+                    <div className="text-lg font-bold text-amber-400">{assumptions.landPurchase1Acres} acres</div>
                   </div>
                 </div>
                 
                 {/* Income Phase Summary */}
                 <div className="bg-gray-800 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-3">Income Phase Summary</div>
+                  <div className="text-xs text-gray-500 mb-3">NT Revenue by Phase (W2: {formatCurrency(assumptions.w2Gross)} + C-Corp gets remainder)</div>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
                     <div className="text-center p-2 rounded bg-blue-900/30 border border-blue-800">
                       <div className="text-blue-400 font-semibold">Phase 1</div>
                       <div className="text-gray-400">Ages 31-32</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1AyoolaIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase1NTRevenue)}/yr</div>
+                      <div className="text-gray-500">→ C-Corp: {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-purple-900/30 border border-purple-800">
                       <div className="text-purple-400 font-semibold">Phase 2</div>
                       <div className="text-gray-400">Ages 33-34</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2AyoolaIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase2NTRevenue)}/yr</div>
+                      <div className="text-gray-500">→ C-Corp: {formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                     <div className="text-center p-2 rounded bg-red-900/30 border border-red-800">
                       <div className="text-red-400 font-semibold">Gap Year</div>
                       <div className="text-gray-400">Age 35</div>
-                      <div className="text-yellow-400 font-medium">{formatCurrency(assumptions.phase3AyoolaIncome)}/yr</div>
+                      <div className="text-yellow-400 font-medium">{formatCurrency(assumptions.phase3NTRevenue)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
                       <div className="text-emerald-400 font-semibold">Phase 4</div>
                       <div className="text-gray-400">Ages 36-45</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4AyoolaIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase4NTRevenue)}/yr</div>
                     </div>
                     <div className="text-center p-2 rounded bg-emerald-900/30 border border-emerald-800">
                       <div className="text-emerald-400 font-semibold">Coast</div>
                       <div className="text-gray-400">Ages 46+</div>
-                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase5AyoolaIncome + assumptions.phase5BusinessIncome)}/yr</div>
+                      <div className="text-emerald-400 font-medium">{formatCurrency(assumptions.phase5NTRevenue + assumptions.phase5BusinessIncome)}/yr</div>
                     </div>
                   </div>
                 </div>
@@ -1073,8 +1096,8 @@ export default function PlanDashboard() {
                     { key: 'k401Start', label: "401k Balance", prefix: '$', step: 1000 },
                     { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
                     { key: 'seattleEquityStart', label: 'Seattle Total Equity (50% counted)', prefix: '$', step: 1000 },
-                    { key: 'ccDebtStart', label: 'CC Debt', prefix: '$', step: 100 },
-                    { key: 'initialAcres', label: 'Current Land Owned', suffix: ' acres', step: 1 },
+                    { key: 'ccDebtStart', label: 'CC Debt (post-divorce)', prefix: '$', step: 100 },
+                    { key: 'cashStart', label: 'Cash Reserves', prefix: '$', step: 100 },
                   ].map(({ key, label, prefix, suffix, step }) => (
                     <div key={key}>
                       <label className="text-xs text-gray-500 block mb-1">{label}</label>
@@ -1100,7 +1123,7 @@ export default function PlanDashboard() {
                     <span className="text-emerald-400 font-bold">
                       {formatCurrency(
                         assumptions.cCorpStart + assumptions.robinhoodStart + assumptions.k401Start + assumptions.iraStart +
-                        (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart + (assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)
+                        (assumptions.seattleEquityStart * 0.5) - assumptions.ccDebtStart
                       )}
                     </span>
                   </div>
@@ -1111,65 +1134,106 @@ export default function PlanDashboard() {
             {/* Income Phases */}
             {settingsTab === 'income' && (
               <div className="space-y-4">
+                {/* W2 Structure (from pay stub) */}
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <div className="text-xs text-gray-400 mb-2 font-semibold">W2 Structure (from Gusto pay stub)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">W2 Gross/yr</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.w2Gross} onChange={(e) => setAssumptions({ ...assumptions, w2Gross: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">401k Rate</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <input type="number" step="1" value={assumptions.k401Rate} onChange={(e) => setAssumptions({ ...assumptions, k401Rate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Tax Withholding</label>
+                      <div className="flex items-center bg-gray-700 rounded px-2">
+                        <input type="number" step="0.25" value={assumptions.personalTaxRate} onChange={(e) => setAssumptions({ ...assumptions, personalTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Take-Home/yr</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(assumptions.w2Gross - assumptions.w2Gross * assumptions.k401Rate / 100 - assumptions.w2Gross * assumptions.personalTaxRate / 100)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">401k: {formatCurrency(assumptions.w2Gross * assumptions.k401Rate / 100)}/yr | Taxes: {formatCurrency(assumptions.w2Gross * assumptions.personalTaxRate / 100)}/yr (deducted before take-home)</div>
+                </div>
+
                 {/* Phase 1 */}
                 <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
-                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — Current (Solo)</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'phase1AyoolaIncome', label: "Ayoola's W2/1099" },
-                      { key: 'phase1CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
-                      { key: 'k401Contrib', label: '401k Contrib/yr' },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          <span className="text-gray-500 text-sm">$</span>
-                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          <span className="text-gray-500 text-xs">/yr</span>
-                        </div>
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Phase 1: Ages {assumptions.currentAge}-32 — NT Full Capacity</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">NT Total Revenue</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.phase1NTRevenue} onChange={(e) => setAssumptions({ ...assumptions, phase1NTRevenue: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                       </div>
-                    ))}
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ Your W2</label>
+                      <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">{formatCurrency(assumptions.w2Gross)}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Phase 2 */}
                 <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-800">
                   <div className="text-xs text-purple-400 mb-2 font-semibold">Phase 2: Ages 33-34 — Transition</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'phase2AyoolaIncome', label: "Ayoola's Income" },
-                      { key: 'phase2CCorpContrib', label: 'NT Mgmt Fee → C-Corp' },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          <span className="text-gray-500 text-sm">$</span>
-                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          <span className="text-gray-500 text-xs">/yr</span>
-                        </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">NT Total Revenue</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.phase2NTRevenue} onChange={(e) => setAssumptions({ ...assumptions, phase2NTRevenue: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                       </div>
-                    ))}
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ Your W2</label>
+                      <div className="bg-purple-900/30 rounded px-2 py-2 text-purple-400 font-medium">{formatCurrency(Math.min(assumptions.w2Gross, assumptions.phase2NTRevenue))}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase2NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Phase 3 - Gap Year */}
+                {/* Phase 3 */}
                 <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
                   <div className="text-xs text-red-400 mb-2 font-semibold">Phase 3: Age 35 — Gap Year</div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Ayoola's Income</label>
+                      <label className="text-xs text-gray-400 block mb-1">NT Revenue (reduced)</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" step="1000" value={assumptions.phase3AyoolaIncome} onChange={(e) => setAssumptions({ ...assumptions, phase3AyoolaIncome: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-xs">/yr</span>
+                        <input type="number" step="1000" value={assumptions.phase3NTRevenue} onChange={(e) => setAssumptions({ ...assumptions, phase3NTRevenue: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">NT Mgmt Fee → C-Corp</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2 text-red-400 py-2 text-sm">$0 (Paused)</div>
+                      <label className="text-xs text-gray-400 block mb-1">→ Your W2</label>
+                      <div className="bg-red-900/30 rounded px-2 py-2 text-yellow-400 font-medium">{formatCurrency(Math.min(assumptions.w2Gross, assumptions.phase3NTRevenue))}</div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">→ C-Corp</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-red-400 font-medium">{formatCurrency(Math.max(0, assumptions.phase3NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}</div>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">Lean year — living off savings + reduced income</div>
+                  <div className="text-xs text-yellow-400 mt-2">Lean year — NT winds down, land business starting</div>
                 </div>
 
                 {/* Phase 4 */}
@@ -1177,23 +1241,26 @@ export default function PlanDashboard() {
                   <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 4: Ages 36-45 — Building</div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Ayoola's Income</label>
+                      <label className="text-xs text-gray-400 block mb-1">NT Revenue (maintenance)</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" step="1000" value={assumptions.phase4AyoolaIncome} onChange={(e) => setAssumptions({ ...assumptions, phase4AyoolaIncome: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-xs">/yr</span>
+                        <input type="number" step="1000" value={assumptions.phase4NTRevenue} onChange={(e) => setAssumptions({ ...assumptions, phase4NTRevenue: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                       </div>
                     </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Business Income Growth</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 text-sm">+$15K/yr from age 36</div>
+                    </div>
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">C-Corp only appreciates — no new contributions. Business income grows from ventures.</div>
+                  <div className="mt-2 text-xs text-gray-500">C-Corp compound grows on existing balance. Land business income ramps $15K/yr.</div>
                 </div>
 
                 {/* Phase 5 */}
                 <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
                   <div className="text-xs text-emerald-400 mb-2 font-semibold">Phase 5: Ages 46+ — Coast Mode</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
-                      { key: 'phase5AyoolaIncome', label: "Ayoola's Passive/Consulting" },
+                      { key: 'phase5NTRevenue', label: 'NT Revenue (consulting)' },
                       { key: 'phase5BusinessIncome', label: 'Business Income (Start)' },
                       { key: 'phase5BusinessGrowth', label: 'Business Growth/yr' },
                     ].map(({ key, label }) => (
@@ -1252,43 +1319,32 @@ export default function PlanDashboard() {
                   <div className="text-xs text-blue-400 mt-2">→ Converts to rental property at age {assumptions.moveOutAge}</div>
                 </div>
                 
-                {/* New Primary Home */}
-                <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
-                  <div className="text-xs text-blue-400 mb-2 font-semibold">🏡 New Primary Home — Gap Year Purchase (Age 35)</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { key: 'newHomePurchasePrice', label: 'Purchase Price', prefix: '$' },
-                      { key: 'newHomeDownPayment', label: 'Down Payment', prefix: '$' },
-                      { key: 'newHomeClosingCosts', label: 'Closing Costs', prefix: '$' },
-                      { key: 'newHomeMortgageRate', label: 'Interest Rate', suffix: '%', step: 0.125 },
-                    ].map(({ key, label, prefix, suffix, step }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                          <input type="number" step={step || 1000} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 mt-3">
+                {/* Land Housing */}
+                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">🏡 Living on First 20-Acre Land Purchase (Age {assumptions.landPurchase1Age})</div>
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Appreciation Rate</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="0.5" value={assumptions.newHomeAppreciation} onChange={(e) => setAssumptions({ ...assumptions, newHomeAppreciation: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">%/yr</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Principal Paydown/yr</label>
+                      <label className="text-xs text-gray-400 block mb-1">Monthly Housing Cost</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" step="1000" value={assumptions.newHomePrincipal} onChange={(e) => setAssumptions({ ...assumptions, newHomePrincipal: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" step="100" value={Math.round(assumptions.landHousingCost / 12)} onChange={(e) => setAssumptions({ ...assumptions, landHousingCost: (parseFloat(e.target.value) || 0) * 12 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/mo</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Annual</label>
+                      <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
+                        {formatCurrency(assumptions.landHousingCost)}/yr
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Included In</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-xs">
+                        $50K living expenses
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">💡 0% down strategy — only pay closing costs ({formatCurrency(assumptions.newHomeClosingCosts)})</div>
+                  <div className="text-xs text-yellow-400 mt-2">💡 No mortgage — housing cost included in $50K/yr living expenses</div>
                 </div>
               </div>
             )}
@@ -1420,14 +1476,14 @@ export default function PlanDashboard() {
                   </div>
                 </div>
 
-                {/* Initial Purchase */}
+                {/* 20 Acre Purchase */}
                 <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
-                  <div className="text-xs text-amber-400 mb-2 font-semibold">🌾 Initial Land Purchase — Age {assumptions.currentAge} (2026)</div>
+                  <div className="text-xs text-amber-400 mb-2 font-semibold">🌾 20-Acre Land Purchase — Age {assumptions.landPurchase1Age} (your new home)</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Acres</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" value={assumptions.initialAcres} onChange={(e) => setAssumptions({ ...assumptions, initialAcres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" value={assumptions.landPurchase1Acres} onChange={(e) => setAssumptions({ ...assumptions, landPurchase1Acres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">ac</span>
                       </div>
                     </div>
@@ -1441,93 +1497,30 @@ export default function PlanDashboard() {
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Total Cost</label>
                       <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
-                        {formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre)}
+                        {formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre)}
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-2">
                     <div className="text-xs">
-                      <span className="text-gray-500">Down Payment: </span>
-                      <span className="text-emerald-400">{formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)}</span>
+                      <span className="text-gray-500">Down Payment (from C-Corp): </span>
+                      <span className="text-emerald-400">{formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre * assumptions.landDownPaymentPct / 100)}</span>
                     </div>
                     <div className="text-xs">
                       <span className="text-gray-500">Mortgage: </span>
-                      <span className="text-red-400">{formatCurrency(assumptions.initialAcres * assumptions.landPricePerAcre * (1 - assumptions.landDownPaymentPct / 100))}</span>
+                      <span className="text-red-400">{formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre * (1 - assumptions.landDownPaymentPct / 100))}</span>
                     </div>
                   </div>
-                </div>
-                
-                {/* Equipment & Infrastructure */}
-                <div className="bg-gray-800 rounded-lg p-3">
-                  <div className="text-xs text-gray-400 mb-2 font-semibold">🚜 Equipment & Infrastructure</div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Equipment Cost (Age 32)</label>
-                      <div className="flex items-center bg-gray-700 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions.equipmentCost} onChange={(e) => setAssumptions({ ...assumptions, equipmentCost: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Infrastructure (Age {assumptions.infrastructureAge})</label>
-                      <div className="flex items-center bg-gray-700 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions.infrastructureCost} onChange={(e) => setAssumptions({ ...assumptions, infrastructureCost: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                      </div>
-                    </div>
-                  </div>
+                  <div className="text-xs text-yellow-400 mt-2">Down payment sourced from C-Corp. Mortgage P&I deducted from personal cash flow.</div>
                 </div>
 
-                {/* Offshore Land */}
-                <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-800">
-                  <div className="text-xs text-cyan-400 mb-2 font-semibold">🏝️ Offshore Land (Family) — Age {assumptions.landPurchase1Age}</div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Acres</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" value={assumptions.offshoreAcres} onChange={(e) => setAssumptions({ ...assumptions, offshoreAcres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">ac</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Price per Acre</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" value={assumptions.offshorePricePerAcre} onChange={(e) => setAssumptions({ ...assumptions, offshorePricePerAcre: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Total Cost</label>
-                      <div className="bg-cyan-900/30 rounded px-2 py-2 text-cyan-400 font-medium">
-                        {formatCurrency(assumptions.offshoreAcres * assumptions.offshorePricePerAcre)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Major Expansion */}
-                <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
-                  <div className="text-xs text-amber-400 mb-2 font-semibold">🌲 Major Expansion — Age {assumptions.landPurchase2Age}</div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Acres</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" value={assumptions.landPurchase2Acres} onChange={(e) => setAssumptions({ ...assumptions, landPurchase2Acres: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">ac</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Est. Price per Acre</label>
-                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-sm">
-                        ~{formatCurrency(assumptions.landPricePerAcre * Math.pow(1 + assumptions.landAppreciation/100, assumptions.landPurchase2Age - assumptions.currentAge))}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-400 block mb-1">Est. Total Cost</label>
-                      <div className="bg-amber-900/30 rounded px-2 py-2 text-amber-400 font-medium">
-                        {formatCurrency(assumptions.landPurchase2Acres * assumptions.landPricePerAcre)}
-                      </div>
-                    </div>
+                {/* Deferred Items */}
+                <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                  <div className="text-xs text-gray-500 mb-2 font-semibold">Deferred (not yet in model)</div>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div>Equipment & Infrastructure — will add when funded</div>
+                    <div>Offshore Land (Family) — financing TBD</div>
+                    <div>100-Acre Expansion — financing TBD</div>
                   </div>
                 </div>
                 
@@ -1537,8 +1530,8 @@ export default function PlanDashboard() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Total Acres</span>
-                        <span className="text-amber-400 font-bold">{assumptions.initialAcres + assumptions.offshoreAcres + assumptions.landPurchase2Acres} acres</span>
+                        <span className="text-gray-400">Planned Acres</span>
+                        <span className="text-amber-400 font-bold">{assumptions.landPurchase1Acres} acres</span>
                       </div>
                       <div className="flex justify-between text-sm mt-1">
                         <span className="text-gray-400">Appreciation Rate</span>
@@ -1549,12 +1542,7 @@ export default function PlanDashboard() {
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Total Investment</span>
                         <span className="text-amber-400 font-bold">
-                          {formatCurrency(
-                            (assumptions.initialAcres * assumptions.landPricePerAcre) +
-                            (assumptions.offshoreAcres * assumptions.offshorePricePerAcre) +
-                            (assumptions.landPurchase2Acres * assumptions.landPricePerAcre) +
-                            assumptions.equipmentCost + assumptions.infrastructureCost
-                          )}
+                          {formatCurrency(assumptions.landPurchase1Acres * assumptions.landPricePerAcre)}
                         </span>
                       </div>
                     </div>
@@ -1568,23 +1556,30 @@ export default function PlanDashboard() {
               <div className="space-y-4">
                 {/* Annual Contributions */}
                 <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-800">
-                  <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { key: 'k401Contrib', label: "401k Contribution" },
-                      { key: 'iraContrib', label: 'IRA Contribution' },
-                      { key: 'entrepreneurContrib', label: 'Ventures Fund' },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          <span className="text-gray-500 text-sm">$</span>
-                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          <span className="text-gray-500 text-xs">/yr</span>
-                        </div>
+                  <div className="text-xs text-blue-400 mb-2 font-semibold">Annual Contributions (auto-calculated from W2)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">401k ({assumptions.k401Rate}% of W2)</label>
+                      <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
+                        {formatCurrency(assumptions.w2Gross * assumptions.k401Rate / 100)}/yr
                       </div>
-                    ))}
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">C-Corp (auto from NT split)</label>
+                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency(Math.max(0, assumptions.phase1NTRevenue - assumptions.w2Gross - assumptions.w2Gross * assumptions.employerPayrollTaxRate / 100))}/yr
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Ventures Fund</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.entrepreneurContrib} onChange={(e) => setAssumptions({ ...assumptions, entrepreneurContrib: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
+                      </div>
+                    </div>
                   </div>
+                  <div className="text-xs text-gray-500 mt-2">No employer 401k match (confirmed from pay stub)</div>
                 </div>
                 
                 {/* Return Rates */}
@@ -1664,15 +1659,15 @@ export default function PlanDashboard() {
               <div className="space-y-4">
                 {/* Taxes */}
                 <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800">
-                  <div className="text-xs text-orange-400 mb-2 font-semibold">💰 Taxes</div>
+                  <div className="text-xs text-orange-400 mb-2 font-semibold">💰 Taxes (closed loop from pay stub)</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Personal Tax Rate</label>
+                      <label className="text-xs text-gray-400 block mb-1">W2 Tax Withholding</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="1" value={assumptions.effectiveTaxRate} onChange={(e) => setAssumptions({ ...assumptions, effectiveTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <input type="number" step="0.25" value={assumptions.personalTaxRate} onChange={(e) => setAssumptions({ ...assumptions, personalTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
-                      <div className="text-gray-600 text-xs mt-1">On W2 + business + rental</div>
+                      <div className="text-gray-600 text-xs mt-1">Fed + FICA + WA LTCI (from stub)</div>
                     </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">C-Corp Tax Rate</label>
@@ -1680,12 +1675,12 @@ export default function PlanDashboard() {
                         <input type="number" step="1" value={assumptions.cCorpTaxRate} onChange={(e) => setAssumptions({ ...assumptions, cCorpTaxRate: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
-                      <div className="text-gray-600 text-xs mt-1">On C-Corp investment growth</div>
+                      <div className="text-gray-600 text-xs mt-1">Federal only (Wyoming = 0% state)</div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Note</label>
-                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-500 text-xs">
-                        NT income splits: personal W2 vs C-Corp mgmt fee
+                      <label className="text-xs text-gray-400 block mb-1">Annual Tax Burden</label>
+                      <div className="bg-orange-900/30 rounded px-2 py-2 text-orange-400 text-sm">
+                        W2: {formatCurrency(assumptions.w2Gross * assumptions.personalTaxRate / 100)}/yr
                       </div>
                     </div>
                   </div>
@@ -1693,25 +1688,26 @@ export default function PlanDashboard() {
 
                 {/* Living Expenses */}
                 <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
-                  <div className="text-xs text-red-400 mb-2 font-semibold">Annual Living Expenses</div>
+                  <div className="text-xs text-red-400 mb-2 font-semibold">Annual Living Expenses (all-in)</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'livingExpenses', label: 'Base Living Expenses' },
-                      { key: 'healthInsurance', label: 'Health Insurance' },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          <span className="text-gray-500 text-sm">$</span>
-                          <input type="number" step="1000" value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          <span className="text-gray-500 text-xs">/yr</span>
-                        </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Total Living (incl. land housing)</label>
+                      <div className="flex items-center bg-gray-800 rounded px-2">
+                        <span className="text-gray-500 text-sm">$</span>
+                        <input type="number" step="1000" value={assumptions.livingExpenses} onChange={(e) => setAssumptions({ ...assumptions, livingExpenses: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
+                        <span className="text-gray-500 text-xs">/yr</span>
                       </div>
-                    ))}
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Seattle Rental Contrib</label>
+                      <div className="bg-blue-900/30 rounded px-2 py-2 text-blue-400 font-medium">
+                        {formatCurrency(assumptions.ayoolaRentalContrib)}/yr (separate)
+                      </div>
+                    </div>
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Monthly Burn</label>
                       <div className="bg-red-900/30 rounded px-2 py-2 text-red-400 font-medium">
-                        {formatCurrency((assumptions.livingExpenses + assumptions.healthInsurance) / 12)}/mo
+                        {formatCurrency(assumptions.livingExpenses / 12)}/mo + {formatCurrency(assumptions.ayoolaRentalContrib / 12)}/mo rental
                       </div>
                     </div>
                   </div>
@@ -1811,11 +1807,9 @@ export default function PlanDashboard() {
                 {/* Land Milestones */}
                 <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-800">
                   <div className="text-xs text-amber-400 mb-2 font-semibold">Land Purchase Timeline</div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
-                      { key: 'landPurchase1Age', label: 'Offshore Land Purchase' },
-                      { key: 'infrastructureAge', label: 'Infrastructure Build' },
-                      { key: 'landPurchase2Age', label: 'Major Expansion' },
+                      { key: 'landPurchase1Age', label: '20-Acre Purchase + Move' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>
@@ -1843,8 +1837,8 @@ export default function PlanDashboard() {
                         <div className="text-gray-500">Move</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-amber-400">{assumptions.landPurchase2Age}</div>
-                        <div className="text-gray-500">Expand</div>
+                        <div className="text-amber-400">{assumptions.landPurchase1Age}</div>
+                        <div className="text-gray-500">Land</div>
                       </div>
                       <div className="text-center">
                         <div className="text-emerald-400">{assumptions.retirementAge}</div>
@@ -1874,63 +1868,23 @@ export default function PlanDashboard() {
               status: targetAge1 >= 31 ? 'complete' : 'upcoming',
               category: 'land'
             },
-            { 
-              age: 32, 
-              year: 2027, 
-              icon: '🚜', 
-              title: 'Equipment & Infrastructure', 
-              desc: 'Tractor, basic implements, fencing',
-              cost: 65000,
-              status: targetAge1 >= 32 ? 'complete' : 'upcoming',
-              category: 'land'
-            },
-            { 
-              age: 34, 
-              year: 2029, 
-              icon: '🏝️', 
-              title: '15 Acres Offshore (Family)', 
-              desc: 'Land abroad to share with extended family',
-              cost: 45000,
-              status: targetAge1 >= 34 ? 'complete' : 'upcoming',
-              category: 'land'
-            },
-            { 
-              age: 34, 
-              year: 2029, 
-              icon: '🏠', 
-              title: 'Seattle Home → Rental', 
-              desc: 'Convert primary to rental property, begin $6k/mo income',
+            {
+              age: 32,
+              year: 2027,
+              icon: '🏠',
+              title: 'Seattle → Rental + Move to Land',
+              desc: 'Seattle becomes 50/50 rental. Ayoola moves to 20 acres.',
               cost: 0,
               income: 72000,
-              status: targetAge1 >= 34 ? 'complete' : 'upcoming',
+              status: targetAge1 >= 32 ? 'complete' : 'upcoming',
               category: 'rental'
             },
-            { 
-              age: 35, 
-              year: 2030, 
-              icon: '🏡', 
-              title: 'New Primary Home (0 Down)', 
-              desc: 'Gap year start — closing costs only (~$15k)',
-              cost: 15000,
-              status: targetAge1 >= 35 ? 'complete' : 'upcoming',
-              category: 'home'
-            },
-            { 
-              age: 38, 
-              year: 2033, 
-              icon: '🏗️', 
-              title: 'Business Infrastructure', 
-              desc: 'Processing facility, commercial kitchen, event space',
-              cost: 200000,
-              status: targetAge1 >= 38 ? 'complete' : 'upcoming',
-              category: 'land'
-            },
-            { 
-              age: 40, 
-              year: 2035, 
-              icon: '🌲', 
-              title: '100 Acre Expansion', 
-              desc: 'Major land acquisition for full operations',
+            {
+              age: 45,
+              year: 2040,
+              icon: '🌲',
+              title: 'Future Expansion (TBD)',
+              desc: 'Equipment, infrastructure, offshore land — financing TBD',
               cost: assumptions.landPricePerAcre * 100,
               status: targetAge1 >= 40 ? 'complete' : 'upcoming',
               category: 'land'

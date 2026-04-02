@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
 import { api } from '../lib/api';
 
@@ -24,6 +24,7 @@ export default function PlanDashboard() {
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
   const [ntNewWorkEnabled, setNtNewWorkEnabled] = useState(false); // toggle: NT wins additional $5K/mo work
+  const tableContainerRef = useRef(null);
 
   const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
 
@@ -193,6 +194,15 @@ export default function PlanDashboard() {
       }
     }).catch(() => {});
   }, [liveBalancesLoaded]);
+
+  // Auto-scroll table to selected age row when ticker/slider changes
+  useEffect(() => {
+    if (!tableContainerRef.current) return;
+    const row = tableContainerRef.current.querySelector(`tr[data-age="${targetAge1}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [targetAge1]);
 
   const toggleTooltip = (id) => {
     setActiveTooltip(activeTooltip === id ? null : id);
@@ -901,9 +911,9 @@ export default function PlanDashboard() {
       </div>
 
       {/* Data Table */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
+      <div ref={tableContainerRef} className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto max-h-[500px] overflow-y-auto">
         <table className="w-full text-xs">
-          <thead>
+          <thead className="sticky top-0 bg-gray-900 z-10">
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
               <TableHeader id="cCorp" label="C-Corp" color="text-blue-400" />
@@ -918,10 +928,14 @@ export default function PlanDashboard() {
           </thead>
           <tbody>
             {data.filter(d => d.age <= 50 || d.age % 5 === 0).map((row) => (
-              <tr 
-                key={row.age} 
-                className={`border-b border-gray-800/50 hover:bg-gray-800/50 
-                  ${row.age === targetAge1 ? 'bg-emerald-900/30 border-emerald-700' : ''}`}
+              <tr
+                key={row.age}
+                data-age={row.age}
+                onClick={() => setTargetAge1(row.age)}
+                className={`border-b border-gray-800/50 cursor-pointer transition-colors
+                  ${row.age === targetAge1
+                    ? 'bg-emerald-900/30 border-emerald-700 ring-1 ring-emerald-600/50'
+                    : 'hover:bg-gray-800/50'}`}
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
                 <td className="p-2 text-right text-blue-400">{formatCurrency(row.cCorp)}</td>

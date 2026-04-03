@@ -39,6 +39,8 @@ export default function PlanDashboard() {
     robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
     seattleEquityStart: 290000, // $1.25M value - $960K mortgage (total equity; 50% counted)
     ccDebtStart: 0,           // Chase CC paid off, Cap One split 50/50 in divorce → $0
+    ccInterestRate: 20,       // average CC APR on carried balance
+    ccPayoffPct: 85,          // pay off 85% of balance each month, carry 15%
     cashStart: 135,           // $6,835 - $6,700 (CC settlement from savings) ≈ $135
 
     // ═══════════════════════════════════════════════════════════════
@@ -472,8 +474,11 @@ export default function PlanDashboard() {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
-        // 15% personal free cash pull (covers expenses first, surplus → RH)
-        rhPullFreeCash = rhGrowth * 0.15;
+        // Age 32 only: one-time RH pull to cover deficit (~$16K)
+        // After 32: no RH free cash pull — use credit cards instead, keep money compounding
+        if (age === 32) {
+          rhPullFreeCash = rhGrowth * 0.15; // one-time pull to cover 32 deficit
+        }
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
         }
@@ -504,19 +509,38 @@ export default function PlanDashboard() {
         farmIncome = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, farmYears);
       }
 
-      // Total personal inflows (includes Robinhood pulls for expenses + free cash + farm income)
+      // Total personal inflows (includes Robinhood pulls for expenses + farm income)
       // Ventures handles its own P&L (10% net loss); no profit distributed to personal
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash + farmIncome;
 
-      // Free cash: whatever's left after expenses stays as personal cash
-      // Surplus goes back to Robinhood to keep compounding
+      // ═══════════════════════════════════════════════════════════
+      // CREDIT CARD STRATEGY: keep money in RH, use CC for shortfalls
+      // Pay off majority of balance each month; carry small balance at ~20% APR
+      // Cheaper than 15% LTCG tax on RH pulls since carried balance is small
+      // ═══════════════════════════════════════════════════════════
       const grossFreeCash = totalPersonalIn - totalPersonalOut;
-      const freeCashToRobinhood = Math.max(0, grossFreeCash - rhPullFreeCash); // keep rhPullFreeCash as personal cash, surplus → RH
+      let freeCashToRobinhood = 0;
       const freeCashToQoz = 0;
-      const freeCash = rhPullFreeCash + Math.min(0, grossFreeCash - rhPullFreeCash); // 10% pull kept, minus any deficit
+      let freeCash = 0;
 
-      // Track cumulative cash position
-      cash += freeCash;
+      // CC interest on carried balance from last year
+      const ccInterest = ccDebt * (assumptions.ccInterestRate / 100);
+      ccDebt += ccInterest; // interest accrues
+
+      if (grossFreeCash >= 0) {
+        // Surplus: pay down CC debt first, remainder → Robinhood
+        const ccPaydown = Math.min(ccDebt, grossFreeCash);
+        ccDebt -= ccPaydown;
+        freeCashToRobinhood = grossFreeCash - ccPaydown;
+        freeCash = 0; // no idle cash — everything deployed
+      } else {
+        // Deficit: goes on credit cards instead of pulling from RH
+        ccDebt += Math.abs(grossFreeCash);
+        freeCash = 0;
+      }
+
+      // Track cumulative cash position (stays near 0 — CC covers shortfalls)
+      cash = 0; // no idle cash by design
 
       // ═══════════════════════════════════════════════════════════
       // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
@@ -731,7 +755,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) - ccDebt;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;

@@ -54,11 +54,10 @@ export const DEFAULT_ASSUMPTIONS = {
   iraReturn: 30,            // Robinhood IRA — same fund strategy
   venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
   venturesCreditRate: 9,    // business line of credit rate for ventures operations
-  // V1 Staffing
-  v1StaffStartAge: 33,      // first hire 1 year after LOC
-  v1StaffInitial: 1,        // start with 1 employee
-  v1StaffGrowthInterval: 3, // add 1 employee every 3 years
-  v1EmployeeCost: 50000,    // $50K fully loaded per employee
+  // V1 Staffing (balance-driven: hire when entity can support it)
+  v1EmployeeCost: 50000,        // $50K fully loaded per US employee
+  v1StaffThreshold: 300000,     // 1 US employee per $300K positive balance
+  v1StaffMax: 10,               // cap US headcount
   qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
   qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
   qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
@@ -72,11 +71,10 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
   nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
   nonprofitOpsLossPct: 8,       // 8% annual ops cost (overhead beyond staff — funded via credit)
-  // Nonprofit Staffing
-  npStaffStartAge: 32,          // first program hire at 32
-  npStaffInitial: 1,            // start with 1 program staff
-  npStaffGrowthInterval: 4,     // add 1 every 4 years
-  npEmployeeCost: 50000,        // $50K fully loaded
+  // Nonprofit Staffing (balance-driven: hire when reserves support it)
+  npEmployeeCost: 50000,        // $50K fully loaded per US employee
+  npStaffThreshold: 300000,     // 1 US employee per $300K positive reserves
+  npStaffMax: 10,               // cap US headcount
   nonprofitLocRate: 7,          // nonprofit LOC rate (CDFIs offer favorable terms)
   nonprofitDonationGrowth: 10,  // annual donation/grant income growth after year 1
   nonprofitInitialDonations: 5000, // modest initial donations year 1
@@ -162,11 +160,10 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
-  // V2 Staffing (US-based operations staff)
-  v2StaffStartAge: 33,           // first hire 1 year after V2 starts
-  v2StaffInitial: 1,             // start with 1 employee
-  v2StaffGrowthInterval: 3,      // add 1 employee every 3 years
-  v2EmployeeCost: 50000,         // $50K fully loaded per employee
+  // V2 Staffing (balance-driven: hire when entity can support it)
+  v2EmployeeCost: 50000,         // $50K fully loaded per US employee
+  v2StaffThreshold: 300000,      // 1 US employee per $300K positive balance
+  v2StaffMax: 10,                // cap US headcount
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
@@ -176,6 +173,7 @@ export const DEFAULT_ASSUMPTIONS = {
   opsHubStartAge: 33,            // ops hub launches at 33
   opsHubInitialStaff: 2,         // 2 employees from day 1
   opsHubGrowthInterval: 1,       // add 1 employee every year
+  opsHubMaxStaff: 12,            // cap hub at 12 (plenty for entity portfolio)
   opsHubEmployeeCost: 7000,      // $7K/yr fully loaded per Nigerian employee
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
@@ -625,13 +623,12 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
     }
     // Ventures: staff costs + overhead funded via LOC, cash stays invested
     // Investment gains offset staff/ops costs; profits pay down LOC
-    // V1 Staffing: grows on schedule starting at v1StaffStartAge
-    if (age >= assumptions.v1StaffStartAge) {
-      const yearsHiring = age - assumptions.v1StaffStartAge;
-      v1Employees = assumptions.v1StaffInitial + Math.floor(yearsHiring / assumptions.v1StaffGrowthInterval);
-    } else {
-      v1Employees = 0;
-    }
+    // V1 Staffing: balance-driven — hire US staff only when entity can support them
+    // Ops hub handles admin, so US hires are revenue/ops roles only
+    v1Employees = Math.min(
+      assumptions.v1StaffMax,
+      Math.max(0, Math.floor(Math.max(0, ventures) / assumptions.v1StaffThreshold))
+    );
     const v1StaffCost = v1Employees * assumptions.v1EmployeeCost;
     // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)
     const v1OverheadRate = age >= assumptions.opsHubStartAge ? 0.01 : 0.03; // 3% → 1% with ops hub
@@ -682,13 +679,11 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       }
       v2SelfIncome = venture2OwnIncome;
 
-      // V2 Staffing: grows on schedule starting at v2StaffStartAge
-      if (age >= assumptions.v2StaffStartAge) {
-        const v2YearsHiring = age - assumptions.v2StaffStartAge;
-        v2Employees = assumptions.v2StaffInitial + Math.floor(v2YearsHiring / assumptions.v2StaffGrowthInterval);
-      } else {
-        v2Employees = 0;
-      }
+      // V2 Staffing: balance-driven — hire US staff only when entity can support them
+      v2Employees = Math.min(
+        assumptions.v2StaffMax,
+        Math.max(0, Math.floor(Math.max(0, venture2) / assumptions.v2StaffThreshold))
+      );
       const v2StaffCost = v2Employees * assumptions.v2EmployeeCost;
 
       // Nigeria Ops Hub (V2 subsidiary): centralized back-office for all entities
@@ -696,7 +691,10 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       // Costs split via inter-company billing (tax-free between related entities)
       if (age >= assumptions.opsHubStartAge) {
         const hubYears = age - assumptions.opsHubStartAge;
-        opsHubEmployees = assumptions.opsHubInitialStaff + Math.floor(hubYears / assumptions.opsHubGrowthInterval);
+        opsHubEmployees = Math.min(
+          assumptions.opsHubMaxStaff,
+          assumptions.opsHubInitialStaff + Math.floor(hubYears / assumptions.opsHubGrowthInterval)
+        );
       } else {
         opsHubEmployees = 0;
       }
@@ -742,13 +740,11 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       // Invested reserves earn 12% tax-free
       const npInvestGain = Math.max(0, nonprofit) * (assumptions.nonprofitInvestReturn / 100);
 
-      // Nonprofit Staffing: grows on schedule
-      if (age >= assumptions.npStaffStartAge) {
-        const npYearsHiring = age - assumptions.npStaffStartAge;
-        npEmployees = assumptions.npStaffInitial + Math.floor(npYearsHiring / assumptions.npStaffGrowthInterval);
-      } else {
-        npEmployees = 0;
-      }
+      // Nonprofit Staffing: balance-driven — hire US staff only when reserves support them
+      npEmployees = Math.min(
+        assumptions.npStaffMax,
+        Math.max(0, Math.floor(Math.max(0, nonprofit) / assumptions.npStaffThreshold))
+      );
       const npStaffCost = npEmployees * assumptions.npEmployeeCost;
 
       // Ops costs: staff + overhead funded via LOC (programs, admin)

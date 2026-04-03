@@ -54,10 +54,10 @@ export const DEFAULT_ASSUMPTIONS = {
   iraReturn: 30,            // Robinhood IRA — same fund strategy
   venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
   venturesCreditRate: 9,    // business line of credit rate for ventures operations
-  // V1 Staffing (balance-driven: hire when entity can support it)
-  v1EmployeeCost: 50000,        // $50K fully loaded per US employee
-  v1StaffThreshold: 300000,     // 1 US employee per $300K positive balance
-  v1StaffMax: 10,               // cap US headcount
+  // V1 Staffing: ops hub handles admin — minimal US presence
+  v1EmployeeCost: 50000,        // $50K fully loaded per US employee (if any)
+  v1StaffThreshold: 1000000,    // 1 US employee per $1M+ balance (rare, ops hub handles most)
+  v1StaffMax: 2,                // cap at 2 US staff — hub does the rest
   qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
   qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
   qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
@@ -71,10 +71,10 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
   nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
   nonprofitOpsLossPct: 8,       // 8% annual ops cost (overhead beyond staff — funded via credit)
-  // Nonprofit Staffing (balance-driven: hire when reserves support it)
-  npEmployeeCost: 50000,        // $50K fully loaded per US employee
-  npStaffThreshold: 300000,     // 1 US employee per $300K positive reserves
-  npStaffMax: 10,               // cap US headcount
+  // Nonprofit Staffing: ops hub handles admin — no US hires needed
+  npEmployeeCost: 50000,        // $50K fully loaded (placeholder)
+  npStaffThreshold: 5000000,    // effectively never — ops hub handles everything
+  npStaffMax: 1,                // at most 1 US program director at scale
   nonprofitLocRate: 7,          // nonprofit LOC rate (CDFIs offer favorable terms)
   nonprofitDonationGrowth: 10,  // annual donation/grant income growth after year 1
   nonprofitInitialDonations: 5000, // modest initial donations year 1
@@ -160,10 +160,10 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
-  // V2 Staffing (balance-driven: hire when entity can support it)
-  v2EmployeeCost: 50000,         // $50K fully loaded per US employee
-  v2StaffThreshold: 300000,      // 1 US employee per $300K positive balance
-  v2StaffMax: 10,                // cap US headcount
+  // V2 Staffing: ops hub handles admin — minimal US presence
+  v2EmployeeCost: 50000,         // $50K fully loaded per US employee (if any)
+  v2StaffThreshold: 1000000,     // 1 US employee per $1M+ balance (rare, ops hub handles most)
+  v2StaffMax: 2,                 // cap at 2 US staff — hub does the rest
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities

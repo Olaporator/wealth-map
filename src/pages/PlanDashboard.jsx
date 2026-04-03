@@ -477,18 +477,18 @@ export default function PlanDashboard() {
       const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
-      // Total personal inflows (includes Robinhood pull for expenses)
-      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
+      // Total personal inflows (includes Robinhood pulls for expenses + free cash)
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullFreeCash;
 
-      // Free cash → Robinhood (most tax-effective — keep cash compounding at 15-30%)
-      // 1% RH pull stays as personal free cash, rest goes back to RH
+      // Free cash: whatever's left after expenses stays as personal cash
+      // Surplus goes back to Robinhood to keep compounding
       const grossFreeCash = totalPersonalIn - totalPersonalOut;
-      const freeCashToRobinhood = Math.max(0, grossFreeCash);
+      const freeCashToRobinhood = Math.max(0, grossFreeCash - rhPullFreeCash); // keep rhPullFreeCash as personal cash, surplus → RH
       const freeCashToQoz = 0;
-      const freeCash = grossFreeCash - freeCashToRobinhood + rhPullFreeCash; // net free cash kept = 1% RH pull
+      const freeCash = rhPullFreeCash + Math.min(0, grossFreeCash - rhPullFreeCash); // 10% pull kept, minus any deficit
 
-      // Track cumulative cash position (free cash + 1% RH personal pull)
-      cash += freeCash + rhPullFreeCash;
+      // Track cumulative cash position
+      cash += freeCash;
 
       // ═══════════════════════════════════════════════════════════
       // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)

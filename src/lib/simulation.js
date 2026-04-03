@@ -112,7 +112,7 @@ export const DEFAULT_ASSUMPTIONS = {
   // OFFSHORE LAND — Belize/Costa Rica (cash purchase from RH)
   // ═══════════════════════════════════════════════════════════════
   offshorePurchaseAge: 33,
-  offshorePurchasePrice: 200000,  // $200K cash, 20 acres
+  offshorePurchasePrice: 300000,  // $300K cash, bigger parcel
   offshoreMaintenance: 20000,     // $20K/yr maintenance + improvements until 40
   offshoreMaintenanceReduced: 10000, // $10K/yr after 40
   offshoreMaintenanceDropAge: 40,
@@ -121,21 +121,21 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA LAND (cash purchase from RH)
   // ═══════════════════════════════════════════════════════════════
-  nigeriaPurchaseAge: 35,
-  nigeriaPurchasePrice: 200000,   // $200K cash
+  nigeriaPurchaseAge: 36,
+  nigeriaPurchasePrice: 300000,   // $300K cash
   nigeriaMaintenance: 20000,      // $20K/yr maintenance + improvements
   nigeriaAppreciation: 5,         // annual appreciation
 
   // ═══════════════════════════════════════════════════════════════
-  // CITY RENTAL PROPERTIES (age 40 — 2x $1M units, V2-owned, Airbnb/rental @ 90%)
+  // CITY RENTAL PROPERTIES (age 40 — 2-3 units totaling $3M, V2-owned, Airbnb/rental @ 90%)
   // ═══════════════════════════════════════════════════════════════
   rentalPurchaseAge: 40,
-  rentalPurchasePrice: 2000000,    // 2x $1M properties
-  rentalDownPayment: 500000,       // $500K from V2 balance (25% down)
+  rentalPurchasePrice: 3000000,    // 2-3 properties totaling $3M
+  rentalDownPayment: 750000,       // $750K from V2 balance (25% down)
   rentalMortgageRate: 7.0,
   rentalMortgageTerm: 30,
   rentalPropertyAppreciation: 4,   // annual property appreciation
-  rentalGrossRentYear1: 120000,    // ~$5K/mo per unit × 2 = $10K/mo ($120K/yr gross)
+  rentalGrossRentYear1: 180000,    // ~$5K/mo avg per unit × 3 = $15K/mo ($180K/yr gross)
   rentalOccupancy: 90,             // 90% occupancy (Airbnb + long-term mix)
   rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
   rentalRentGrowth: 3,             // annual rent growth

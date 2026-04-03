@@ -48,8 +48,8 @@ export default function NonprofitDashboard() {
       // LOC Paydown: 50% of investment gains
       const locPaydown = Math.min(locDebt, investGain * 0.5);
 
-      // Affordable headcount: floor(reserves * 0.15 / $50K)
-      const affordableHeadcount = Math.floor(reserves * 0.15 / 50000);
+      // Employees from simulation data
+      const employees = year.npEmployees || 0;
 
       return {
         age,
@@ -63,7 +63,7 @@ export default function NonprofitDashboard() {
         opsCost: Math.round(opsCost),
         locInterest: Math.round(locInterest),
         locPaydown: Math.round(locPaydown),
-        affordableHeadcount,
+        employees,
       };
     });
   }, [data, assumptions]);
@@ -98,8 +98,8 @@ export default function NonprofitDashboard() {
       icon: '🎁',
     },
     {
-      label: 'Employees Affordable',
-      value: currentYear?.affordableHeadcount || 0,
+      label: 'Employees',
+      value: currentYear?.employees || 0,
       icon: '👥',
     },
   ];
@@ -164,7 +164,7 @@ export default function NonprofitDashboard() {
               <th className="text-right px-4 py-3 text-gray-300">Ops Cost (8%)</th>
               <th className="text-right px-4 py-3 text-gray-300">LOC Interest (7%)</th>
               <th className="text-right px-4 py-3 text-gray-300">LOC Paydown</th>
-              <th className="text-right px-4 py-3 text-gray-300">Staff</th>
+              <th className="text-right px-4 py-3 text-gray-300">Employees</th>
             </tr>
           </thead>
           <tbody>
@@ -180,7 +180,7 @@ export default function NonprofitDashboard() {
                 <td className="text-right px-4 py-3 text-orange-400">({formatCurrency(row.opsCost)})</td>
                 <td className="text-right px-4 py-3 text-orange-400">({formatCurrency(row.locInterest)})</td>
                 <td className="text-right px-4 py-3 text-yellow-400">{formatCurrency(row.locPaydown)}</td>
-                <td className="text-right px-4 py-3 text-gray-300">{row.affordableHeadcount}</td>
+                <td className="text-right px-4 py-3 text-gray-300">{row.employees}</td>
               </tr>
             ))}
           </tbody>
@@ -221,19 +221,19 @@ export default function NonprofitDashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Affordable Headcount Section */}
+      {/* Employees Section */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">👥 Affordable Headcount</h2>
+        <h2 className="text-xl font-bold mb-4">👥 Employees</h2>
         <p className="text-gray-300 mb-4">
-          Affordable headcount = floor(reserves × 0.15 / $50K). Scales with reserve growth. Program staff, community organizers, admin.
+          Team size based on simulation staffing data. Includes program staff, community organizers, and administrative roles.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Current Headcount</p>
-            <p className="text-3xl font-bold text-emerald-400">{currentYear?.affordableHeadcount || 0}</p>
+            <p className="text-gray-400 text-sm mb-2">Current Staff</p>
+            <p className="text-3xl font-bold text-emerald-400">{currentYear?.employees || 0}</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Annual Cost per Employee</p>
+            <p className="text-gray-400 text-sm mb-2">Average Cost per Employee</p>
             <p className="text-3xl font-bold text-green-400">$50K</p>
           </div>
         </div>

@@ -54,6 +54,11 @@ export const DEFAULT_ASSUMPTIONS = {
   iraReturn: 30,            // Robinhood IRA — same fund strategy
   venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
   venturesCreditRate: 9,    // business line of credit rate for ventures operations
+  // V1 Staffing
+  v1StaffStartAge: 33,      // first hire 1 year after LOC
+  v1StaffInitial: 1,        // start with 1 employee
+  v1StaffGrowthInterval: 3, // add 1 employee every 3 years
+  v1EmployeeCost: 50000,    // $50K fully loaded per employee
   qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
   qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
   qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
@@ -66,7 +71,12 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitStartAge: 31,        // launch nonprofit at 31
   nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
   nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
-  nonprofitOpsLossPct: 8,       // 8% annual ops cost (staff, programs — funded via credit)
+  nonprofitOpsLossPct: 8,       // 8% annual ops cost (overhead beyond staff — funded via credit)
+  // Nonprofit Staffing
+  npStaffStartAge: 32,          // first program hire at 32
+  npStaffInitial: 1,            // start with 1 program staff
+  npStaffGrowthInterval: 4,     // add 1 every 4 years
+  npEmployeeCost: 50000,        // $50K fully loaded
   nonprofitLocRate: 7,          // nonprofit LOC rate (CDFIs offer favorable terms)
   nonprofitDonationGrowth: 10,  // annual donation/grant income growth after year 1
   nonprofitInitialDonations: 5000, // modest initial donations year 1
@@ -152,6 +162,11 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
+  // V2 Staffing
+  v2StaffStartAge: 33,           // first hire 1 year after V2 starts
+  v2StaffInitial: 1,             // start with 1 employee
+  v2StaffGrowthInterval: 3,      // add 1 employee every 3 years
+  v2EmployeeCost: 50000,         // $50K fully loaded per employee
 
   // ═══════════════════════════════════════════════════════════════
   // HARD ASSETS — Locked storage for appreciation (gold, silver, metals,
@@ -270,6 +285,9 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
   let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
   let venture3 = 0;           // Venture 3 reserves
   let venture3Employees = 0;  // Estimated employees affordable
+  let v1Employees = 0;        // Venture 1 headcount
+  let v2Employees = 0;        // Venture 2 headcount
+  let npEmployees = 0;        // Nonprofit headcount
   let nonprofit = 0;          // Nonprofit reserves (invested)
   let nonprofitLoc = 0;       // Nonprofit LOC balance
   let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
@@ -579,10 +597,18 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       venturesLoanDraw = assumptions.venturesLocAmount;
       venturesLocDebt += venturesLoanDraw; // track as liability
     }
-    // Ventures: LOC funds operations (staff/expenses via credit), cash stays invested
-    // Net ops lose ~10%/yr, but invested cash earns ~12% — net positive on balance
-    // Profits (investment gains) pay down LOC over time
-    const venturesOpsLoss = Math.max(0, ventures) * 0.10; // 10% annual ops net loss
+    // Ventures: staff costs + overhead funded via LOC, cash stays invested
+    // Investment gains offset staff/ops costs; profits pay down LOC
+    // V1 Staffing: grows on schedule starting at v1StaffStartAge
+    if (age >= assumptions.v1StaffStartAge) {
+      const yearsHiring = age - assumptions.v1StaffStartAge;
+      v1Employees = assumptions.v1StaffInitial + Math.floor(yearsHiring / assumptions.v1StaffGrowthInterval);
+    } else {
+      v1Employees = 0;
+    }
+    const v1StaffCost = v1Employees * assumptions.v1EmployeeCost;
+    const venturesOpsOverhead = Math.max(0, ventures) * 0.03; // 3% non-staff overhead (insurance, tools, etc)
+    const venturesOpsLoss = v1StaffCost + venturesOpsOverhead;
     const venturesInvestGain = Math.max(0, ventures) * (assumptions.venturesReturn / 100); // 12% on invested cash
     const venturesNetGain = venturesInvestGain - venturesOpsLoss;
     ventures = ventures + venturesLoanDraw + venturesNetGain;
@@ -627,12 +653,21 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       }
       v2SelfIncome = venture2OwnIncome;
 
+      // V2 Staffing: grows on schedule starting at v2StaffStartAge
+      if (age >= assumptions.v2StaffStartAge) {
+        const v2YearsHiring = age - assumptions.v2StaffStartAge;
+        v2Employees = assumptions.v2StaffInitial + Math.floor(v2YearsHiring / assumptions.v2StaffGrowthInterval);
+      } else {
+        v2Employees = 0;
+      }
+      const v2StaffCost = v2Employees * assumptions.v2EmployeeCost;
+
       // Venture 2 invested cash returns (12% on equity, same strategy as RH)
       const v2InvestGain = Math.max(0, venture2) * (assumptions.venture2InvestReturn / 100);
 
-      // Update venture 2: new LOC draw + own income + investment gains - debt service
+      // Update venture 2: new LOC draw + own income + investment gains - staff costs - debt service
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
-      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain;
+      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost;
       // Investment profits + self income pay down LOC
       if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
         const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown
@@ -661,8 +696,18 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       // Invested reserves earn 12% tax-free
       const npInvestGain = Math.max(0, nonprofit) * (assumptions.nonprofitInvestReturn / 100);
 
-      // Ops costs funded via LOC (staff, programs)
-      const npOpsCost = Math.max(0, nonprofit) * (assumptions.nonprofitOpsLossPct / 100);
+      // Nonprofit Staffing: grows on schedule
+      if (age >= assumptions.npStaffStartAge) {
+        const npYearsHiring = age - assumptions.npStaffStartAge;
+        npEmployees = assumptions.npStaffInitial + Math.floor(npYearsHiring / assumptions.npStaffGrowthInterval);
+      } else {
+        npEmployees = 0;
+      }
+      const npStaffCost = npEmployees * assumptions.npEmployeeCost;
+
+      // Ops costs: staff + overhead funded via LOC (programs, admin)
+      const npOverhead = Math.max(0, nonprofit) * (assumptions.nonprofitOpsLossPct / 100);
+      const npOpsCost = npStaffCost + npOverhead;
       nonprofitLoc += npOpsCost; // ops go on credit
       const npLocInterest = nonprofitLoc * (assumptions.nonprofitLocRate / 100);
       nonprofitLoc += npLocInterest;
@@ -885,6 +930,9 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       nonprofitLoc: Math.round(nonprofitLoc),
       nonprofitNet: Math.round(nonprofit - nonprofitLoc),
       venture3: Math.round(venture3),
+      v1Employees,
+      v2Employees,
+      npEmployees,
       venture3Employees,
       v3Seed: Math.round(v3Seed),
       v3V2Contrib: Math.round(v3V2Contrib),

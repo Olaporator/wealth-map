@@ -61,8 +61,8 @@ export default function Venture1Dashboard() {
         locPaydown = netGain * 0.5; // 50% of net gain pays down LOC
       }
 
-      // Affordable headcount: floor(venture balance * 0.15 / $50K)
-      const affordableHeadcount = Math.floor(ventureBalance * 0.15 / 50000);
+      // Employees from simulation data
+      const employees = year.v1Employees || 0;
 
       return {
         age,
@@ -74,7 +74,7 @@ export default function Venture1Dashboard() {
         opsLoss: Math.round(opsLoss),
         netGain: Math.round(netGain),
         locPaydown: Math.round(locPaydown),
-        affordableHeadcount,
+        employees,
       };
     });
   }, [data, assumptions]);
@@ -178,7 +178,7 @@ export default function Venture1Dashboard() {
                 <td className="text-right px-4 py-3 text-orange-400">({formatCurrency(row.opsLoss)})</td>
                 <td className="text-right px-4 py-3 text-lime-400">{formatCurrency(row.netGain)}</td>
                 <td className="text-right px-4 py-3 text-yellow-400">{formatCurrency(row.locPaydown)}</td>
-                <td className="text-right px-4 py-3 text-gray-300">{row.affordableHeadcount}</td>
+                <td className="text-right px-4 py-3 text-gray-300">{row.employees}</td>
               </tr>
             ))}
           </tbody>
@@ -219,19 +219,19 @@ export default function Venture1Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Affordable Headcount Section */}
+      {/* Employees Section */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">👥 Affordable Headcount</h2>
+        <h2 className="text-xl font-bold mb-4">👥 Employees</h2>
         <p className="text-gray-300 mb-4">
-          Affordable headcount = floor(venture balance × 0.15 / $50K). Scales with business growth.
+          Team size based on simulation staffing data. Scales with business growth and operational capacity.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Current Headcount</p>
-            <p className="text-3xl font-bold text-blue-400">{currentYear?.affordableHeadcount || 0}</p>
+            <p className="text-gray-400 text-sm mb-2">Current Staff</p>
+            <p className="text-3xl font-bold text-blue-400">{currentYear?.employees || 0}</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Annual Cost per Employee</p>
+            <p className="text-gray-400 text-sm mb-2">Average Cost per Employee</p>
             <p className="text-3xl font-bold text-green-400">$50K</p>
           </div>
         </div>

@@ -547,7 +547,7 @@ export default function PlanDashboard() {
         const totalLandValue = landEquity + landMortgage;
         const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
         const appreciationGain = appreciatedValue - totalLandValue;
-        landEquity += appreciationGain + landDevCost * assumptions.landDevValueMultiplier; // dev adds ~1.5x value
+        landEquity += appreciationGain + landDevCost * (assumptions.landDevValueMultiplier - 1); // dev adds 0.5x NET value (1.5x gross - 1x debt on mortgage)
 
         if (landMortgage > 0) {
           landMortgage -= landPrincipalPaid;
@@ -573,7 +573,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures + venture2;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures + (venture2 - venture2Loc);
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;

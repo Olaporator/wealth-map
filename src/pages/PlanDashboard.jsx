@@ -379,25 +379,30 @@ export default function PlanDashboard() {
       let rhPullPersonal = 0;
       let rhPullQoz = 0;
       let rhPullVenture2 = 0;
-      if (age >= assumptions.rhPullStartAge && robinhood > 0) {
+      let rhPullFreeCash = 0; // 1% of gains → personal free cash (from age 31)
+      if (robinhood > 0) {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
-        rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
-        rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        // 1% personal free cash pull from day 1
+        rhPullFreeCash = rhGrowth * 0.01;
+        if (age >= assumptions.rhPullStartAge) {
+          rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
+          rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        }
         if (age >= assumptions.venture2StartAge) {
           rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
         }
       }
 
       // LTCG tax on Robinhood pulls (15% rate)
-      const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2) * 0.15;
+      const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash) * 0.15;
 
       // ═══════════════════════════════════════════════════════════
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz + rhPullVenture2;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
       // Total personal inflows (includes Robinhood pull for expenses)
@@ -409,8 +414,8 @@ export default function PlanDashboard() {
       const freeCashToQoz = 0;
       const freeCash = grossFreeCash - freeCashToRobinhood; // effectively 0 when positive
 
-      // Track cumulative cash position
-      cash += freeCash;
+      // Track cumulative cash position (free cash + 1% RH personal pull)
+      cash += freeCash + rhPullFreeCash;
 
       // ═══════════════════════════════════════════════════════════
       // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
@@ -438,7 +443,7 @@ export default function PlanDashboard() {
       const marginInterest = marginBalance * (marginRate / 100);
       const totalInvested = robinhood + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
-      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 + k401LoanDeploy + freeCashToRobinhood;
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
 
       // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
       let landDevCost = 0;

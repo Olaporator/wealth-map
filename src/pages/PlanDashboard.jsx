@@ -114,8 +114,10 @@ export default function PlanDashboard() {
     venturesLocAmount: 250000,      // single ventures business LOC
     venturesLocAge: 32,             // taken at age 32
     debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
-    familyFundAge: 61,              // deploy 401k to family legacy fund at 61
-    familyFundPct: 80,              // 80% of 401k → children & family future
+    familyFundStartAge: 60,          // start deploying 401k to family legacy
+    familyFundPct: 80,              // target: 80% of 401k → children & family future
+    familyFundMaxAnnual: 200000,    // max annual draw capped at personal income level (~$200K)
+    familyFundTaxRate: 30,          // ~30% blended ordinary income tax on 401k withdrawals
 
     // ═══════════════════════════════════════════════════════════════
     // OFFSHORE LAND — Belize/Costa Rica (cash purchase from RH)
@@ -591,15 +593,19 @@ export default function PlanDashboard() {
       }
 
       // ═══════════════════════════════════════════════════════════
-      // FAMILY LEGACY: Deploy majority of 401k to children & family at 61
-      // Penalty-free after 59.5 — taxed as ordinary income on withdrawal
+      // FAMILY LEGACY: Deploy 401k to children & family starting at 60
+      // Penalty-free after 59.5 — annual draws capped at personal income level
+      // Spreads withdrawals across years to stay in reasonable tax brackets
       // ═══════════════════════════════════════════════════════════
       let familyFundDeploy = 0;
-      if (age === assumptions.familyFundAge && k401 > 0) {
-        const gross = k401 * (assumptions.familyFundPct / 100);
-        const tax = gross * 0.30; // ~30% ordinary income tax on 401k withdrawal
-        familyFundDeploy = gross - tax; // net amount to family
-        k401 -= gross;
+      if (age >= assumptions.familyFundStartAge && k401 > 0) {
+        // Keep 20% of 401k for personal use, deploy rest over time
+        const k401Reserve = k401 * (1 - assumptions.familyFundPct / 100);
+        const available = Math.max(0, k401 - k401Reserve);
+        const grossDraw = Math.min(available, assumptions.familyFundMaxAnnual);
+        const tax = grossDraw * (assumptions.familyFundTaxRate / 100);
+        familyFundDeploy = grossDraw - tax;
+        k401 -= grossDraw;
       }
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
@@ -860,8 +866,7 @@ export default function PlanDashboard() {
     { age: 35, label: 'Nigeria Land', icon: '🌍' },
     { age: 40, label: 'City Rentals', icon: '🏘️' },
     { age: 45, label: 'Coast', icon: '⛵' },
-    { age: 60, label: 'Retire', icon: '👑' },
-    { age: 61, label: 'Family Legacy', icon: '👨‍👧‍👦' },
+    { age: 60, label: 'Retire + Legacy', icon: '👑' },
   ];
 
   const chartButtons = [

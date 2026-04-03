@@ -174,8 +174,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // AI-assisted operations + minimal US CPA fee to officialize
   // ═══════════════════════════════════════════════════════════════
   opsHubStartAge: 33,            // ops hub launches at 33
-  opsHubInitialStaff: 5,         // 5 employees from day 1 (HR, Accounting, Tax, Logistics, DevOps)
-  opsHubGrowthInterval: 2,       // add 1 employee every 2 years
+  opsHubInitialStaff: 2,         // 2 employees from day 1
+  opsHubGrowthInterval: 1,       // add 1 employee every year
   opsHubEmployeeCost: 7000,      // $7K/yr fully loaded per Nigerian employee
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit

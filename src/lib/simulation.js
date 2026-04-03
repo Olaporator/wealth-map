@@ -145,7 +145,7 @@ export const DEFAULT_ASSUMPTIONS = {
   // Pulls 5% of RH gains, generates matching own income, secures
   // revolving LOC where RH pull covers debt service (P&I)
   // ═══════════════════════════════════════════════════════════════
-  venture2StartAge: 31,           // venture 2 starts at 31
+  venture2StartAge: 32,           // venture 2 starts at 32
   venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
   venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
   venture2LocRate: 9,             // business LOC rate

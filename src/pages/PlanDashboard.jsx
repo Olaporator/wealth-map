@@ -427,15 +427,15 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
 
       // Seattle: appreciates + principal paydown, OR sell at target age
+      let seattleProceeds = 0;
       if (age === assumptions.seattleSaleAge && seattleEquity > 0) {
-        // Sell: home value = equity + remaining mortgage, apply appreciation first
+        // Sell: home value = equity + remaining mortgage
         seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
         const remainingMortgage = assumptions.seattleMortgageBalance - (age - assumptions.currentAge) * assumptions.seattlePrincipal;
         const homeValue = seattleEquity + Math.max(0, remainingMortgage);
         const sellerFees = homeValue * (assumptions.seattleSellerFeePct / 100);
         const netProceeds = homeValue - Math.max(0, remainingMortgage) - sellerFees;
-        const ayoolaProceeds = netProceeds / 2; // 50% split
-        robinhood += ayoolaProceeds; // proceeds → Robinhood
+        seattleProceeds = netProceeds / 2; // 50% split — used for land down payment first
         seattleEquity = 0; // property sold
       } else if (seattleEquity > 0) {
         seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
@@ -454,14 +454,14 @@ export default function PlanDashboard() {
         }
       }
 
-      // Land purchase: 401k loan (50% of balance, no penalty, no tax) + rest from Robinhood
+      // Land purchase: Seattle sale proceeds cover down payment, remainder → Robinhood
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchasePrice;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        const k401Loan = Math.min(k401 * 0.5, 50000, downPayment); // 401k loan: 50% up to $50K
-        const fromRobinhood = downPayment - k401Loan;
-        k401 -= k401Loan; // loan — repaid over time (modeled as reduction for simplicity)
+        const fromSeattle = Math.min(seattleProceeds, downPayment);
+        const fromRobinhood = Math.max(0, downPayment - fromSeattle);
         robinhood -= fromRobinhood;
+        robinhood += Math.max(0, seattleProceeds - fromSeattle); // leftover proceeds → Robinhood
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;

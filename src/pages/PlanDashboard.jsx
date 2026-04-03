@@ -444,11 +444,16 @@ export default function PlanDashboard() {
         }
       }
 
-      // Land purchase: down payment from Robinhood (avoids 401k early withdrawal penalty)
+      // Land purchase: 401k loan (50% of balance, no penalty) + IRA first-time homebuyer ($10K, no penalty) + Robinhood
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchasePrice;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        robinhood -= downPayment;
+        const k401Loan = Math.min(k401 * 0.5, 50000, downPayment); // 401k loan: 50% up to $50K, no penalty
+        const iraWithdraw = Math.min(10000, ira, downPayment - k401Loan); // first-time homebuyer: $10K penalty-free
+        const fromRobinhood = downPayment - k401Loan - iraWithdraw;
+        k401 -= k401Loan; // loan — will repay (modeled as reduction for simplicity)
+        ira -= iraWithdraw;
+        robinhood -= fromRobinhood;
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;

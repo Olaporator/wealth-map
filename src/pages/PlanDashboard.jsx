@@ -82,7 +82,7 @@ export default function PlanDashboard() {
     marginRateLow: 5,         // margin interest rate below $500K
     marginRateHigh: 4.5,      // margin interest rate at $500K+
     iraReturn: 30,            // Robinhood IRA — same fund strategy
-    venturesReturn: 1,        // ventures fund — conservative
+    venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
     venturesCreditRate: 9,    // business line of credit rate for ventures operations
     qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
     qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
@@ -169,6 +169,7 @@ export default function PlanDashboard() {
     venture2LocRate: 9,             // business LOC rate
     venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
     venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
+    venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
 
     // ═══════════════════════════════════════════════════════════════
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
@@ -579,14 +580,24 @@ export default function PlanDashboard() {
         landMortgage += landDevCost; // construction loan — added to land debt
       }
 
-      // Ventures LOC: $250K single draw at age 32
+      // Ventures LOC: $200K single draw at age 32
       let venturesLoanDraw = 0;
       if (age === assumptions.venturesLocAge) {
         venturesLoanDraw = assumptions.venturesLocAmount;
         venturesLocDebt += venturesLoanDraw; // track as liability
       }
-      // Ventures loses ~10% per year net (revenue vs expenses gap)
-      ventures = ventures + venturesLoanDraw - Math.abs(ventures) * 0.10;
+      // Ventures: LOC funds operations (staff/expenses via credit), cash stays invested
+      // Net ops lose ~10%/yr, but invested cash earns ~12% — net positive on balance
+      // Profits (investment gains) pay down LOC over time
+      const venturesOpsLoss = Math.max(0, ventures) * 0.10; // 10% annual ops net loss
+      const venturesInvestGain = Math.max(0, ventures) * (assumptions.venturesReturn / 100); // 12% on invested cash
+      const venturesNetGain = venturesInvestGain - venturesOpsLoss;
+      ventures = ventures + venturesLoanDraw + venturesNetGain;
+      // Investment profits pay down LOC when net positive
+      if (venturesNetGain > 0 && venturesLocDebt > 0) {
+        const locPaydown = Math.min(venturesLocDebt, venturesNetGain * 0.5); // 50% of net profit → LOC paydown
+        venturesLocDebt -= locPaydown;
+      }
 
       // ═══════════════════════════════════════════════════════════
       // VENTURE 2: RH-funded operating business with revolving LOC
@@ -623,9 +634,17 @@ export default function PlanDashboard() {
         }
         v2SelfIncome = venture2OwnIncome;
 
-        // Update venture 2: new LOC draw + own income - debt service (RH covers P&I)
+        // Venture 2 invested cash returns (12% on equity, same strategy as RH)
+        const v2InvestGain = Math.max(0, venture2) * (assumptions.venture2InvestReturn / 100);
+
+        // Update venture 2: new LOC draw + own income + investment gains - debt service
         venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
-        venture2 = venture2 + v2LocDraw + v2SelfIncome;
+        venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain;
+        // Investment profits + self income pay down LOC
+        if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
+          const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown
+          venture2Loc -= v2LocPaydown;
+        }
       }
 
       // Debt payoff at 52 (20yr from 32) — construction loan paid from RH (LTCG)

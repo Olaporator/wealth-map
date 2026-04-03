@@ -401,7 +401,7 @@ export default function PlanDashboard() {
       }
 
       // Business income taxes (on rental share + business income)
-      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + venturesProfit;
+      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare);
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
       // Interest-only payments on credit lines — paid from personal cash
@@ -444,7 +444,7 @@ export default function PlanDashboard() {
       // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
       // Construction loan interest + ventures LOC interest paid separately from personal
       // Rental net income offsets expenses (negative = costs money, positive = income)
-      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest + offshoreMaint + nigeriaMaint - rentalNetIncome;
+      const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint - rentalNetIncome;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -474,13 +474,12 @@ export default function PlanDashboard() {
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + venturesProfit + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
       // Total personal inflows (includes Robinhood pulls for expenses + free cash)
-      // Business income flows to ventures entity (not personal) — ventures distributes profit if positive
-      const venturesProfit = Math.max(0, businessIncome - staffExpenses); // only distribute if business is profitable
-      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + venturesProfit + rhPullPersonal + rhPullFreeCash;
+      // Ventures handles its own P&L (10% net loss); no profit distributed to personal
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash;
 
       // Free cash: whatever's left after expenses stays as personal cash
       // Surplus goes back to Robinhood to keep compounding
@@ -535,8 +534,8 @@ export default function PlanDashboard() {
         venturesLoanDraw = assumptions.venturesLocAmount;
         venturesLocDebt += venturesLoanDraw; // track as liability
       }
-      // Business income offsets staff expenses; ventures net = LOC + business income - staff
-      ventures = ventures + venturesLoanDraw + businessIncome - staffExpenses;
+      // Ventures loses ~10% per year net (revenue vs expenses gap)
+      ventures = ventures + venturesLoanDraw - Math.abs(ventures) * 0.10;
 
       // ═══════════════════════════════════════════════════════════
       // VENTURE 2: RH-funded operating business with revolving LOC

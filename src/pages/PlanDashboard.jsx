@@ -387,17 +387,20 @@ export default function PlanDashboard() {
       }
       // After sale: no rental income/costs (ayoolaRentalShare stays 0)
 
-      // Land mortgage payment (amortized P&I) — included in living expenses
+      // Land mortgage payment (amortized P&I) — only on original purchase loan
+      // Construction debt is SEPARATE: interest-only, paid off at 20yr maturity from RH
       let landMortgagePayment = 0;
       let landPrincipalPaid = 0;
       if (landMortgage > 0) {
         const r = (assumptions.landMortgageRate / 100) / 12;
         const n = assumptions.landMortgageTerm * 12;
-        const loanStart = assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100);
-        const monthlyPayment = loanStart * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-        landMortgagePayment = monthlyPayment * 12; // annual P&I
-        const landInterest = landMortgage * (assumptions.landMortgageRate / 100);
-        landPrincipalPaid = Math.min(landMortgage, landMortgagePayment - landInterest);
+        const origLoan = assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100);
+        const monthlyPayment = origLoan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        landMortgagePayment = monthlyPayment * 12; // annual P&I on original purchase only
+        // Interest only on the original purchase portion (not construction debt)
+        const origBalance = Math.min(landMortgage, origLoan); // can't exceed original loan
+        const landInterest = origBalance * (assumptions.landMortgageRate / 100);
+        landPrincipalPaid = Math.max(0, Math.min(origBalance, landMortgagePayment - landInterest));
       }
 
       // Business income taxes (on rental share + business income)
@@ -407,8 +410,10 @@ export default function PlanDashboard() {
       // Interest-only payments on credit lines — paid from personal cash
       const venturesDebtBal = Math.abs(Math.min(0, ventures));
       const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
-      // Construction loan interest on draws above original mortgage (interest-only til payoff from RH)
-      const constructionDebt = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
+      // Construction loan interest — $500K interest-only til payoff from RH at 20yr
+      // Only applies after construction loan age and before payoff
+      const hasConstructionDebt = age >= assumptions.constructionLoanAge && age < assumptions.constructionLoanAge + 20;
+      const constructionDebt = hasConstructionDebt ? assumptions.constructionLoanAmount : 0;
       const constructionInterest = constructionDebt * (assumptions.constructionLoanRate / 100);
 
       // Offshore + Nigeria maintenance costs (paid from personal cash)
@@ -577,14 +582,14 @@ export default function PlanDashboard() {
         venture2 = venture2 + v2LocDraw + v2SelfIncome;
       }
 
-      // Debt payoff at 52 (20yr from 32) — construction + ventures LOC paid from RH (LTCG)
+      // Debt payoff at 52 (20yr from 32) — construction loan paid from RH (LTCG)
+      // Construction is interest-only, so payoff = original draw amount ($500K)
       if (age === assumptions.constructionLoanAge + 20) {
-        const constructionDebtAtPayoff = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
-        if (constructionDebtAtPayoff > 0) {
-          const payoff = constructionDebtAtPayoff;
-          robinhood -= payoff * 1.08; // principal + ~8% LTCG tax on portion
-          landMortgage -= payoff;
-          landEquity += payoff;
+        const constructionPayoff = assumptions.constructionLoanAmount; // $500K — interest-only, no amortization
+        if (constructionPayoff > 0 && landMortgage >= constructionPayoff) {
+          robinhood -= constructionPayoff * 1.08; // principal + ~8% LTCG tax
+          landMortgage -= constructionPayoff;
+          landEquity += constructionPayoff;
         }
       }
       if (age === assumptions.venturesLocAge + 20) {

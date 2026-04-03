@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import PlanDashboard from './pages/PlanDashboard';
 import AccountsDashboard from './pages/AccountsDashboard';
+import HomesteadDashboard from './pages/HomesteadDashboard';
+import Venture1Dashboard from './pages/Venture1Dashboard';
+import Venture2Dashboard from './pages/Venture2Dashboard';
+import NonprofitDashboard from './pages/NonprofitDashboard';
+import Venture3Dashboard from './pages/Venture3Dashboard';
+import NigeriaDashboard from './pages/NigeriaDashboard';
+import OffshoreDashboard from './pages/OffshoreDashboard';
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -104,6 +111,13 @@ export default function App() {
           <Route path="/" element={<Navigate to="/accounts" replace />} />
           <Route path="/accounts" element={<AccountsDashboard />} />
           <Route path="/plan" element={<PlanDashboard />} />
+          <Route path="/homestead" element={<HomesteadDashboard />} />
+          <Route path="/venture1" element={<Venture1Dashboard />} />
+          <Route path="/venture2" element={<Venture2Dashboard />} />
+          <Route path="/nonprofit" element={<NonprofitDashboard />} />
+          <Route path="/venture3" element={<Venture3Dashboard />} />
+          <Route path="/nigeria" element={<NigeriaDashboard />} />
+          <Route path="/offshore" element={<OffshoreDashboard />} />
         </Routes>
       </div>
     </BrowserRouter>

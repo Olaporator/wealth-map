@@ -85,7 +85,7 @@ export const DEFAULT_ASSUMPTIONS = {
   // Ventures staff + self/family/volunteer labor keep farm costs near zero
   // Farm income from selling produce/livestock starting at 35
   // ═══════════════════════════════════════════════════════════════
-  landPurchasePrice: 500000, // total land purchase price
+  landPurchasePrice: 750000, // total land purchase price (bigger foundation)
   landDownPaymentPct: 20,
   landMortgageRate: 7.5,
   landMortgageTerm: 30,
@@ -93,7 +93,7 @@ export const DEFAULT_ASSUMPTIONS = {
   landPurchase1Acres: 15,   // at least 15 acres
   landHousingCost: 12000,   // ~$1K/mo basic living costs on land
   landDevStartAge: 31,      // start developing home/infrastructure on land
-  constructionLoanAmount: 400000, // single construction loan for home/infrastructure
+  constructionLoanAmount: 500000, // single construction loan for home/infrastructure (bigger build)
   constructionLoanAge: 32,        // taken at age 32
   constructionLoanRate: 8.5,      // construction loan rate
   landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value

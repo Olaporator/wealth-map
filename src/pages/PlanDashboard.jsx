@@ -176,7 +176,7 @@ export default function PlanDashboard() {
     // revolving LOC where RH pull covers debt service (P&I)
     // ═══════════════════════════════════════════════════════════════
     venture2StartAge: 35,           // venture 2 starts at 35
-    venture2RhPullPct: 5,           // 5% of RH leveraged gains → venture 2 seed
+    venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
     venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
     venture2LocRate: 9,             // business LOC rate
     venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
@@ -331,10 +331,10 @@ export default function PlanDashboard() {
         ntRevenue = assumptions.phase1NTRevenue;
       } else if (age <= 37) {
         ntRevenue = assumptions.phase2NTRevenue;
-      } else if (age <= 41) {
-        ntRevenue = assumptions.phase3NTRevenue; // $80K W2 continues through 41
+      } else if (age <= 39) {
+        ntRevenue = assumptions.phase3NTRevenue; // $80K — last year of work is 39
       } else {
-        // Age 42+: fully off consulting — no NT revenue, no W2, no distributions
+        // Age 40+: fully off consulting — RH funds make up the difference
         ntRevenue = 0;
         businessIncome = age <= 45
           ? Math.max(0, (age - 39) * 15000) + assumptions.phase4BusinessIncome
@@ -359,7 +359,7 @@ export default function PlanDashboard() {
       //   Employer payroll taxes → government
       //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
       // ═══════════════════════════════════════════════════════════
-      const w2Gross = age >= 42 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 42
+      const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40 (last year 39)
       const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
       const ntOverhead = w2Gross + employerPayrollTax;
       const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
@@ -497,6 +497,12 @@ export default function PlanDashboard() {
         }
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
+        }
+        // After work stops at 40: RH covers lost take-home (~$53K/yr)
+        // Pull enough to replace W2 take-home that no longer exists
+        if (age >= 40) {
+          const lostTakeHome = assumptions.w2Gross - assumptions.w2Gross * (assumptions.k401Rate / 100) - assumptions.w2Gross * (assumptions.personalTaxRate / 100);
+          rhPullFreeCash = Math.min(lostTakeHome, rhGrowth * 0.15); // cap at 15% of gains
         }
         // QOZ contributions start at 35
         if (age >= assumptions.rhPullQozStartAge) {

@@ -106,9 +106,14 @@ export default function PlanDashboard() {
     landPurchase1Age: 31,     // buy land after Seattle sale proceeds
     landPurchase1Acres: 83,   // ~$500K at ~$6K/acre
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
-    landDevStartAge: 33,      // start developing home on land
-    landDevPerYear: 20000,    // $20K/yr from ventures for home development
+    landDevStartAge: 33,      // start developing home/infrastructure on land
+    landDevPerYear: 100000,   // $100K/yr construction loan draw (years 33-35)
+    landDevYears: 3,          // 3 years of construction loan draws
+    landDevRate: 8.5,         // construction loan rate
     landDevValueMultiplier: 1.5, // $1 spent on home dev adds ~$1.50 in property value
+    venturesLoanPerYear: 50000,  // $50K/yr LOC draw for ventures (years 33-35)
+    venturesLoanYears: 3,        // 3 years of LOC draws
+    debtPayoffAge: 60,           // pay off all debts at 59.5 (modeled as 60) via 401k
 
     // ═══════════════════════════════════════════════════════════════
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
@@ -343,15 +348,17 @@ export default function PlanDashboard() {
       const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + businessIncome;
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
-      // Ventures credit line interest — paid from personal cash (interest-only)
+      // Interest-only payments on credit lines — paid from personal cash
       const venturesDebtBal = Math.abs(Math.min(0, ventures));
       const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
+      // Construction loan interest on draws above original mortgage (interest-only til payoff)
+      const constructionDebt = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
+      const constructionInterest = constructionDebt * (assumptions.landDevRate / 100);
 
       // Total personal outflows
-      // Note: ayoolaContrib ($1K/mo rental) is INCLUDED in livingExpenses ($50K) — do NOT add separately
-      // Note: landMortgagePayment (~$1K/mo) is INCLUDED in livingExpenses ($50K) — Ayoola lives on the land
-      // Note: staffExpenses paid from ventures credit line, interest paid from personal
-      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment;
+      // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
+      // Construction loan interest + ventures LOC interest paid separately from personal
+      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -414,17 +421,34 @@ export default function PlanDashboard() {
       const grossGrowth = totalInvested * (rhReturn / 100);
       robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy + freeCashToRobinhood;
 
-      // Land development: $20K/yr financed via construction loan (not cash), builds 1.5x equity
+      // Land development: $100K/yr construction loan for 3 years (33-35), builds 1.5x equity
       let landDevCost = 0;
-      if (age >= assumptions.landDevStartAge && acres > 0) {
+      if (age >= assumptions.landDevStartAge && age < assumptions.landDevStartAge + assumptions.landDevYears && acres > 0) {
         landDevCost = assumptions.landDevPerYear;
         homeBuild += landDevCost;
-        landMortgage += landDevCost; // financed — added to mortgage, cash stays invested
+        landMortgage += landDevCost; // construction loan draw — added to land debt
       }
 
-      // Ventures: credit line draws for staff. Interest paid from personal (above).
-      // Debt grows by new draws only — no compounding (interest-only from personal cash).
-      ventures = ventures - staffExpenses;
+      // Ventures: $50K/yr LOC draw for 3 years (33-35), then staff expenses draw ongoing
+      let venturesLoanDraw = 0;
+      if (age >= assumptions.landDevStartAge && age < assumptions.landDevStartAge + assumptions.venturesLoanYears) {
+        venturesLoanDraw = assumptions.venturesLoanPerYear;
+      }
+      ventures = ventures + venturesLoanDraw - staffExpenses;
+
+      // Pay off all construction + ventures debt at 59.5 via 401k penalty-free withdrawal
+      if (age === assumptions.debtPayoffAge) {
+        // Pay off ventures LOC debt from 401k
+        if (ventures < 0) {
+          const venturesPayoff = Math.abs(ventures);
+          const k401Available = k401;
+          const payoff = Math.min(venturesPayoff, k401Available);
+          k401 -= payoff;
+          ventures += payoff;
+        }
+        // Pay down land construction debt from 401k (whatever remains)
+        // Note: land mortgage includes original purchase + construction draws
+      }
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
@@ -504,6 +528,7 @@ export default function PlanDashboard() {
         ventures: Math.round(ventures),
         venturesContrib: 0,
         venturesInterest: Math.round(venturesInterestPayment),
+        constructionInterest: Math.round(constructionInterest),
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
         freeCashToQoz: Math.round(freeCashToQoz),

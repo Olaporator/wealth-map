@@ -120,7 +120,7 @@ export default function PlanDashboard() {
     // Pulls 10% of RH gains, generates matching own income, secures
     // revolving LOC where RH pull covers debt service (P&I)
     // ═══════════════════════════════════════════════════════════════
-    venture2StartAge: 35,           // venture 2 starts at 35
+    venture2StartAge: 33,           // venture 2 starts at 33
     venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
     venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
     venture2LocRate: 9,             // business LOC rate
@@ -388,8 +388,9 @@ export default function PlanDashboard() {
         rhPullFreeCash = rhGrowth * 0.05;
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
-          rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
         }
+        // QOZ contributions start at 31 (independent of other RH pulls)
+        rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
         if (age >= assumptions.venture2StartAge) {
           rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
         }

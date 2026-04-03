@@ -96,8 +96,9 @@ export default function PlanDashboard() {
     landAppreciation: 4,      // rural land appreciation
 
     // ═══════════════════════════════════════════════════════════════
-    // LAND (first 20-acre purchase — Ayoola will live on this land)
-    // Equipment, infrastructure, offshore, expansion DEFERRED
+    // LAND (15+ acre homestead — Ayoola lives here, farms it)
+    // Ventures staff + self/family/volunteer labor keep farm costs near zero
+    // Farm income from selling produce/livestock starting at 35
     // ═══════════════════════════════════════════════════════════════
     landPurchasePrice: 500000, // total land purchase price
     landDownPaymentPct: 20,
@@ -111,6 +112,9 @@ export default function PlanDashboard() {
     constructionLoanAge: 32,        // taken at age 32
     constructionLoanRate: 8.5,      // construction loan rate
     landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value
+    farmIncomeStartAge: 35,         // farm produces sellable income by 35
+    farmIncomeAnnual: 50000,        // $50K/yr from produce/livestock sales
+    farmIncomeGrowth: 3,            // 3% annual growth in farm income
     venturesLocAmount: 250000,      // single ventures business LOC
     venturesLocAge: 32,             // taken at age 32
     debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
@@ -403,8 +407,15 @@ export default function PlanDashboard() {
         landPrincipalPaid = Math.max(0, Math.min(origBalance, landMortgagePayment - landInterest));
       }
 
-      // Business income taxes (on rental share + business income)
-      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare);
+      // Farm income (calculated early for tax purposes)
+      let farmIncomeForTax = 0;
+      if (age >= assumptions.farmIncomeStartAge && acres > 0) {
+        const farmYears = age - assumptions.farmIncomeStartAge;
+        farmIncomeForTax = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, farmYears);
+      }
+
+      // Business income taxes (on rental share + farm income)
+      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + farmIncomeForTax;
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
       // Interest-only payments on credit lines — paid from personal cash
@@ -479,12 +490,20 @@ export default function PlanDashboard() {
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash + farmIncomeForTax;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
-      // Total personal inflows (includes Robinhood pulls for expenses + free cash)
+      // Farm income: land produces $50K/yr starting at 35 (ventures staff + self/family/volunteer labor)
+      // No additional expense — labor covered by existing ventures overhead + sweat equity
+      let farmIncome = 0;
+      if (age >= assumptions.farmIncomeStartAge && acres > 0) {
+        const farmYears = age - assumptions.farmIncomeStartAge;
+        farmIncome = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, farmYears);
+      }
+
+      // Total personal inflows (includes Robinhood pulls for expenses + free cash + farm income)
       // Ventures handles its own P&L (10% net loss); no profit distributed to personal
-      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash;
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash + farmIncome;
 
       // Free cash: whatever's left after expenses stays as personal cash
       // Surplus goes back to Robinhood to keep compounding

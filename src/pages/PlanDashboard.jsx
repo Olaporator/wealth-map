@@ -252,10 +252,10 @@ export default function PlanDashboard() {
         ntRevenue = assumptions.phase1NTRevenue;
       } else if (age <= 37) {
         ntRevenue = assumptions.phase2NTRevenue;
-      } else if (age <= 39) {
-        ntRevenue = assumptions.phase3NTRevenue;
+      } else if (age <= 41) {
+        ntRevenue = assumptions.phase3NTRevenue; // $80K W2 continues through 41
       } else {
-        // Age 40+: fully off consulting — no NT revenue, no W2, no distributions
+        // Age 42+: fully off consulting — no NT revenue, no W2, no distributions
         ntRevenue = 0;
         businessIncome = age <= 45
           ? Math.max(0, (age - 39) * 15000) + assumptions.phase4BusinessIncome
@@ -280,7 +280,7 @@ export default function PlanDashboard() {
       //   Employer payroll taxes → government
       //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
       // ═══════════════════════════════════════════════════════════
-      const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40
+      const w2Gross = age >= 42 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 42
       const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
       const ntOverhead = w2Gross + employerPayrollTax;
       const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;

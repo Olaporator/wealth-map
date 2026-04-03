@@ -39,6 +39,9 @@ export default function Venture2Dashboard() {
       const employees = year.v2Employees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
       const opsHubCost = year.opsHubCost || 0;
+      const opsHubBillV1 = year.opsHubBillV1 || 0;
+      const opsHubBillV2 = year.opsHubBillV2 || 0;
+      const opsHubBillNp = year.opsHubBillNp || 0;
 
       return {
         age,
@@ -54,6 +57,9 @@ export default function Venture2Dashboard() {
         employees,
         opsHubEmployees,
         opsHubCost,
+        opsHubBillV1,
+        opsHubBillV2,
+        opsHubBillNp,
       };
     });
   }, [data, assumptions]);
@@ -315,13 +321,13 @@ export default function Venture2Dashboard() {
         </p>
 
         {/* Ops Hub Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Current Staff</p>
             <p className="text-2xl font-bold text-green-400">{currentYear?.opsHubEmployees || 0}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
-            <p className="text-gray-400 text-xs mb-1">Annual Cost</p>
+            <p className="text-gray-400 text-xs mb-1">Total Hub Cost</p>
             <p className="text-2xl font-bold text-yellow-400">{formatCurrency(currentYear?.opsHubCost || 0)}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
@@ -332,6 +338,26 @@ export default function Venture2Dashboard() {
             <p className="text-gray-400 text-xs mb-1">Starts</p>
             <p className="text-2xl font-bold">Age {assumptions.opsHubStartAge}</p>
           </div>
+        </div>
+
+        {/* Inter-Company Billing Breakdown */}
+        <div className="bg-gray-800/50 border border-blue-900/30 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-400 text-sm mb-3">Inter-Company Billing (Tax-Free)</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">V1 ({assumptions.opsHubBillV1Pct}%)</p>
+              <p className="text-lg font-bold text-orange-400">{formatCurrency(currentYear?.opsHubBillV1 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">V2 ({assumptions.opsHubBillV2Pct}%)</p>
+              <p className="text-lg font-bold text-pink-400">{formatCurrency(currentYear?.opsHubBillV2 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">Nonprofit ({assumptions.opsHubBillNpPct}%)</p>
+              <p className="text-lg font-bold text-purple-400">{formatCurrency(currentYear?.opsHubBillNp || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+          </div>
+          <p className="text-gray-500 text-[10px] mt-2 text-center">Transfers between related entities — no tax implications</p>
         </div>
 
         {/* Departments */}
@@ -373,9 +399,11 @@ export default function Venture2Dashboard() {
                 <tr className="border-b border-gray-700">
                   <th className="text-left px-3 py-2 text-gray-400">Age</th>
                   <th className="text-right px-3 py-2 text-gray-400">Hub Staff</th>
-                  <th className="text-right px-3 py-2 text-gray-400">Hub Cost</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Total Cost</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ V1</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ V2</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ NP</th>
                   <th className="text-right px-3 py-2 text-gray-400">V2 US Staff</th>
-                  <th className="text-right px-3 py-2 text-gray-400">Total Headcount</th>
                 </tr>
               </thead>
               <tbody>
@@ -384,8 +412,10 @@ export default function Venture2Dashboard() {
                     <td className="text-left px-3 py-2 font-semibold">{row.age}</td>
                     <td className="text-right px-3 py-2 text-green-400">{row.opsHubEmployees}</td>
                     <td className="text-right px-3 py-2 text-yellow-400">{formatCurrency(row.opsHubCost)}</td>
-                    <td className="text-right px-3 py-2 text-pink-400">{row.employees}</td>
-                    <td className="text-right px-3 py-2 text-white font-semibold">{row.opsHubEmployees + row.employees}</td>
+                    <td className="text-right px-3 py-2 text-orange-400">{formatCurrency(row.opsHubBillV1)}</td>
+                    <td className="text-right px-3 py-2 text-pink-400">{formatCurrency(row.opsHubBillV2)}</td>
+                    <td className="text-right px-3 py-2 text-purple-400">{formatCurrency(row.opsHubBillNp)}</td>
+                    <td className="text-right px-3 py-2 text-white">{row.employees}</td>
                   </tr>
                 ))}
               </tbody>
@@ -394,7 +424,7 @@ export default function Venture2Dashboard() {
         )}
 
         <p className="text-gray-500 text-xs mt-4 italic">
-          Ops hub reduces V1 overhead from 3% to 1% and nonprofit program overhead by 50% — centralizing admin, accounting, HR, and tax prep across all entities. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
+          Ops hub bills each entity for services via inter-company invoicing (tax-free between related entities). V1 pays {assumptions.opsHubBillV1Pct}%, V2 retains {assumptions.opsHubBillV2Pct}%, nonprofit pays {assumptions.opsHubBillNpPct}%. Also reduces V1 overhead from 3% to 1% and nonprofit program overhead by 50%. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
         </p>
 
         {/* Future Expansion Note */}

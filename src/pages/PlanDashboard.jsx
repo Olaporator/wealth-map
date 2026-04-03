@@ -388,17 +388,26 @@ export default function PlanDashboard() {
       // 401k: pre-tax growth, contributions come from W2 deduction (already subtracted from take-home)
       k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
 
+      // 401k loan: borrow max available (50% of balance, cap $50K) → deploy to Robinhood
+      // No tax, no penalty — interest paid back to yourself. Repaid over 5 years.
+      let k401LoanDeploy = 0;
+      if (age >= assumptions.currentAge && k401 > 0) {
+        const maxLoan = Math.min(k401 * 0.5, 50000);
+        k401LoanDeploy = maxLoan;
+        k401 -= k401LoanDeploy; // borrowed out (repayment modeled via continued contributions)
+      }
+
       // IRA: grows on existing balance, no new contributions
       ira = ira * (1 + assumptions.iraReturn / 100);
 
-      // Robinhood: grows on equity + margin leverage, minus margin interest
+      // Robinhood: grows on equity + margin leverage, minus margin interest + 401k loan deployment
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
       const marginBalance = robinhood * (assumptions.marginPct / 100);
       const marginRate = marginBalance >= 500000 ? assumptions.marginRateHigh : assumptions.marginRateLow;
       const marginInterest = marginBalance * (marginRate / 100);
       const totalInvested = robinhood + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
-      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz;
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy;
 
       // Land development: $20K/yr from ventures starting at 33 (builds equity)
       let landDevCost = 0;

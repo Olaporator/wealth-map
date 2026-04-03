@@ -107,13 +107,25 @@ export default function PlanDashboard() {
     landPurchase1Acres: 83,   // ~$500K at ~$6K/acre
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 31,      // start developing home/infrastructure on land
-    landDevPerYear: 100000,   // $100K/yr construction loan draw
-    landDevEndAge: 40,        // borrow $100K/yr until age 40
-    landDevRate: 8.5,         // construction loan rate
-    landDevValueMultiplier: 1.5, // $1 spent on home dev adds ~$1.50 in property value
-    venturesLoanPerYear: 100000, // $100K/yr LOC draw for ventures
-    venturesLoanEndAge: 40,      // borrow $100K/yr until age 40
-    debtPayoffAge: 60,           // pay off all debts at 59.5 (modeled as 60) via 401k
+    constructionLoanAmount: 500000, // single construction loan for home/infrastructure
+    constructionLoanAge: 32,        // taken at age 32
+    constructionLoanRate: 8.5,      // construction loan rate
+    landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value
+    venturesLocAmount: 250000,      // single ventures business LOC
+    venturesLocAge: 32,             // taken at age 32
+    debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
+
+    // ═══════════════════════════════════════════════════════════════
+    // VENTURE 2 — RH-funded operating business (equipment/services)
+    // Pulls 10% of RH gains, generates matching own income, secures
+    // revolving LOC where RH pull covers debt service (P&I)
+    // ═══════════════════════════════════════════════════════════════
+    venture2StartAge: 35,           // venture 2 starts at 35
+    venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
+    venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
+    venture2LocRate: 9,             // business LOC rate
+    venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
+    venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
 
     // ═══════════════════════════════════════════════════════════════
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
@@ -239,6 +251,9 @@ export default function PlanDashboard() {
     let cash = assumptions.cashStart; // tracks actual cash reserves
     let qozFund = 0;
     let ventures = 0;
+    let venture2 = 0;          // Venture 2 net equity (assets - LOC debt)
+    let venture2Loc = 0;       // Venture 2 outstanding LOC balance
+    let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -351,9 +366,9 @@ export default function PlanDashboard() {
       // Interest-only payments on credit lines — paid from personal cash
       const venturesDebtBal = Math.abs(Math.min(0, ventures));
       const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
-      // Construction loan interest on draws above original mortgage (interest-only til payoff)
+      // Construction loan interest on draws above original mortgage (interest-only til payoff from RH)
       const constructionDebt = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
-      const constructionInterest = constructionDebt * (assumptions.landDevRate / 100);
+      const constructionInterest = constructionDebt * (assumptions.constructionLoanRate / 100);
 
       // Total personal outflows
       // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
@@ -363,22 +378,26 @@ export default function PlanDashboard() {
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
       let rhPullQoz = 0;
+      let rhPullVenture2 = 0;
       if (age >= assumptions.rhPullStartAge && robinhood > 0) {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
         rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
         rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        if (age >= assumptions.venture2StartAge) {
+          rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
+        }
       }
 
       // LTCG tax on Robinhood pulls (15% rate)
-      const rhPullTax = (rhPullPersonal + rhPullQoz) * 0.15;
+      const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2) * 0.15;
 
       // ═══════════════════════════════════════════════════════════
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz + rhPullVenture2;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
       // Total personal inflows (includes Robinhood pull for expenses)
@@ -419,40 +438,78 @@ export default function PlanDashboard() {
       const marginInterest = marginBalance * (marginRate / 100);
       const totalInvested = robinhood + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
-      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy + freeCashToRobinhood;
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 + k401LoanDeploy + freeCashToRobinhood;
 
-      // Land development: $100K/yr construction loan from 31 until 40, builds 1.5x equity
+      // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
       let landDevCost = 0;
-      if (age >= assumptions.landDevStartAge && age < assumptions.landDevEndAge && acres > 0) {
-        landDevCost = assumptions.landDevPerYear;
+      if (age === assumptions.constructionLoanAge && acres > 0) {
+        landDevCost = assumptions.constructionLoanAmount;
         homeBuild += landDevCost;
-        landMortgage += landDevCost; // construction loan draw — added to land debt
+        landMortgage += landDevCost; // construction loan — added to land debt
       }
 
-      // Ventures: $100K/yr LOC draw from 31 until 40, then staff expenses draw ongoing
+      // Ventures LOC: $250K single draw at age 32
       let venturesLoanDraw = 0;
-      if (age >= assumptions.landDevStartAge && age < assumptions.venturesLoanEndAge) {
-        venturesLoanDraw = assumptions.venturesLoanPerYear;
+      if (age === assumptions.venturesLocAge) {
+        venturesLoanDraw = assumptions.venturesLocAmount;
       }
       ventures = ventures + venturesLoanDraw - staffExpenses;
 
-      // Pay off all construction + ventures debt at 59.5 via 401k penalty-free withdrawal
-      if (age === assumptions.debtPayoffAge) {
-        // Pay off ventures LOC debt from 401k
-        if (ventures < 0) {
-          const venturesPayoff = Math.abs(ventures);
-          const k401Available = k401;
-          const payoff = Math.min(venturesPayoff, k401Available);
-          k401 -= payoff;
-          ventures += payoff;
+      // ═══════════════════════════════════════════════════════════
+      // VENTURE 2: RH-funded operating business with revolving LOC
+      // RH pull (10% of gains) → covers LOC debt service (P&I)
+      // Venture generates matching own income → reinvested for growth
+      // LOC sized so P&I = RH pull; venture keeps borrowing indefinitely
+      // ═══════════════════════════════════════════════════════════
+      let v2LocDraw = 0;
+      let v2DebtService = 0;
+      let v2SelfIncome = 0;
+      if (age >= assumptions.venture2StartAge) {
+        // RH pull covers debt service — size LOC draw so annual P&I = rhPullVenture2
+        // Amortized P&I on revolving term: monthly = P * r(1+r)^n / ((1+r)^n - 1)
+        const v2r = (assumptions.venture2LocRate / 100) / 12;
+        const v2n = assumptions.venture2LocTerm * 12;
+        const v2AnnuityFactor = (v2r * Math.pow(1 + v2r, v2n)) / (Math.pow(1 + v2r, v2n) - 1) * 12;
+
+        // Max new LOC draw this year: sized so annual P&I = RH pull
+        if (rhPullVenture2 > 0) {
+          v2LocDraw = rhPullVenture2 / v2AnnuityFactor; // principal that RH pull can service
         }
-        // Pay off construction loan portion of land mortgage from 401k
+
+        // Debt service on existing LOC balance (amortized over term)
+        v2DebtService = venture2Loc * v2AnnuityFactor;
+        // RH pull covers debt service; excess reduces LOC principal
+        const v2RhCoverage = Math.min(rhPullVenture2, v2DebtService);
+        const v2PrincipalPaydown = Math.max(0, v2RhCoverage - venture2Loc * (assumptions.venture2LocRate / 100));
+
+        // Venture 2 self-generated income (matches RH contribution, grows over time)
+        if (age === assumptions.venture2StartAge) {
+          venture2OwnIncome = rhPullVenture2 * assumptions.venture2IncomeMatch;
+        } else {
+          venture2OwnIncome = venture2OwnIncome * (1 + assumptions.venture2GrowthRate / 100);
+        }
+        v2SelfIncome = venture2OwnIncome;
+
+        // Update venture 2: new LOC draw + own income - debt service (RH covers P&I)
+        venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
+        venture2 = venture2 + v2LocDraw + v2SelfIncome;
+      }
+
+      // Debt payoff at 52 (20yr from 32) — construction + ventures LOC paid from RH (LTCG)
+      if (age === assumptions.constructionLoanAge + 20) {
         const constructionDebtAtPayoff = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
-        if (constructionDebtAtPayoff > 0 && k401 > 0) {
-          const payoff = Math.min(constructionDebtAtPayoff, k401);
-          k401 -= payoff;
+        if (constructionDebtAtPayoff > 0) {
+          const payoff = constructionDebtAtPayoff;
+          robinhood -= payoff * 1.08; // principal + ~8% LTCG tax on portion
           landMortgage -= payoff;
-          landEquity += payoff; // debt paid off becomes equity
+          landEquity += payoff;
+        }
+      }
+      if (age === assumptions.venturesLocAge + 20) {
+        if (ventures < 0) {
+          const payoff = Math.abs(ventures);
+          robinhood -= payoff * 1.08; // principal + ~8% LTCG tax estimate
+          ventures += payoff;
         }
       }
 
@@ -509,7 +566,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures + venture2;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -532,6 +589,10 @@ export default function PlanDashboard() {
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
         qozFund: Math.round(qozFund),
         ventures: Math.round(ventures),
+        venture2: Math.round(venture2),
+        venture2Loc: Math.round(venture2Loc),
+        venture2SelfIncome: Math.round(v2SelfIncome),
+        rhPullVenture2: Math.round(rhPullVenture2),
         venturesContrib: 0,
         venturesInterest: Math.round(venturesInterestPayment),
         constructionInterest: Math.round(constructionInterest),
@@ -577,6 +638,7 @@ export default function PlanDashboard() {
           landMortgagePayment: -landMortgagePayment,
           rhPullPersonal,
           rhPullQoz: -rhPullQoz,
+          rhPullVenture2: -rhPullVenture2,
           freeCashToQoz: -freeCashToQoz,
           freeCashToRH: freeCashToRobinhood,
           businessIncome,
@@ -609,6 +671,7 @@ export default function PlanDashboard() {
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
+      { name: 'Venture 2', value: ageData.venture2, desc: 'RH-funded operating business — 10% of RH gains + matching self-income, revolving LOC' },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
       { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
     ].filter(d => d.value > 0);
@@ -706,6 +769,7 @@ export default function PlanDashboard() {
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
               <Area type="monotone" dataKey="ventures" stackId="1" stroke="#84CC16" fill="#84CC16" name="Ventures" />
+              <Area type="monotone" dataKey="venture2" stackId="1" stroke="#EC4899" fill="#EC4899" name="Venture 2" />
             </AreaChart>
           </ResponsiveContainer>
         );
@@ -1054,6 +1118,7 @@ export default function PlanDashboard() {
               <TableHeader id="seattle" label="Home Build" color="text-emerald-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" />
               <TableHeader id="ventures" label="Ventures" color="text-lime-400" />
+              <TableHeader id="venture2" label="Venture 2" color="text-pink-400" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
               <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
               <th className="p-2 text-right text-red-400">Tax</th>
@@ -1079,6 +1144,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.homeBuild)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
+                <td className="p-2 text-right text-pink-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right text-red-400 relative group/tax">

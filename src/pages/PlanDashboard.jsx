@@ -89,6 +89,18 @@ export default function PlanDashboard() {
     qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
     qozTaxFreeAge: 52,        // 10yr hold = all new gains tax-free
 
+    // ═══════════════════════════════════════════════════════════════
+    // NONPROFIT — 501(c)(3) entity, tax-exempt investment gains
+    // Funded by RH pulls, invests reserves at 12%, uses credit for ops
+    // ═══════════════════════════════════════════════════════════════
+    nonprofitStartAge: 31,        // launch nonprofit at 31
+    nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
+    nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
+    nonprofitOpsLossPct: 8,       // 8% annual ops cost (staff, programs — funded via credit)
+    nonprofitLocRate: 7,          // nonprofit LOC rate (CDFIs offer favorable terms)
+    nonprofitDonationGrowth: 10,  // annual donation/grant income growth after year 1
+    nonprofitInitialDonations: 5000, // modest initial donations year 1
+
     // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
     rhPullStartAge: 33,       // start pulling from Robinhood growth
     rhPullPersonalPct: 20,    // 20% of Robinhood gains → personal (covers expenses)
@@ -299,6 +311,9 @@ export default function PlanDashboard() {
     let venture2 = 0;          // Venture 2 net equity (assets - LOC debt)
     let venture2Loc = 0;       // Venture 2 outstanding LOC balance
     let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
+    let nonprofit = 0;          // Nonprofit reserves (invested)
+    let nonprofitLoc = 0;       // Nonprofit LOC balance
+    let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
     let offshoreEquity = 0;    // Belize/Costa Rica land equity
     let nigeriaEquity = 0;     // Nigeria land equity
     let rentalEquity = 0;      // City rental properties equity
@@ -470,15 +485,15 @@ export default function PlanDashboard() {
       let rhPullPersonal = 0;
       let rhPullQoz = 0;
       let rhPullVenture2 = 0;
-      let rhPullFreeCash = 0; // 1% of gains → personal free cash (from age 31)
+      let rhPullNonprofit = 0;
+      let rhPullFreeCash = 0;
       if (robinhood > 0) {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
         // Age 32 only: one-time RH pull to cover deficit (~$16K)
-        // After 32: no RH free cash pull — use credit cards instead, keep money compounding
         if (age === 32) {
-          rhPullFreeCash = rhGrowth * 0.15; // one-time pull to cover 32 deficit
+          rhPullFreeCash = rhGrowth * 0.15;
         }
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
@@ -490,16 +505,21 @@ export default function PlanDashboard() {
         if (age >= assumptions.venture2StartAge) {
           rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
         }
+        // Nonprofit contributions start at 31
+        if (age >= assumptions.nonprofitStartAge) {
+          rhPullNonprofit = rhGrowth * (assumptions.nonprofitRhPullPct / 100);
+        }
       }
 
       // LTCG tax on Robinhood pulls (15% rate)
-      const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash) * 0.15;
+      // Nonprofit donations are tax-deductible — offset LTCG on that portion
+      const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash) * 0.15; // nonprofit pull is a charitable deduction, no LTCG
 
       // ═══════════════════════════════════════════════════════════
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash + farmIncomeForTax;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash + rhPullNonprofit + farmIncomeForTax;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
       // Farm income: land produces $50K/yr starting at 35 (ventures staff + self/family/volunteer labor)
@@ -570,7 +590,7 @@ export default function PlanDashboard() {
       const marginInterest = marginBalance * (marginRate / 100);
       const totalInvested = rhBase + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
-      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullNonprofit - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
 
       // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
       let landDevCost = 0;
@@ -644,6 +664,42 @@ export default function PlanDashboard() {
         if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
           const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown
           venture2Loc -= v2LocPaydown;
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // NONPROFIT — 501(c)(3): tax-exempt invested reserves
+      // RH pull seeds it, donations/grants grow over time
+      // Reserves invested at 12% (tax-free), LOC covers program ops
+      // Investment gains + donations pay down LOC
+      // ═══════════════════════════════════════════════════════════
+      if (age >= assumptions.nonprofitStartAge) {
+        // RH pull → nonprofit reserves (tax-deductible donation)
+        nonprofit += rhPullNonprofit;
+
+        // Donations/grants grow over time
+        if (age === assumptions.nonprofitStartAge) {
+          nonprofitDonations = assumptions.nonprofitInitialDonations;
+        } else {
+          nonprofitDonations = nonprofitDonations * (1 + assumptions.nonprofitDonationGrowth / 100);
+        }
+        nonprofit += nonprofitDonations;
+
+        // Invested reserves earn 12% tax-free
+        const npInvestGain = Math.max(0, nonprofit) * (assumptions.nonprofitInvestReturn / 100);
+
+        // Ops costs funded via LOC (staff, programs)
+        const npOpsCost = Math.max(0, nonprofit) * (assumptions.nonprofitOpsLossPct / 100);
+        nonprofitLoc += npOpsCost; // ops go on credit
+        const npLocInterest = nonprofitLoc * (assumptions.nonprofitLocRate / 100);
+        nonprofitLoc += npLocInterest;
+
+        // Investment gains + surplus donations pay down LOC
+        const npNetGain = npInvestGain;
+        nonprofit += npNetGain;
+        if (npNetGain > 0 && nonprofitLoc > 0) {
+          const npLocPaydown = Math.min(nonprofitLoc, npNetGain * 0.5); // 50% of gains → LOC paydown
+          nonprofitLoc -= npLocPaydown;
         }
       }
 
@@ -774,7 +830,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) - ccDebt;
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) + (nonprofit - nonprofitLoc) - ccDebt;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -806,6 +862,9 @@ export default function PlanDashboard() {
         venture2: Math.round(venture2),
         venture2Loc: Math.round(venture2Loc),
         venture2SelfIncome: Math.round(v2SelfIncome),
+        nonprofit: Math.round(nonprofit),
+        nonprofitLoc: Math.round(nonprofitLoc),
+        nonprofitNet: Math.round(nonprofit - nonprofitLoc),
         familyFundDeploy: Math.round(familyFundDeploy),
         rhPullVenture2: Math.round(rhPullVenture2),
         venturesContrib: 0,
@@ -813,6 +872,7 @@ export default function PlanDashboard() {
         constructionInterest: Math.round(constructionInterest),
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
+        rhPullNonprofit: Math.round(rhPullNonprofit),
         freeCashToQoz: Math.round(freeCashToQoz),
         totalTax: Math.round(totalTax),
         effectiveTaxRate: Math.round(effectiveTaxRate * 10) / 10,
@@ -853,6 +913,7 @@ export default function PlanDashboard() {
           landMortgagePayment: -landMortgagePayment,
           rhPullPersonal,
           rhPullQoz: -rhPullQoz,
+          rhPullNonprofit: -rhPullNonprofit,
           rhPullVenture2: -rhPullVenture2,
           freeCashToQoz: -freeCashToQoz,
           freeCashToRH: freeCashToRobinhood,
@@ -1192,6 +1253,9 @@ export default function PlanDashboard() {
     }
     if (src.rhPullQoz < 0) {
       items.push({ label: `RH Pull → QOZ`, value: src.rhPullQoz, color: 'text-cyan-400' });
+    }
+    if (src.rhPullNonprofit < 0) {
+      items.push({ label: `RH Pull → Nonprofit`, value: src.rhPullNonprofit, color: 'text-green-400' });
     }
     if (src.freeCashToQoz < 0) {
       items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });

@@ -107,12 +107,12 @@ export default function PlanDashboard() {
     landPurchase1Acres: 83,   // ~$500K at ~$6K/acre
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 31,      // start developing home/infrastructure on land
-    landDevPerYear: 100000,   // $100K/yr construction loan draw (years 33-35)
-    landDevYears: 3,          // 3 years of construction loan draws
+    landDevPerYear: 100000,   // $100K/yr construction loan draw
+    landDevEndAge: 40,        // borrow $100K/yr until age 40
     landDevRate: 8.5,         // construction loan rate
     landDevValueMultiplier: 1.5, // $1 spent on home dev adds ~$1.50 in property value
-    venturesLoanPerYear: 50000,  // $50K/yr LOC draw for ventures (years 33-35)
-    venturesLoanYears: 3,        // 3 years of LOC draws
+    venturesLoanPerYear: 100000, // $100K/yr LOC draw for ventures
+    venturesLoanEndAge: 40,      // borrow $100K/yr until age 40
     debtPayoffAge: 60,           // pay off all debts at 59.5 (modeled as 60) via 401k
 
     // ═══════════════════════════════════════════════════════════════
@@ -421,17 +421,17 @@ export default function PlanDashboard() {
       const grossGrowth = totalInvested * (rhReturn / 100);
       robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy + freeCashToRobinhood;
 
-      // Land development: $100K/yr construction loan for 3 years (33-35), builds 1.5x equity
+      // Land development: $100K/yr construction loan from 31 until 40, builds 1.5x equity
       let landDevCost = 0;
-      if (age >= assumptions.landDevStartAge && age < assumptions.landDevStartAge + assumptions.landDevYears && acres > 0) {
+      if (age >= assumptions.landDevStartAge && age < assumptions.landDevEndAge && acres > 0) {
         landDevCost = assumptions.landDevPerYear;
         homeBuild += landDevCost;
         landMortgage += landDevCost; // construction loan draw — added to land debt
       }
 
-      // Ventures: $50K/yr LOC draw for 3 years (33-35), then staff expenses draw ongoing
+      // Ventures: $100K/yr LOC draw from 31 until 40, then staff expenses draw ongoing
       let venturesLoanDraw = 0;
-      if (age >= assumptions.landDevStartAge && age < assumptions.landDevStartAge + assumptions.venturesLoanYears) {
+      if (age >= assumptions.landDevStartAge && age < assumptions.venturesLoanEndAge) {
         venturesLoanDraw = assumptions.venturesLoanPerYear;
       }
       ventures = ventures + venturesLoanDraw - staffExpenses;

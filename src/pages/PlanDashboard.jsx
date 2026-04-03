@@ -409,10 +409,11 @@ export default function PlanDashboard() {
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
       // Free cash → Robinhood (most tax-effective — keep cash compounding at 15-30%)
+      // 1% RH pull stays as personal free cash, rest goes back to RH
       const grossFreeCash = totalPersonalIn - totalPersonalOut;
       const freeCashToRobinhood = Math.max(0, grossFreeCash);
       const freeCashToQoz = 0;
-      const freeCash = grossFreeCash - freeCashToRobinhood; // effectively 0 when positive
+      const freeCash = grossFreeCash - freeCashToRobinhood + rhPullFreeCash; // net free cash kept = 1% RH pull
 
       // Track cumulative cash position (free cash + 1% RH personal pull)
       cash += freeCash + rhPullFreeCash;

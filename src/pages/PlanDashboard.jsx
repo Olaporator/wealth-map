@@ -142,11 +142,11 @@ export default function PlanDashboard() {
     nigeriaAppreciation: 5,         // annual appreciation
 
     // ═══════════════════════════════════════════════════════════════
-    // CITY RENTAL PROPERTIES (age 40 — 1-2 rentable units, $500K down from RH)
+    // CITY RENTAL PROPERTY (age 40 — 1 unit, $300K down from RH)
     // ═══════════════════════════════════════════════════════════════
     rentalPurchaseAge: 40,
-    rentalPurchasePrice: 500000,     // total purchase price (1-2 city units)
-    rentalDownPayment: 100000,       // $100K cash from RH (20% down)
+    rentalPurchasePrice: 500000,     // total purchase price (1 city unit)
+    rentalDownPayment: 300000,       // $300K cash from RH (60% down)
     rentalMortgageRate: 7.0,
     rentalMortgageTerm: 30,
     rentalPropertyAppreciation: 4,   // annual property appreciation

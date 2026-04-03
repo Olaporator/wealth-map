@@ -251,6 +251,7 @@ export default function PlanDashboard() {
     let cash = assumptions.cashStart; // tracks actual cash reserves
     let qozFund = 0;
     let ventures = 0;
+    let venturesLocDebt = 0;   // Outstanding ventures LOC principal (liability)
     let venture2 = 0;          // Venture 2 net equity (assets - LOC debt)
     let venture2Loc = 0;       // Venture 2 outstanding LOC balance
     let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
@@ -459,6 +460,7 @@ export default function PlanDashboard() {
       let venturesLoanDraw = 0;
       if (age === assumptions.venturesLocAge) {
         venturesLoanDraw = assumptions.venturesLocAmount;
+        venturesLocDebt += venturesLoanDraw; // track as liability
       }
       ventures = ventures + venturesLoanDraw - staffExpenses;
 
@@ -513,10 +515,9 @@ export default function PlanDashboard() {
         }
       }
       if (age === assumptions.venturesLocAge + 20) {
-        if (ventures < 0) {
-          const payoff = Math.abs(ventures);
-          robinhood -= payoff * 1.08; // principal + ~8% LTCG tax estimate
-          ventures += payoff;
+        if (venturesLocDebt > 0) {
+          robinhood -= venturesLocDebt * 1.08; // principal + ~8% LTCG tax estimate
+          venturesLocDebt = 0;
         }
       }
 
@@ -573,7 +574,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures + (venture2 - venture2Loc);
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;

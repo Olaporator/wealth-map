@@ -1126,7 +1126,7 @@ export default function PlanDashboard() {
             </tr>
           </thead>
           <tbody>
-            {data.filter(d => d.age <= 50 || d.age % 5 === 0).map((row) => (
+            {data.filter(d => d.age <= 50 || d.age % 10 === 0).map((row) => (
               <tr
                 key={row.age}
                 data-age={row.age}

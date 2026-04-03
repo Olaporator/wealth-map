@@ -470,7 +470,9 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // STEP 7: NET WORTH (Ayoola's share only)
       // ═══════════════════════════════════════════════════════════
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures - landMortgage;
+      // landEquity already = net equity (down payment + appreciation + principal paid)
+      // landEquity + landMortgage = total property value, so don't subtract mortgage again
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + ventures;
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;

@@ -118,11 +118,39 @@ export default function PlanDashboard() {
     familyFundPct: 80,              // 80% of 401k → children & family future
 
     // ═══════════════════════════════════════════════════════════════
+    // OFFSHORE LAND — Belize/Costa Rica (cash purchase from RH)
+    // ═══════════════════════════════════════════════════════════════
+    offshorePurchaseAge: 33,
+    offshorePurchasePrice: 100000,  // $100K cash, 20 acres
+    offshoreMaintenance: 20000,     // $20K/yr maintenance + improvements until 40
+    offshoreMaintenanceReduced: 10000, // $10K/yr after 40
+    offshoreMaintenanceDropAge: 40,
+    offshoreAppreciation: 4,        // annual appreciation
+
+    // ═══════════════════════════════════════════════════════════════
+    // NIGERIA LAND (cash purchase from RH)
+    // ═══════════════════════════════════════════════════════════════
+    nigeriaPurchaseAge: 35,
+    nigeriaPurchasePrice: 200000,   // $200K cash
+    nigeriaMaintenance: 20000,      // $20K/yr maintenance + improvements
+    nigeriaAppreciation: 5,         // annual appreciation
+
+    // ═══════════════════════════════════════════════════════════════
+    // US LAND PURCHASE 2 (age 40 — $2.5M property, $500K down from RH)
+    // ═══════════════════════════════════════════════════════════════
+    land2PurchaseAge: 40,
+    land2PurchasePrice: 2500000,
+    land2DownPayment: 500000,       // $500K cash from RH
+    land2MortgageRate: 7.0,
+    land2MortgageTerm: 30,
+    land2Appreciation: 4,
+
+    // ═══════════════════════════════════════════════════════════════
     // VENTURE 2 — RH-funded operating business (equipment/services)
     // Pulls 10% of RH gains, generates matching own income, secures
     // revolving LOC where RH pull covers debt service (P&I)
     // ═══════════════════════════════════════════════════════════════
-    venture2StartAge: 33,           // venture 2 starts at 33
+    venture2StartAge: 31,           // venture 2 starts at 31
     venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
     venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
     venture2LocRate: 9,             // business LOC rate
@@ -257,6 +285,10 @@ export default function PlanDashboard() {
     let venture2 = 0;          // Venture 2 net equity (assets - LOC debt)
     let venture2Loc = 0;       // Venture 2 outstanding LOC balance
     let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
+    let offshoreEquity = 0;    // Belize/Costa Rica land equity
+    let nigeriaEquity = 0;     // Nigeria land equity
+    let land2Equity = 0;       // US land purchase 2 equity
+    let land2Mortgage = 0;     // US land 2 mortgage balance
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -373,10 +405,31 @@ export default function PlanDashboard() {
       const constructionDebt = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
       const constructionInterest = constructionDebt * (assumptions.constructionLoanRate / 100);
 
+      // Offshore + Nigeria maintenance costs (paid from personal cash)
+      let offshoreMaint = 0;
+      if (age >= assumptions.offshorePurchaseAge) {
+        offshoreMaint = age < assumptions.offshoreMaintenanceDropAge
+          ? assumptions.offshoreMaintenance
+          : assumptions.offshoreMaintenanceReduced;
+      }
+      let nigeriaMaint = 0;
+      if (age >= assumptions.nigeriaPurchaseAge) {
+        nigeriaMaint = assumptions.nigeriaMaintenance;
+      }
+
+      // US Land 2 mortgage payment (from personal cash after age 40)
+      let land2Payment = 0;
+      if (land2Mortgage > 0) {
+        const l2r = (assumptions.land2MortgageRate / 100) / 12;
+        const l2n = assumptions.land2MortgageTerm * 12;
+        const l2Loan = assumptions.land2PurchasePrice - assumptions.land2DownPayment;
+        land2Payment = l2Loan * (l2r * Math.pow(1 + l2r, l2n)) / (Math.pow(1 + l2r, l2n) - 1) * 12;
+      }
+
       // Total personal outflows
       // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
       // Construction loan interest + ventures LOC interest paid separately from personal
-      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest;
+      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest + offshoreMaint + nigeriaMaint + land2Payment;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -583,12 +636,53 @@ export default function PlanDashboard() {
         acres += assumptions.landPurchase1Acres;
       }
 
+      // Offshore (Belize/Costa Rica): cash purchase from RH at 33
+      if (age === assumptions.offshorePurchaseAge) {
+        robinhood -= assumptions.offshorePurchasePrice;
+        offshoreEquity += assumptions.offshorePurchasePrice;
+      }
+      if (offshoreEquity > 0) {
+        offshoreEquity = offshoreEquity * (1 + assumptions.offshoreAppreciation / 100);
+      }
+
+      // Nigeria: cash purchase from RH at 35
+      if (age === assumptions.nigeriaPurchaseAge) {
+        robinhood -= assumptions.nigeriaPurchasePrice;
+        nigeriaEquity += assumptions.nigeriaPurchasePrice;
+      }
+      if (nigeriaEquity > 0) {
+        nigeriaEquity = nigeriaEquity * (1 + assumptions.nigeriaAppreciation / 100);
+      }
+
+      // US Land 2: $2.5M property, $500K down from RH at 40
+      if (age === assumptions.land2PurchaseAge) {
+        robinhood -= assumptions.land2DownPayment;
+        land2Equity += assumptions.land2DownPayment;
+        land2Mortgage += assumptions.land2PurchasePrice - assumptions.land2DownPayment;
+      }
+      if (land2Equity > 0 || land2Mortgage > 0) {
+        const l2Total = land2Equity + land2Mortgage;
+        const l2AppGain = l2Total * (assumptions.land2Appreciation / 100);
+        land2Equity += l2AppGain;
+        // Principal paydown (amortized)
+        if (land2Mortgage > 0) {
+          const l2r = (assumptions.land2MortgageRate / 100) / 12;
+          const l2n = assumptions.land2MortgageTerm * 12;
+          const l2Loan = assumptions.land2PurchasePrice - assumptions.land2DownPayment;
+          const l2Monthly = l2Loan * (l2r * Math.pow(1 + l2r, l2n)) / (Math.pow(1 + l2r, l2n) - 1);
+          const l2Interest = land2Mortgage * (assumptions.land2MortgageRate / 100);
+          const l2Principal = Math.min(land2Mortgage, l2Monthly * 12 - l2Interest);
+          land2Mortgage -= l2Principal;
+          land2Equity += l2Principal;
+        }
+      }
+
       // ═══════════════════════════════════════════════════════════
       // STEP 7: NET WORTH (Ayoola's share only)
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + land2Equity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -604,7 +698,12 @@ export default function PlanDashboard() {
         seattleEquity50: Math.round(seattleEquity * 0.5),
         homeBuild: Math.round(homeBuild),
         landEquity: Math.round(landEquity),
+        offshoreEquity: Math.round(offshoreEquity),
+        nigeriaEquity: Math.round(nigeriaEquity),
+        land2Equity: Math.round(land2Equity),
+        totalLandEquity: Math.round(landEquity + offshoreEquity + nigeriaEquity + land2Equity),
         landMortgage: Math.round(landMortgage),
+        land2Mortgage: Math.round(land2Mortgage),
         landValue: Math.round(landEquity + landMortgage),
         acres,
         rentalNet: Math.round(rentalNet),
@@ -693,7 +792,7 @@ export default function PlanDashboard() {
       { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
-      { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
+      { name: 'Land', value: ageData.totalLandEquity, desc: 'All land equity: US primary + offshore (Belize/CR) + Nigeria + US Land 2' },
       { name: 'Venture 2', value: ageData.venture2, desc: 'RH-funded operating business — 10% of RH gains + matching self-income, revolving LOC' },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
       { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
@@ -741,10 +840,10 @@ export default function PlanDashboard() {
 
   const milestones = [
     { age: 31, label: 'Divorce / Reset', icon: '🔄' },
-    { age: 32, label: '20 Acres + Rent House', icon: '🌱' },
-    { age: 33, label: 'Own Place', icon: '🏠' },
-    { age: 35, label: 'Gap Year', icon: '⏸️' },
-    { age: 40, label: '100 Acres', icon: '🌾' },
+    { age: 32, label: '15+ Acres + Build', icon: '🌱' },
+    { age: 33, label: 'Offshore Land', icon: '🌴' },
+    { age: 35, label: 'Nigeria Land', icon: '🌍' },
+    { age: 40, label: 'US Land 2', icon: '🌾' },
     { age: 45, label: 'Coast', icon: '⛵' },
     { age: 60, label: 'Retire', icon: '👑' },
     { age: 61, label: 'Family Legacy', icon: '👨‍👧‍👦' },
@@ -788,7 +887,7 @@ export default function PlanDashboard() {
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" strokeWidth={2} />
               <Area type="monotone" dataKey="robinhood" stackId="1" stroke="#F97316" fill="#F97316" name="Robinhood" />
-              <Area type="monotone" dataKey="landEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
+              <Area type="monotone" dataKey="totalLandEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
               <Area type="monotone" dataKey="homeBuild" stackId="1" stroke="#10B981" fill="#10B981" name="Home Build" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
@@ -1166,7 +1265,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-emerald-400">{formatCurrency(row.homeBuild)}</td>
-                <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
+                <td className="p-2 text-right text-amber-400">{formatCurrency(row.totalLandEquity)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
                 <td className="p-2 text-right text-pink-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>

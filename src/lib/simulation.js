@@ -342,6 +342,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
     // Seattle rental contribution (separate from living expenses)
     let rentalNet = 0;
     let ayoolaRentalShare = 0;
+    let ayoolaContrib = 0;
 
     // Seattle rental — only applies before sale
     if (age >= 32 && age < assumptions.seattleSaleAge) {
@@ -355,7 +356,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       const ins = assumptions.insurance;
       const totalCosts = mortgage + maintenance + vacancy + management + propTaxes + ins;
 
-      let ayoolaContrib = Math.max(0, assumptions.ayoolaRentalContrib - (rentYears * assumptions.contribReductionPerYear));
+      ayoolaContrib = Math.max(0, assumptions.ayoolaRentalContrib - (rentYears * assumptions.contribReductionPerYear));
       const exWifeContrib = Math.max(0, assumptions.exWifeRentalContrib - (rentYears * assumptions.contribReductionPerYear));
       const totalContribs = ayoolaContrib + exWifeContrib;
 

@@ -107,6 +107,7 @@ export default function PlanDashboard() {
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 33,      // start developing home on land
     landDevPerYear: 20000,    // $20K/yr from ventures for home development
+    landDevValueMultiplier: 1.5, // $1 spent on home dev adds ~$1.50 in property value
 
     // ═══════════════════════════════════════════════════════════════
     // SEATTLE RENTAL (50/50 co-owned with ex-wife)
@@ -436,7 +437,7 @@ export default function PlanDashboard() {
         const totalLandValue = landEquity + landMortgage;
         const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
         const appreciationGain = appreciatedValue - totalLandValue;
-        landEquity += appreciationGain + landDevCost; // dev spend builds equity
+        landEquity += appreciationGain + landDevCost * assumptions.landDevValueMultiplier; // dev adds ~1.5x value
 
         if (landMortgage > 0) {
           landMortgage -= landPrincipalPaid;

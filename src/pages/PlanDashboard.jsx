@@ -401,7 +401,7 @@ export default function PlanDashboard() {
       }
 
       // Business income taxes (on rental share + business income)
-      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + businessIncome;
+      const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + venturesProfit;
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
       // Interest-only payments on credit lines — paid from personal cash
@@ -474,11 +474,13 @@ export default function PlanDashboard() {
       // TOTAL TAX BURDEN (all sources)
       // ═══════════════════════════════════════════════════════════
       const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
+      const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + venturesProfit + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash;
       const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
       // Total personal inflows (includes Robinhood pulls for expenses + free cash)
-      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal + rhPullFreeCash;
+      // Business income flows to ventures entity (not personal) — ventures distributes profit if positive
+      const venturesProfit = Math.max(0, businessIncome - staffExpenses); // only distribute if business is profitable
+      const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + venturesProfit + rhPullPersonal + rhPullFreeCash;
 
       // Free cash: whatever's left after expenses stays as personal cash
       // Surplus goes back to Robinhood to keep compounding
@@ -533,7 +535,8 @@ export default function PlanDashboard() {
         venturesLoanDraw = assumptions.venturesLocAmount;
         venturesLocDebt += venturesLoanDraw; // track as liability
       }
-      ventures = ventures + venturesLoanDraw - staffExpenses;
+      // Business income offsets staff expenses; ventures net = LOC + business income - staff
+      ventures = ventures + venturesLoanDraw + businessIncome - staffExpenses;
 
       // ═══════════════════════════════════════════════════════════
       // VENTURE 2: RH-funded operating business with revolving LOC

@@ -157,11 +157,11 @@ export default function PlanDashboard() {
 
     // ═══════════════════════════════════════════════════════════════
     // VENTURE 2 — RH-funded operating business (equipment/services)
-    // Pulls 10% of RH gains, generates matching own income, secures
+    // Pulls 5% of RH gains, generates matching own income, secures
     // revolving LOC where RH pull covers debt service (P&I)
     // ═══════════════════════════════════════════════════════════════
-    venture2StartAge: 33,           // venture 2 starts at 33
-    venture2RhPullPct: 10,          // 10% of RH leveraged gains → venture 2 seed
+    venture2StartAge: 35,           // venture 2 starts at 35
+    venture2RhPullPct: 5,           // 5% of RH leveraged gains → venture 2 seed
     venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
     venture2LocRate: 9,             // business LOC rate
     venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
@@ -471,8 +471,8 @@ export default function PlanDashboard() {
         const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
-        // 1% personal free cash pull from day 1
-        rhPullFreeCash = rhGrowth * 0.10;
+        // 15% personal free cash pull (covers expenses first, surplus → RH)
+        rhPullFreeCash = rhGrowth * 0.15;
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
         }

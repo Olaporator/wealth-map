@@ -458,7 +458,7 @@ export default function PlanDashboard() {
         nigeriaMaint = assumptions.nigeriaMaintenance;
       }
 
-      // City rental properties: income - expenses - mortgage = net cash flow
+      // City rental properties: owned by Venture 2 — income flows into V2, not personal
       let rentalNetIncome = 0;
       let rentalMortgagePayment = 0;
       if (age >= assumptions.rentalPurchaseAge && (rentalEquity > 0 || rentalMortgage > 0)) {
@@ -476,10 +476,8 @@ export default function PlanDashboard() {
       }
 
       // Total personal outflows
-      // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
-      // Construction loan interest + ventures LOC interest paid separately from personal
-      // Rental net income offsets expenses (negative = costs money, positive = income)
-      const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint - rentalNetIncome;
+      // Rental income goes to Venture 2 now, not personal
+      const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -808,11 +806,15 @@ export default function PlanDashboard() {
         nigeriaEquity = nigeriaEquity * (1 + assumptions.nigeriaAppreciation / 100);
       }
 
-      // City rental properties: $500K, $100K down from RH at 40
+      // City rental property: owned by Venture 2 — $300K down from V2 balance at 40
       if (age === assumptions.rentalPurchaseAge) {
-        robinhood -= assumptions.rentalDownPayment;
+        venture2 -= assumptions.rentalDownPayment; // V2 funds the down payment
         rentalEquity += assumptions.rentalDownPayment;
         rentalMortgage += assumptions.rentalPurchasePrice - assumptions.rentalDownPayment;
+      }
+      // Rental net income flows into Venture 2 (not personal)
+      if (rentalNetIncome !== 0 && age >= assumptions.rentalPurchaseAge) {
+        venture2 += rentalNetIncome;
       }
       if (rentalEquity > 0 || rentalMortgage > 0) {
         const rTotal = rentalEquity + rentalMortgage;

@@ -91,6 +91,7 @@ export default function PlanDashboard() {
     rhPullStartAge: 33,       // start pulling from Robinhood growth
     rhPullPersonalPct: 20,    // 20% of Robinhood gains → personal (covers expenses)
     rhPullQozPct: 20,         // 20% of Robinhood gains → QOZ fund (ongoing contributions)
+    rhPullQozStartAge: 35,    // QOZ contributions start at 35
     freeCashToQozPct: 66,     // 66% of positive free cash → QOZ fund
     homeAppreciation: 6,      // Seattle home appreciation
     landAppreciation: 4,      // rural land appreciation
@@ -476,8 +477,10 @@ export default function PlanDashboard() {
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
         }
-        // QOZ contributions start at 31 (independent of other RH pulls)
-        rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        // QOZ contributions start at 35
+        if (age >= assumptions.rhPullQozStartAge) {
+          rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        }
         if (age >= assumptions.venture2StartAge) {
           rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
         }

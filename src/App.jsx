@@ -9,6 +9,7 @@ import NonprofitDashboard from './pages/NonprofitDashboard';
 import Venture3Dashboard from './pages/Venture3Dashboard';
 import NigeriaDashboard from './pages/NigeriaDashboard';
 import OffshoreDashboard from './pages/OffshoreDashboard';
+import HardAssetsDashboard from './pages/HardAssetsDashboard';
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/venture3" element={<Venture3Dashboard />} />
           <Route path="/nigeria" element={<NigeriaDashboard />} />
           <Route path="/offshore" element={<OffshoreDashboard />} />
+          <Route path="/hard-assets" element={<HardAssetsDashboard />} />
         </Routes>
       </div>
     </BrowserRouter>

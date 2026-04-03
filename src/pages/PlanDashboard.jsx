@@ -548,16 +548,13 @@ export default function PlanDashboard() {
           <thead className="sticky top-0 bg-gray-900 z-10">
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
-              <TableHeader id="w2" label="W2" color="text-green-400" />
-              <TableHeader id="distributions" label="Distrib" color="text-blue-400" />
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
-              <TableHeader id="seattle" label="Home Build" color="text-emerald-400" link="/homestead" />
               <TableHeader id="land" label="Land" color="text-amber-400" link="/homestead" />
               <TableHeader id="ventures" label="Ventures" color="text-lime-400" link="/venture1" />
               <TableHeader id="venture2" label="Venture 2" color="text-pink-400" link="/venture2" />
+              <TableHeader id="hardAssets" label="Hard Assets" color="text-yellow-400" link="/hard-assets" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
-              <TableHeader id="freeCash" label="Free $" color="text-gray-400" />
               <th className="p-2 text-right text-red-400">Tax</th>
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>
@@ -574,16 +571,13 @@ export default function PlanDashboard() {
                     : 'hover:bg-gray-800/50'}`}
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
-                <td className="p-2 text-right text-green-400">{formatCurrency(row.w2Gross)}</td>
-                <td className="p-2 text-right text-blue-400">{formatCurrency(row.netDistributions)}</td>
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
-                <td className="p-2 text-right text-emerald-400">{formatCurrency(row.homeBuild)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.totalLandEquity)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
                 <td className="p-2 text-right text-pink-400">{formatCurrency(row.venture2)}</td>
+                <td className="p-2 text-right text-yellow-400">{formatCurrency(row.hardAssets)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
-                <td className={`p-2 text-right ${row.freeCash < 0 ? 'text-red-400' : 'text-gray-400'}`}>{formatCurrency(row.freeCash)}</td>
                 <td className="p-2 text-right text-red-400 relative group/tax">
                   <span className="cursor-help">{formatCurrency(row.totalTax)}</span>
                   <span className="ml-1 text-red-500 text-[9px]">{row.effectiveTaxRate}%</span>

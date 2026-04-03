@@ -154,6 +154,17 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
 
   // ═══════════════════════════════════════════════════════════════
+  // HARD ASSETS — Locked storage for appreciation (gold, silver, metals,
+  // antiques, premium building materials). Funded by RH pulls starting at 33.
+  // "In storage" — not officially generating income (wink wink)
+  // ═══════════════════════════════════════════════════════════════
+  hardAssetsStartAge: 33,
+  hardAssetsRhPullPct: 5,           // 5% of RH gains → hard asset purchases
+  hardAssetsAppreciation: 7,        // 7% avg (gold ~8%, silver ~7%, antiques ~6%, materials ~5%)
+  hardAssetsInsurancePct: 1,        // 1% of value/yr for storage + insurance
+  hardAssetsStorageCost: 3000,      // $3K/yr base storage facility cost
+
+  // ═══════════════════════════════════════════════════════════════
   // VENTURE 3 — Generational wealth vehicle (starts at 60)
   // Funded by 401k draws + contributions from mature V2, nonprofit
   // Consolidates and seasons the generational operation
@@ -264,6 +275,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
   let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
   let offshoreEquity = 0;    // Belize/Costa Rica land equity
   let nigeriaEquity = 0;     // Nigeria land equity
+  let hardAssets = 0;         // Hard assets value (gold, silver, metals, antiques, materials)
   let rentalEquity = 0;      // City rental properties equity
   let rentalMortgage = 0;    // City rental mortgage balance
 
@@ -424,13 +436,18 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
 
     // Total personal outflows
     // Rental income goes to Venture 2 now, not personal
-    const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint;
+    // Hard assets storage/insurance (calculated early for cash flow, value updated later)
+    const hardAssetsMaintEst = age >= assumptions.hardAssetsStartAge
+      ? assumptions.hardAssetsStorageCost + hardAssets * (assumptions.hardAssetsInsurancePct / 100)
+      : 0;
+    const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint + hardAssetsMaintEst;
 
     // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
     let rhPullPersonal = 0;
     let rhPullQoz = 0;
     let rhPullVenture2 = 0;
     let rhPullNonprofit = 0;
+    let rhPullHardAssets = 0;
     let rhPullFreeCash = 0;
     if (robinhood > 0) {
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
@@ -460,17 +477,21 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       if (age >= assumptions.nonprofitStartAge) {
         rhPullNonprofit = rhGrowth * (assumptions.nonprofitRhPullPct / 100);
       }
+      // Hard assets purchases start at 33
+      if (age >= assumptions.hardAssetsStartAge) {
+        rhPullHardAssets = rhGrowth * (assumptions.hardAssetsRhPullPct / 100);
+      }
     }
 
     // LTCG tax on Robinhood pulls (15% rate)
     // Nonprofit donations are tax-deductible — offset LTCG on that portion
-    const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash) * 0.15; // nonprofit pull is a charitable deduction, no LTCG
+    const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullHardAssets + rhPullFreeCash) * 0.15; // nonprofit pull is a charitable deduction, no LTCG
 
     // ═══════════════════════════════════════════════════════════
     // TOTAL TAX BURDEN (all sources)
     // ═══════════════════════════════════════════════════════════
     const totalTax = personalTaxes + distributionTax + additionalTaxes + rhPullTax + employerPayrollTax;
-    const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullFreeCash + rhPullNonprofit + farmIncomeForTax;
+    const totalGrossIncome = w2Gross + grossDistributions + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullHardAssets + rhPullFreeCash + rhPullNonprofit + farmIncomeForTax;
     const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
     // Farm income: land produces $50K/yr starting at 35 (ventures staff + self/family/volunteer labor)
@@ -541,7 +562,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
     const marginInterest = marginBalance * (marginRate / 100);
     const totalInvested = rhBase + marginBalance; // equity + borrowed
     const grossGrowth = totalInvested * (rhReturn / 100);
-    robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullNonprofit - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
+    robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullNonprofit - rhPullHardAssets - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
 
     // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
     let landDevCost = 0;
@@ -711,6 +732,24 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       venture3Employees = Math.floor(venture3 * 0.15 / assumptions.venture3EmployeeCost); // 15% of reserves → payroll budget
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // HARD ASSETS: gold, silver, metals, antiques, building materials
+    // Purchased from RH pulls, stored for appreciation
+    // Insurance + storage costs deducted from personal (via CC strategy)
+    // ═══════════════════════════════════════════════════════════
+    let hardAssetsPurchase = 0;
+    let hardAssetsAppreciationAmt = 0;
+    let hardAssetsCosts = 0;
+    if (age >= assumptions.hardAssetsStartAge) {
+      hardAssetsPurchase = rhPullHardAssets;
+      hardAssets += hardAssetsPurchase;
+      // Appreciation on existing value
+      hardAssetsAppreciationAmt = hardAssets * (assumptions.hardAssetsAppreciation / 100);
+      hardAssets += hardAssetsAppreciationAmt;
+      // Storage + insurance costs (paid from personal cash flow via CC)
+      hardAssetsCosts = assumptions.hardAssetsStorageCost + hardAssets * (assumptions.hardAssetsInsurancePct / 100);
+    }
+
     // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
     qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
 
@@ -809,7 +848,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
     // ═══════════════════════════════════════════════════════════
     // landEquity already = net equity (down payment + appreciation + principal paid)
     // landEquity + landMortgage = total property value, so don't subtract mortgage again
-    const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) + venture3 + (nonprofit - nonprofitLoc) - ccDebt;
+    const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) + venture3 + (nonprofit - nonprofitLoc) + hardAssets - ccDebt;
 
     const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
     const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -851,6 +890,11 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       v3NpContrib: Math.round(v3NpContrib),
       familyFundDeploy: Math.round(familyFundDeploy),
       rhPullVenture2: Math.round(rhPullVenture2),
+      rhPullHardAssets: Math.round(rhPullHardAssets),
+      hardAssets: Math.round(hardAssets),
+      hardAssetsPurchase: Math.round(hardAssetsPurchase || 0),
+      hardAssetsAppreciation: Math.round(hardAssetsAppreciationAmt || 0),
+      hardAssetsCosts: Math.round(hardAssetsCosts || 0),
       venturesContrib: 0,
       venturesInterest: Math.round(venturesInterestPayment),
       constructionInterest: Math.round(constructionInterest),
@@ -899,6 +943,8 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
         rhPullQoz: -rhPullQoz,
         rhPullNonprofit: -rhPullNonprofit,
         rhPullVenture2: -rhPullVenture2,
+        rhPullHardAssets: -rhPullHardAssets,
+        hardAssetsMaint: -(hardAssetsCosts || 0),
         freeCashToQoz: -freeCashToQoz,
         freeCashToRH: freeCashToRobinhood,
         businessIncome,

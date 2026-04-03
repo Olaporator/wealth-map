@@ -104,7 +104,7 @@ export default function PlanDashboard() {
     landMortgageRate: 7.5,
     landMortgageTerm: 30,
     landPurchase1Age: 31,     // buy land after Seattle sale proceeds
-    landPurchase1Acres: 83,   // ~$500K at ~$6K/acre
+    landPurchase1Acres: 15,   // at least 15 acres
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 31,      // start developing home/infrastructure on land
     constructionLoanAmount: 500000, // single construction loan for home/infrastructure

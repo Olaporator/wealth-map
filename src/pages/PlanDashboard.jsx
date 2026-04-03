@@ -629,7 +629,7 @@ export default function PlanDashboard() {
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4 flex items-center justify-between">
         <div>
           <span className="text-sm text-white font-medium">NT Wins Additional Work</span>
-          <span className="text-xs text-gray-500 ml-2">+$5K/mo → S-Corp distributions from July 2026</span>
+          <span className="text-xs text-gray-500 ml-2">+$5K/mo → S-Corp distributions (Jul '26 through age 33)</span>
         </div>
         <button
           onClick={() => setNtNewWorkEnabled(!ntNewWorkEnabled)}

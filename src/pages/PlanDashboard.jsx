@@ -446,8 +446,14 @@ export default function PlanDashboard() {
           k401 -= payoff;
           ventures += payoff;
         }
-        // Pay down land construction debt from 401k (whatever remains)
-        // Note: land mortgage includes original purchase + construction draws
+        // Pay off construction loan portion of land mortgage from 401k
+        const constructionDebtAtPayoff = Math.max(0, landMortgage - (assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100)));
+        if (constructionDebtAtPayoff > 0 && k401 > 0) {
+          const payoff = Math.min(constructionDebtAtPayoff, k401);
+          k401 -= payoff;
+          landMortgage -= payoff;
+          landEquity += payoff; // debt paid off becomes equity
+        }
       }
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash

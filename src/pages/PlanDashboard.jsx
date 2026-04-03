@@ -509,10 +509,11 @@ export default function PlanDashboard() {
 
       // Robinhood: grows on equity + margin leverage, minus margin interest + 401k loan deployment
       const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      const marginBalance = robinhood * (assumptions.marginPct / 100);
+      const rhBase = Math.max(0, robinhood); // no margin/growth on negative balance
+      const marginBalance = rhBase * (assumptions.marginPct / 100);
       const marginRate = marginBalance >= 500000 ? assumptions.marginRateHigh : assumptions.marginRateLow;
       const marginInterest = marginBalance * (marginRate / 100);
-      const totalInvested = robinhood + marginBalance; // equity + borrowed
+      const totalInvested = rhBase + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
       robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
 

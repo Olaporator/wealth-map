@@ -109,7 +109,7 @@ export default function PlanDashboard() {
     landPurchase1Acres: 15,   // at least 15 acres
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 31,      // start developing home/infrastructure on land
-    constructionLoanAmount: 500000, // single construction loan for home/infrastructure
+    constructionLoanAmount: 400000, // single construction loan for home/infrastructure
     constructionLoanAge: 32,        // taken at age 32
     constructionLoanRate: 8.5,      // construction loan rate
     landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value

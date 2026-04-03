@@ -98,13 +98,13 @@ export default function PlanDashboard() {
     // LAND (first 20-acre purchase — Ayoola will live on this land)
     // Equipment, infrastructure, offshore, expansion DEFERRED
     // ═══════════════════════════════════════════════════════════════
-    landPricePerAcre: 6000,
+    landPurchasePrice: 400000, // total land purchase price
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
-    landPrincipalPerAcre: 300,
-    landPurchase1Age: 31,     // 50 acres after Seattle sale proceeds
-    landPurchase1Acres: 50,
-    landHousingCost: 12000,   // ~$1K/mo for basic structure on land
+    landMortgageTerm: 30,
+    landPurchase1Age: 31,     // buy land after Seattle sale proceeds
+    landPurchase1Acres: 67,   // ~$400K at ~$6K/acre
+    landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 33,      // start developing home on land
     landDevPerYear: 20000,    // $20K/yr from ventures for home development
 
@@ -227,6 +227,7 @@ export default function PlanDashboard() {
     let acres = 0;
     let landEquity = 0;
     let landMortgage = 0;
+    let homeBuild = 0; // cumulative home development spend
     let ccDebt = assumptions.ccDebtStart;
     let cash = assumptions.cashStart; // tracks actual cash reserves
     let qozFund = 0;
@@ -323,12 +324,17 @@ export default function PlanDashboard() {
       }
       // After sale: no rental income/costs (ayoolaRentalShare stays 0)
 
-      // Land mortgage payment (principal + interest) — comes from personal cash
+      // Land mortgage payment (amortized P&I) — included in living expenses
       let landMortgagePayment = 0;
+      let landPrincipalPaid = 0;
       if (landMortgage > 0) {
+        const r = (assumptions.landMortgageRate / 100) / 12;
+        const n = assumptions.landMortgageTerm * 12;
+        const loanStart = assumptions.landPurchasePrice * (1 - assumptions.landDownPaymentPct / 100);
+        const monthlyPayment = loanStart * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        landMortgagePayment = monthlyPayment * 12; // annual P&I
         const landInterest = landMortgage * (assumptions.landMortgageRate / 100);
-        const landPrincipal = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
-        landMortgagePayment = landInterest + landPrincipal;
+        landPrincipalPaid = Math.min(landMortgage, landMortgagePayment - landInterest);
       }
 
       // Business income taxes (on rental share + business income)
@@ -397,6 +403,7 @@ export default function PlanDashboard() {
       let landDevCost = 0;
       if (age >= assumptions.landDevStartAge && acres > 0) {
         landDevCost = assumptions.landDevPerYear;
+        homeBuild += landDevCost;
       }
 
       // Ventures fund: funded from all positive free cash, pays staff + land dev
@@ -432,15 +439,14 @@ export default function PlanDashboard() {
         landEquity += appreciationGain + landDevCost; // dev spend builds equity
 
         if (landMortgage > 0) {
-          const landPrincipal = Math.min(landMortgage, acres * assumptions.landPrincipalPerAcre);
-          landMortgage -= landPrincipal;
-          landEquity += landPrincipal;
+          landMortgage -= landPrincipalPaid;
+          landEquity += landPrincipalPaid;
         }
       }
 
-      // Land purchase: 50% of 401k used for down payment
+      // Land purchase: 50% of 401k used for down payment, rest from Robinhood
       if (age === assumptions.landPurchase1Age) {
-        const purchasePrice = assumptions.landPurchase1Acres * assumptions.landPricePerAcre;
+        const purchasePrice = assumptions.landPurchasePrice;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
         const from401k = Math.min(k401 * 0.5, downPayment);
         const fromRobinhood = downPayment - from401k;
@@ -468,6 +474,7 @@ export default function PlanDashboard() {
         ccDebt: Math.round(ccDebt),
         seattleEquity: Math.round(seattleEquity),
         seattleEquity50: Math.round(seattleEquity * 0.5),
+        homeBuild: Math.round(homeBuild),
         landEquity: Math.round(landEquity),
         landMortgage: Math.round(landMortgage),
         landValue: Math.round(landEquity + landMortgage),
@@ -549,7 +556,7 @@ export default function PlanDashboard() {
     return [
       { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
-      { name: 'Seattle (50%)', value: ageData.seattleEquity50, desc: DESCRIPTIONS.seattle },
+      { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
       { name: 'Land', value: ageData.landEquity, desc: DESCRIPTIONS.land },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
       { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
@@ -644,7 +651,7 @@ export default function PlanDashboard() {
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" strokeWidth={2} />
               <Area type="monotone" dataKey="robinhood" stackId="1" stroke="#F97316" fill="#F97316" name="Robinhood" />
               <Area type="monotone" dataKey="landEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
-              <Area type="monotone" dataKey="seattleEquity50" stackId="1" stroke="#10B981" fill="#10B981" name="Seattle (50%)" />
+              <Area type="monotone" dataKey="homeBuild" stackId="1" stroke="#10B981" fill="#10B981" name="Home Build" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
               <Area type="monotone" dataKey="ventures" stackId="1" stroke="#84CC16" fill="#84CC16" name="Ventures" />
@@ -821,7 +828,7 @@ export default function PlanDashboard() {
     return [
       { label: 'Robinhood', value: d.robinhood, color: 'text-orange-400' },
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
-      { label: 'Seattle (50%)', value: d.seattleEquity50, color: 'text-emerald-400' },
+      { label: 'Home Build', value: d.homeBuild, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
       { label: 'QOZ Fund', value: d.qozFund, color: 'text-cyan-400' },
       { label: 'Ventures', value: d.ventures, color: 'text-lime-400' },
@@ -941,11 +948,11 @@ export default function PlanDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
         <StatCard
           id="rental"
-          label={`Seattle 50% Equity @ ${targetAge1}`}
-          value={formatCurrency(targetData1?.seattleEquity50 || 0)}
+          label={`Home Build @ ${targetAge1}`}
+          value={formatCurrency(targetData1?.homeBuild || 0)}
           breakdown={[
             { label: 'Total Home Equity', value: targetData1?.seattleEquity || 0, color: 'text-gray-400' },
-            { label: 'Your 50% Share', value: targetData1?.seattleEquity50 || 0, color: 'text-emerald-400' },
+            { label: 'Cumulative Dev Spend', value: targetData1?.homeBuild || 0, color: 'text-emerald-400' },
             { label: 'Your Rental Share/yr', value: targetData1?.ayoolaRentalShare || 0, color: 'text-blue-400' },
             { label: 'Total Rental Net/yr', value: targetData1?.rentalNet || 0, color: 'text-gray-500' },
           ]}
@@ -993,7 +1000,7 @@ export default function PlanDashboard() {
               <TableHeader id="distributions" label="Distrib" color="text-blue-400" />
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
-              <TableHeader id="seattle" label="Seattle 50%" color="text-emerald-400" />
+              <TableHeader id="seattle" label="Home Build" color="text-emerald-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" />
               <TableHeader id="ventures" label="Ventures" color="text-lime-400" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
@@ -1018,7 +1025,7 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-blue-400">{formatCurrency(row.netDistributions)}</td>
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
-                <td className="p-2 text-right text-emerald-400">{formatCurrency(row.seattleEquity50)}</td>
+                <td className="p-2 text-right text-emerald-400">{formatCurrency(row.homeBuild)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.landEquity)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>

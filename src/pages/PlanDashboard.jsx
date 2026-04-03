@@ -343,11 +343,15 @@ export default function PlanDashboard() {
       const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + businessIncome;
       const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
+      // Ventures credit line interest — paid from personal cash (interest-only)
+      const venturesDebtBal = Math.abs(Math.min(0, ventures));
+      const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
+
       // Total personal outflows
       // Note: ayoolaContrib ($1K/mo rental) is INCLUDED in livingExpenses ($50K) — do NOT add separately
       // Note: landMortgagePayment (~$1K/mo) is INCLUDED in livingExpenses ($50K) — Ayoola lives on the land
-      // Note: staffExpenses paid from ventures fund, NOT personal cash flow
-      const totalPersonalOut = expenses + additionalTaxes;
+      // Note: staffExpenses paid from ventures credit line, interest paid from personal
+      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -418,10 +422,9 @@ export default function PlanDashboard() {
         landMortgage += landDevCost; // financed — added to mortgage, cash stays invested
       }
 
-      // Ventures fund: operations funded via business credit line (~9% rate)
-      // Staff expenses draw from credit line, not personal cash. Ventures balance can go negative (= debt).
-      const venturesCreditInterest = Math.min(0, ventures) * (assumptions.venturesCreditRate / 100); // interest on negative balance
-      ventures = ventures * (1 + (ventures > 0 ? assumptions.venturesReturn : 0) / 100) + venturesCreditInterest - staffExpenses;
+      // Ventures: credit line draws for staff. Interest paid from personal (above).
+      // Debt grows by new draws only — no compounding (interest-only from personal cash).
+      ventures = ventures - staffExpenses;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
@@ -499,7 +502,8 @@ export default function PlanDashboard() {
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
         qozFund: Math.round(qozFund),
         ventures: Math.round(ventures),
-        venturesContrib: 0, // ventures funded via credit line now
+        venturesContrib: 0,
+        venturesInterest: Math.round(venturesInterestPayment),
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
         freeCashToQoz: Math.round(freeCashToQoz),

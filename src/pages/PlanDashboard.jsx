@@ -444,14 +444,11 @@ export default function PlanDashboard() {
         }
       }
 
-      // Land purchase: 50% of 401k used for down payment, rest from Robinhood
+      // Land purchase: down payment from Robinhood (avoids 401k early withdrawal penalty)
       if (age === assumptions.landPurchase1Age) {
         const purchasePrice = assumptions.landPurchasePrice;
         const downPayment = purchasePrice * (assumptions.landDownPaymentPct / 100);
-        const from401k = Math.min(k401 * 0.5, downPayment);
-        const fromRobinhood = downPayment - from401k;
-        k401 -= from401k;
-        robinhood -= fromRobinhood;
+        robinhood -= downPayment;
         landEquity += downPayment;
         landMortgage += purchasePrice - downPayment;
         acres += assumptions.landPurchase1Acres;

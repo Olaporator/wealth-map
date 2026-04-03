@@ -385,7 +385,7 @@ export default function PlanDashboard() {
         const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
         const rhGrowth = leveragedBase * (rhReturn / 100);
         // 1% personal free cash pull from day 1
-        rhPullFreeCash = rhGrowth * 0.01;
+        rhPullFreeCash = rhGrowth * 0.05;
         if (age >= assumptions.rhPullStartAge) {
           rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
           rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);

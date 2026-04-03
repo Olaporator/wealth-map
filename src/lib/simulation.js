@@ -304,7 +304,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
 
     // NT additional work toggle: extra revenue → all to distributions
     let ntNewWorkIncome = 0;
-    if (ntNewWorkEnabled) {
+    if (ntNewWorkEnabled && age <= 33) {
       if (age === assumptions.currentAge) {
         ntNewWorkIncome = assumptions.ntNewWorkMonthly * 6; // Jul-Dec partial year
       } else {

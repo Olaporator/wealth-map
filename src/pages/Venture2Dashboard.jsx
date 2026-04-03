@@ -396,6 +396,14 @@ export default function Venture2Dashboard() {
         <p className="text-gray-500 text-xs mt-4 italic">
           Ops hub reduces V1 overhead from 3% to 1% and nonprofit program overhead by 50% — centralizing admin, accounting, HR, and tax prep across all entities. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
         </p>
+
+        {/* Future Expansion Note */}
+        <div className="mt-4 bg-emerald-950/30 border border-emerald-800/40 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-emerald-400 mb-2">Future: Family Cooperative Fund</h4>
+          <p className="text-gray-400 text-xs leading-relaxed">
+            The ops hub is designed to expand into a family cooperative structure. Family members can contribute capital to employ additional Nigerians for work that directly benefits them — then participate in the same fund and reap the same benefits (investment returns, tax advantages, operational leverage). Each contributor gets access to the full infrastructure: back-office, AI tooling, and the venture portfolio. Effectively a generational wealth on-ramp run through the V2 subsidiary.
+          </p>
+        </div>
       </div>
     </div>
   );

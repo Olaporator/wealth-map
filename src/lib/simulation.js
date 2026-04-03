@@ -179,6 +179,11 @@ export const DEFAULT_ASSUMPTIONS = {
   opsHubEmployeeCost: 7000,      // $7K/yr fully loaded per Nigerian employee
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
+  // FUTURE EXPANSION: Family members can contribute capital to the ops hub to
+  // employ additional Nigerians for work that benefits them directly. Contributors
+  // participate in the fund structure and reap the same benefits (investment returns,
+  // tax advantages, operational leverage) — effectively a family cooperative fund
+  // operating through the V2 subsidiary. Model this when family contributions begin.
 
   // ═══════════════════════════════════════════════════════════════
   // HARD ASSETS — Locked storage for appreciation (gold, silver, metals,

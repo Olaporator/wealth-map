@@ -157,16 +157,16 @@ export default function PlanDashboard() {
     nigeriaAppreciation: 5,         // annual appreciation
 
     // ═══════════════════════════════════════════════════════════════
-    // CITY RENTAL PROPERTY (age 40 — 1 unit, $300K down from RH)
+    // CITY RENTAL PROPERTIES (age 40 — 2x $1M units, V2-owned, Airbnb/rental @ 90%)
     // ═══════════════════════════════════════════════════════════════
     rentalPurchaseAge: 40,
-    rentalPurchasePrice: 500000,     // total purchase price (1 city unit)
-    rentalDownPayment: 300000,       // $300K cash from RH (60% down)
+    rentalPurchasePrice: 2000000,    // 2x $1M properties
+    rentalDownPayment: 500000,       // $500K from V2 balance (25% down)
     rentalMortgageRate: 7.0,
     rentalMortgageTerm: 30,
     rentalPropertyAppreciation: 4,   // annual property appreciation
-    rentalGrossRentYear1: 36000,     // ~$3K/mo gross rent across units
-    rentalOccupancy: 75,             // 75% occupancy rate
+    rentalGrossRentYear1: 120000,    // ~$5K/mo per unit × 2 = $10K/mo ($120K/yr gross)
+    rentalOccupancy: 90,             // 90% occupancy (Airbnb + long-term mix)
     rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
     rentalRentGrowth: 3,             // annual rent growth
 

@@ -114,6 +114,8 @@ export default function PlanDashboard() {
     venturesLocAmount: 250000,      // single ventures business LOC
     venturesLocAge: 32,             // taken at age 32
     debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
+    familyFundAge: 61,              // deploy 401k to family legacy fund at 61
+    familyFundPct: 80,              // 80% of 401k → children & family future
 
     // ═══════════════════════════════════════════════════════════════
     // VENTURE 2 — RH-funded operating business (equipment/services)
@@ -521,6 +523,18 @@ export default function PlanDashboard() {
         }
       }
 
+      // ═══════════════════════════════════════════════════════════
+      // FAMILY LEGACY: Deploy majority of 401k to children & family at 61
+      // Penalty-free after 59.5 — taxed as ordinary income on withdrawal
+      // ═══════════════════════════════════════════════════════════
+      let familyFundDeploy = 0;
+      if (age === assumptions.familyFundAge && k401 > 0) {
+        const gross = k401 * (assumptions.familyFundPct / 100);
+        const tax = gross * 0.30; // ~30% ordinary income tax on 401k withdrawal
+        familyFundDeploy = gross - tax; // net amount to family
+        k401 -= gross;
+      }
+
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
 
@@ -600,6 +614,7 @@ export default function PlanDashboard() {
         venture2: Math.round(venture2),
         venture2Loc: Math.round(venture2Loc),
         venture2SelfIncome: Math.round(v2SelfIncome),
+        familyFundDeploy: Math.round(familyFundDeploy),
         rhPullVenture2: Math.round(rhPullVenture2),
         venturesContrib: 0,
         venturesInterest: Math.round(venturesInterestPayment),
@@ -732,6 +747,7 @@ export default function PlanDashboard() {
     { age: 40, label: '100 Acres', icon: '🌾' },
     { age: 45, label: 'Coast', icon: '⛵' },
     { age: 60, label: 'Retire', icon: '👑' },
+    { age: 61, label: 'Family Legacy', icon: '👨‍👧‍👦' },
   ];
 
   const chartButtons = [

@@ -81,6 +81,7 @@ export default function PlanDashboard() {
     marginRateHigh: 4.5,      // margin interest rate at $500K+
     iraReturn: 30,            // Robinhood IRA — same fund strategy
     venturesReturn: 1,        // ventures fund — conservative
+    venturesCreditRate: 9,    // business line of credit rate for ventures operations
     qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
     qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
     qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
@@ -372,11 +373,11 @@ export default function PlanDashboard() {
       // Total personal inflows (includes Robinhood pull for expenses)
       const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + businessIncome + rhPullPersonal;
 
-      // Free cash = what's left after everything → all positive free cash to ventures
+      // Free cash → Robinhood (most tax-effective — keep cash compounding at 15-30%)
       const grossFreeCash = totalPersonalIn - totalPersonalOut;
-      const venturesContrib = Math.max(0, grossFreeCash);
-      const freeCashToQoz = 0; // QOZ funded only by RH pulls now
-      const freeCash = grossFreeCash - venturesContrib; // effectively 0 when positive
+      const freeCashToRobinhood = Math.max(0, grossFreeCash);
+      const freeCashToQoz = 0;
+      const freeCash = grossFreeCash - freeCashToRobinhood; // effectively 0 when positive
 
       // Track cumulative cash position
       cash += freeCash;
@@ -407,7 +408,7 @@ export default function PlanDashboard() {
       const marginInterest = marginBalance * (marginRate / 100);
       const totalInvested = robinhood + marginBalance; // equity + borrowed
       const grossGrowth = totalInvested * (rhReturn / 100);
-      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy;
+      robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy + freeCashToRobinhood;
 
       // Land development: $20K/yr financed via construction loan (not cash), builds 1.5x equity
       let landDevCost = 0;
@@ -417,8 +418,10 @@ export default function PlanDashboard() {
         landMortgage += landDevCost; // financed — added to mortgage, cash stays invested
       }
 
-      // Ventures fund: funded from all positive free cash, pays staff (no longer pays dev)
-      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
+      // Ventures fund: operations funded via business credit line (~9% rate)
+      // Staff expenses draw from credit line, not personal cash. Ventures balance can go negative (= debt).
+      const venturesCreditInterest = Math.min(0, ventures) * (assumptions.venturesCreditRate / 100); // interest on negative balance
+      ventures = ventures * (1 + (ventures > 0 ? assumptions.venturesReturn : 0) / 100) + venturesCreditInterest - staffExpenses;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;
@@ -496,7 +499,7 @@ export default function PlanDashboard() {
         ayoolaRentalShare: Math.round(ayoolaRentalShare),
         qozFund: Math.round(qozFund),
         ventures: Math.round(ventures),
-        venturesContrib: Math.round(venturesContrib),
+        venturesContrib: 0, // ventures funded via credit line now
         rhPullPersonal: Math.round(rhPullPersonal),
         rhPullQoz: Math.round(rhPullQoz),
         freeCashToQoz: Math.round(freeCashToQoz),
@@ -540,7 +543,7 @@ export default function PlanDashboard() {
           rhPullPersonal,
           rhPullQoz: -rhPullQoz,
           freeCashToQoz: -freeCashToQoz,
-          venturesContrib: -venturesContrib,
+          freeCashToRH: freeCashToRobinhood,
           businessIncome,
           expenses: -expenses,
           staffExpenses: -staffExpenses,
@@ -879,8 +882,8 @@ export default function PlanDashboard() {
     if (src.freeCashToQoz < 0) {
       items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });
     }
-    if (src.venturesContrib < 0) {
-      items.push({ label: `Free Cash → Ventures`, value: src.venturesContrib, color: 'text-lime-400' });
+    if (src.freeCashToRH > 0) {
+      items.push({ label: `Free Cash → Robinhood`, value: src.freeCashToRH, color: 'text-blue-400' });
     }
     return items;
   };

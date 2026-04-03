@@ -121,7 +121,7 @@ export default function PlanDashboard() {
     // OFFSHORE LAND — Belize/Costa Rica (cash purchase from RH)
     // ═══════════════════════════════════════════════════════════════
     offshorePurchaseAge: 33,
-    offshorePurchasePrice: 100000,  // $100K cash, 20 acres
+    offshorePurchasePrice: 200000,  // $200K cash, 20 acres
     offshoreMaintenance: 20000,     // $20K/yr maintenance + improvements until 40
     offshoreMaintenanceReduced: 10000, // $10K/yr after 40
     offshoreMaintenanceDropAge: 40,
@@ -136,14 +136,18 @@ export default function PlanDashboard() {
     nigeriaAppreciation: 5,         // annual appreciation
 
     // ═══════════════════════════════════════════════════════════════
-    // US LAND PURCHASE 2 (age 40 — $2.5M property, $500K down from RH)
+    // CITY RENTAL PROPERTIES (age 40 — 1-2 rentable units, $500K down from RH)
     // ═══════════════════════════════════════════════════════════════
-    land2PurchaseAge: 40,
-    land2PurchasePrice: 2500000,
-    land2DownPayment: 500000,       // $500K cash from RH
-    land2MortgageRate: 7.0,
-    land2MortgageTerm: 30,
-    land2Appreciation: 4,
+    rentalPurchaseAge: 40,
+    rentalPurchasePrice: 500000,     // total purchase price (1-2 city units)
+    rentalDownPayment: 100000,       // $100K cash from RH (20% down)
+    rentalMortgageRate: 7.0,
+    rentalMortgageTerm: 30,
+    rentalPropertyAppreciation: 4,   // annual property appreciation
+    rentalGrossRentYear1: 36000,     // ~$3K/mo gross rent across units
+    rentalOccupancy: 75,             // 75% occupancy rate
+    rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
+    rentalRentGrowth: 3,             // annual rent growth
 
     // ═══════════════════════════════════════════════════════════════
     // VENTURE 2 — RH-funded operating business (equipment/services)
@@ -287,8 +291,8 @@ export default function PlanDashboard() {
     let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
     let offshoreEquity = 0;    // Belize/Costa Rica land equity
     let nigeriaEquity = 0;     // Nigeria land equity
-    let land2Equity = 0;       // US land purchase 2 equity
-    let land2Mortgage = 0;     // US land 2 mortgage balance
+    let rentalEquity = 0;      // City rental properties equity
+    let rentalMortgage = 0;    // City rental mortgage balance
 
     for (let age = assumptions.currentAge; age <= 85; age++) {
       // ═══════════════════════════════════════════════════════════
@@ -417,19 +421,28 @@ export default function PlanDashboard() {
         nigeriaMaint = assumptions.nigeriaMaintenance;
       }
 
-      // US Land 2 mortgage payment (from personal cash after age 40)
-      let land2Payment = 0;
-      if (land2Mortgage > 0) {
-        const l2r = (assumptions.land2MortgageRate / 100) / 12;
-        const l2n = assumptions.land2MortgageTerm * 12;
-        const l2Loan = assumptions.land2PurchasePrice - assumptions.land2DownPayment;
-        land2Payment = l2Loan * (l2r * Math.pow(1 + l2r, l2n)) / (Math.pow(1 + l2r, l2n) - 1) * 12;
+      // City rental properties: income - expenses - mortgage = net cash flow
+      let rentalNetIncome = 0;
+      let rentalMortgagePayment = 0;
+      if (age >= assumptions.rentalPurchaseAge && (rentalEquity > 0 || rentalMortgage > 0)) {
+        const yearsOwned = age - assumptions.rentalPurchaseAge;
+        const grossRent = assumptions.rentalGrossRentYear1 * Math.pow(1 + assumptions.rentalRentGrowth / 100, yearsOwned);
+        const effectiveRent = grossRent * (assumptions.rentalOccupancy / 100);
+        const opExpenses = grossRent * (assumptions.rentalExpenseRate / 100);
+        if (rentalMortgage > 0) {
+          const rr = (assumptions.rentalMortgageRate / 100) / 12;
+          const rn = assumptions.rentalMortgageTerm * 12;
+          const rLoan = assumptions.rentalPurchasePrice - assumptions.rentalDownPayment;
+          rentalMortgagePayment = rLoan * (rr * Math.pow(1 + rr, rn)) / (Math.pow(1 + rr, rn) - 1) * 12;
+        }
+        rentalNetIncome = effectiveRent - opExpenses - rentalMortgagePayment;
       }
 
       // Total personal outflows
       // Note: landMortgagePayment (P&I on original purchase) is INCLUDED in livingExpenses ($50K)
       // Construction loan interest + ventures LOC interest paid separately from personal
-      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest + offshoreMaint + nigeriaMaint + land2Payment;
+      // Rental net income offsets expenses (negative = costs money, positive = income)
+      const totalPersonalOut = expenses + additionalTaxes + venturesInterestPayment + constructionInterest + offshoreMaint + nigeriaMaint - rentalNetIncome;
 
       // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
       let rhPullPersonal = 0;
@@ -654,26 +667,26 @@ export default function PlanDashboard() {
         nigeriaEquity = nigeriaEquity * (1 + assumptions.nigeriaAppreciation / 100);
       }
 
-      // US Land 2: $2.5M property, $500K down from RH at 40
-      if (age === assumptions.land2PurchaseAge) {
-        robinhood -= assumptions.land2DownPayment;
-        land2Equity += assumptions.land2DownPayment;
-        land2Mortgage += assumptions.land2PurchasePrice - assumptions.land2DownPayment;
+      // City rental properties: $500K, $100K down from RH at 40
+      if (age === assumptions.rentalPurchaseAge) {
+        robinhood -= assumptions.rentalDownPayment;
+        rentalEquity += assumptions.rentalDownPayment;
+        rentalMortgage += assumptions.rentalPurchasePrice - assumptions.rentalDownPayment;
       }
-      if (land2Equity > 0 || land2Mortgage > 0) {
-        const l2Total = land2Equity + land2Mortgage;
-        const l2AppGain = l2Total * (assumptions.land2Appreciation / 100);
-        land2Equity += l2AppGain;
+      if (rentalEquity > 0 || rentalMortgage > 0) {
+        const rTotal = rentalEquity + rentalMortgage;
+        const rAppGain = rTotal * (assumptions.rentalPropertyAppreciation / 100);
+        rentalEquity += rAppGain;
         // Principal paydown (amortized)
-        if (land2Mortgage > 0) {
-          const l2r = (assumptions.land2MortgageRate / 100) / 12;
-          const l2n = assumptions.land2MortgageTerm * 12;
-          const l2Loan = assumptions.land2PurchasePrice - assumptions.land2DownPayment;
-          const l2Monthly = l2Loan * (l2r * Math.pow(1 + l2r, l2n)) / (Math.pow(1 + l2r, l2n) - 1);
-          const l2Interest = land2Mortgage * (assumptions.land2MortgageRate / 100);
-          const l2Principal = Math.min(land2Mortgage, l2Monthly * 12 - l2Interest);
-          land2Mortgage -= l2Principal;
-          land2Equity += l2Principal;
+        if (rentalMortgage > 0) {
+          const rr = (assumptions.rentalMortgageRate / 100) / 12;
+          const rn = assumptions.rentalMortgageTerm * 12;
+          const rLoan = assumptions.rentalPurchasePrice - assumptions.rentalDownPayment;
+          const rMonthly = rLoan * (rr * Math.pow(1 + rr, rn)) / (Math.pow(1 + rr, rn) - 1);
+          const rInterest = rentalMortgage * (assumptions.rentalMortgageRate / 100);
+          const rPrincipal = Math.min(rentalMortgage, rMonthly * 12 - rInterest);
+          rentalMortgage -= rPrincipal;
+          rentalEquity += rPrincipal;
         }
       }
 
@@ -682,7 +695,7 @@ export default function PlanDashboard() {
       // ═══════════════════════════════════════════════════════════
       // landEquity already = net equity (down payment + appreciation + principal paid)
       // landEquity + landMortgage = total property value, so don't subtract mortgage again
-      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + land2Equity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
+      const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc);
 
       const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
       const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -700,10 +713,11 @@ export default function PlanDashboard() {
         landEquity: Math.round(landEquity),
         offshoreEquity: Math.round(offshoreEquity),
         nigeriaEquity: Math.round(nigeriaEquity),
-        land2Equity: Math.round(land2Equity),
-        totalLandEquity: Math.round(landEquity + offshoreEquity + nigeriaEquity + land2Equity),
+        rentalEquity: Math.round(rentalEquity),
+        rentalNetIncome: Math.round(rentalNetIncome),
+        totalLandEquity: Math.round(landEquity + offshoreEquity + nigeriaEquity + rentalEquity),
         landMortgage: Math.round(landMortgage),
-        land2Mortgage: Math.round(land2Mortgage),
+        rentalMortgage: Math.round(rentalMortgage),
         landValue: Math.round(landEquity + landMortgage),
         acres,
         rentalNet: Math.round(rentalNet),
@@ -792,7 +806,7 @@ export default function PlanDashboard() {
       { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
-      { name: 'Land', value: ageData.totalLandEquity, desc: 'All land equity: US primary + offshore (Belize/CR) + Nigeria + US Land 2' },
+      { name: 'Land', value: ageData.totalLandEquity, desc: 'All property equity: US primary + offshore (Belize/CR) + Nigeria + city rentals' },
       { name: 'Venture 2', value: ageData.venture2, desc: 'RH-funded operating business — 10% of RH gains + matching self-income, revolving LOC' },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
       { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
@@ -843,7 +857,7 @@ export default function PlanDashboard() {
     { age: 32, label: '15+ Acres + Build', icon: '🌱' },
     { age: 33, label: 'Offshore Land', icon: '🌴' },
     { age: 35, label: 'Nigeria Land', icon: '🌍' },
-    { age: 40, label: 'US Land 2', icon: '🌾' },
+    { age: 40, label: 'City Rentals', icon: '🏘️' },
     { age: 45, label: 'Coast', icon: '⛵' },
     { age: 60, label: 'Retire', icon: '👑' },
     { age: 61, label: 'Family Legacy', icon: '👨‍👧‍👦' },

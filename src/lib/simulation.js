@@ -162,11 +162,23 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
-  // V2 Staffing
+  // V2 Staffing (US-based operations staff)
   v2StaffStartAge: 33,           // first hire 1 year after V2 starts
   v2StaffInitial: 1,             // start with 1 employee
   v2StaffGrowthInterval: 3,      // add 1 employee every 3 years
   v2EmployeeCost: 50000,         // $50K fully loaded per employee
+
+  // ═══════════════════════════════════════════════════════════════
+  // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
+  // Handles: HR, Accounting, Taxes, Logistics, DevOps across all orgs
+  // AI-assisted operations + minimal US CPA fee to officialize
+  // ═══════════════════════════════════════════════════════════════
+  opsHubStartAge: 33,            // ops hub launches at 33
+  opsHubInitialStaff: 5,         // 5 employees from day 1 (HR, Accounting, Tax, Logistics, DevOps)
+  opsHubGrowthInterval: 2,       // add 1 employee every 2 years
+  opsHubEmployeeCost: 7000,      // $7K/yr fully loaded per Nigerian employee
+  opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
+  opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
 
   // ═══════════════════════════════════════════════════════════════
   // HARD ASSETS — Locked storage for appreciation (gold, silver, metals,
@@ -288,6 +300,8 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
   let v1Employees = 0;        // Venture 1 headcount
   let v2Employees = 0;        // Venture 2 headcount
   let npEmployees = 0;        // Nonprofit headcount
+  let opsHubEmployees = 0;    // Nigeria ops hub headcount
+  let opsHubCost = 0;         // Annual ops hub cost
   let nonprofit = 0;          // Nonprofit reserves (invested)
   let nonprofitLoc = 0;       // Nonprofit LOC balance
   let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
@@ -607,7 +621,9 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       v1Employees = 0;
     }
     const v1StaffCost = v1Employees * assumptions.v1EmployeeCost;
-    const venturesOpsOverhead = Math.max(0, ventures) * 0.03; // 3% non-staff overhead (insurance, tools, etc)
+    // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)
+    const v1OverheadRate = age >= assumptions.opsHubStartAge ? 0.01 : 0.03; // 3% → 1% with ops hub
+    const venturesOpsOverhead = Math.max(0, ventures) * v1OverheadRate;
     const venturesOpsLoss = v1StaffCost + venturesOpsOverhead;
     const venturesInvestGain = Math.max(0, ventures) * (assumptions.venturesReturn / 100); // 12% on invested cash
     const venturesNetGain = venturesInvestGain - venturesOpsLoss;
@@ -662,12 +678,24 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       }
       const v2StaffCost = v2Employees * assumptions.v2EmployeeCost;
 
+      // Nigeria Ops Hub (V2 subsidiary): centralized back-office for all entities
+      // HR, Accounting, Taxes, Logistics, DevOps — AI-assisted + minimal US CPA
+      if (age >= assumptions.opsHubStartAge) {
+        const hubYears = age - assumptions.opsHubStartAge;
+        opsHubEmployees = assumptions.opsHubInitialStaff + Math.floor(hubYears / assumptions.opsHubGrowthInterval);
+      } else {
+        opsHubEmployees = 0;
+      }
+      opsHubCost = opsHubEmployees > 0
+        ? (opsHubEmployees * assumptions.opsHubEmployeeCost) + assumptions.opsHubCpaFee
+        : 0;
+
       // Venture 2 invested cash returns (12% on equity, same strategy as RH)
       const v2InvestGain = Math.max(0, venture2) * (assumptions.venture2InvestReturn / 100);
 
-      // Update venture 2: new LOC draw + own income + investment gains - staff costs - debt service
+      // Update venture 2: new LOC draw + own income + investment gains - staff - ops hub
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
-      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost;
+      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost - opsHubCost;
       // Investment profits + self income pay down LOC
       if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
         const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown
@@ -706,7 +734,11 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       const npStaffCost = npEmployees * assumptions.npEmployeeCost;
 
       // Ops costs: staff + overhead funded via LOC (programs, admin)
-      const npOverhead = Math.max(0, nonprofit) * (assumptions.nonprofitOpsLossPct / 100);
+      // Overhead reduced once ops hub handles admin/accounting centrally
+      const npOverheadRate = age >= assumptions.opsHubStartAge
+        ? assumptions.nonprofitOpsLossPct / 100 * 0.5  // halved with ops hub
+        : assumptions.nonprofitOpsLossPct / 100;
+      const npOverhead = Math.max(0, nonprofit) * npOverheadRate;
       const npOpsCost = npStaffCost + npOverhead;
       nonprofitLoc += npOpsCost; // ops go on credit
       const npLocInterest = nonprofitLoc * (assumptions.nonprofitLocRate / 100);
@@ -933,6 +965,8 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       v1Employees,
       v2Employees,
       npEmployees,
+      opsHubEmployees,
+      opsHubCost: Math.round(opsHubCost),
       venture3Employees,
       v3Seed: Math.round(v3Seed),
       v3V2Contrib: Math.round(v3V2Contrib),

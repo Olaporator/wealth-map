@@ -37,6 +37,8 @@ export default function Venture2Dashboard() {
 
       // Employees from simulation data
       const employees = year.v2Employees || 0;
+      const opsHubEmployees = year.opsHubEmployees || 0;
+      const opsHubCost = year.opsHubCost || 0;
 
       return {
         age,
@@ -50,6 +52,8 @@ export default function Venture2Dashboard() {
         locPaydown: Math.round(locPaydown),
         rentalNetIncome: Math.round(rentalNetIncome),
         employees,
+        opsHubEmployees,
+        opsHubCost,
       };
     });
   }, [data, assumptions]);
@@ -297,6 +301,100 @@ export default function Venture2Dashboard() {
         </div>
         <p className="text-gray-400 text-sm mt-4 italic">
           Shared staff with Venture 1 and Homestead — leverages economies of scale. Goal: build operating business with rental real estate as collateral and cash flow stabilizer.
+        </p>
+      </div>
+
+      {/* Nigeria Ops Hub — V2 Subsidiary */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">🇳🇬</span>
+          <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V2 Subsidiary)</span></h2>
+        </div>
+        <p className="text-gray-300 text-sm mb-4">
+          Centralized back-office managing all entities from Nigeria at $7K/yr per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
+        </p>
+
+        {/* Ops Hub Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Current Staff</p>
+            <p className="text-2xl font-bold text-green-400">{currentYear?.opsHubEmployees || 0}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Annual Cost</p>
+            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(currentYear?.opsHubCost || 0)}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Cost per Employee</p>
+            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(assumptions.opsHubEmployeeCost)}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Starts</p>
+            <p className="text-2xl font-bold">Age {assumptions.opsHubStartAge}</p>
+          </div>
+        </div>
+
+        {/* Departments */}
+        <h3 className="font-semibold text-gray-300 mb-3">Departments Covered</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">👥</span>
+            <p className="text-xs text-gray-300 font-medium">HR</p>
+            <p className="text-[10px] text-gray-500">All orgs hiring, onboarding, compliance</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">📊</span>
+            <p className="text-xs text-gray-300 font-medium">Accounting</p>
+            <p className="text-[10px] text-gray-500">Books, payroll, reconciliation across entities</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">🏛️</span>
+            <p className="text-xs text-gray-300 font-medium">Taxes</p>
+            <p className="text-[10px] text-gray-500">AI-assisted prep, US CPA officializes</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">🚛</span>
+            <p className="text-xs text-gray-300 font-medium">Logistics</p>
+            <p className="text-[10px] text-gray-500">Supply chain, procurement, shipping</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">⚙️</span>
+            <p className="text-xs text-gray-300 font-medium">DevOps</p>
+            <p className="text-[10px] text-gray-500">IT infra, automation, AI tooling</p>
+          </div>
+        </div>
+
+        {/* Ops Hub Growth Table */}
+        {chartData.length > 0 && (
+          <div className="overflow-x-auto">
+            <h3 className="font-semibold text-gray-300 mb-3">Hub Growth Projection</h3>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left px-3 py-2 text-gray-400">Age</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Hub Staff</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Hub Cost</th>
+                  <th className="text-right px-3 py-2 text-gray-400">V2 US Staff</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Total Headcount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.filter(r => r.opsHubEmployees > 0).map((row, idx) => (
+                  <tr key={idx} className="border-b border-gray-800/50 hover:bg-gray-800 transition-colors">
+                    <td className="text-left px-3 py-2 font-semibold">{row.age}</td>
+                    <td className="text-right px-3 py-2 text-green-400">{row.opsHubEmployees}</td>
+                    <td className="text-right px-3 py-2 text-yellow-400">{formatCurrency(row.opsHubCost)}</td>
+                    <td className="text-right px-3 py-2 text-pink-400">{row.employees}</td>
+                    <td className="text-right px-3 py-2 text-white font-semibold">{row.opsHubEmployees + row.employees}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <p className="text-gray-500 text-xs mt-4 italic">
+          Ops hub reduces V1 overhead from 3% to 1% and nonprofit program overhead by 50% — centralizing admin, accounting, HR, and tax prep across all entities. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
         </p>
       </div>
     </div>

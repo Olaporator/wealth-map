@@ -98,12 +98,12 @@ export default function PlanDashboard() {
     // LAND (first 20-acre purchase — Ayoola will live on this land)
     // Equipment, infrastructure, offshore, expansion DEFERRED
     // ═══════════════════════════════════════════════════════════════
-    landPurchasePrice: 400000, // total land purchase price
+    landPurchasePrice: 500000, // total land purchase price
     landDownPaymentPct: 20,
     landMortgageRate: 7.5,
     landMortgageTerm: 30,
     landPurchase1Age: 31,     // buy land after Seattle sale proceeds
-    landPurchase1Acres: 67,   // ~$400K at ~$6K/acre
+    landPurchase1Acres: 83,   // ~$500K at ~$6K/acre
     landHousingCost: 12000,   // ~$1K/mo basic living costs on land
     landDevStartAge: 33,      // start developing home on land
     landDevPerYear: 20000,    // $20K/yr from ventures for home development

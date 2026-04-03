@@ -116,7 +116,7 @@ export default function PlanDashboard() {
     farmIncomeStartAge: 35,         // farm produces sellable income by 35
     farmIncomeAnnual: 50000,        // $50K/yr from produce/livestock sales
     farmIncomeGrowth: 3,            // 3% annual growth in farm income
-    venturesLocAmount: 250000,      // single ventures business LOC
+    venturesLocAmount: 200000,      // single ventures business LOC
     venturesLocAge: 32,             // taken at age 32
     debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
     familyFundStartAge: 60,          // start deploying 401k to family legacy

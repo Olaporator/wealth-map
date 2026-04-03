@@ -130,12 +130,12 @@ export const DEFAULT_ASSUMPTIONS = {
   // CITY RENTAL PROPERTIES (age 40 — 2-3 units totaling $3M, V2-owned, Airbnb/rental @ 90%)
   // ═══════════════════════════════════════════════════════════════
   rentalPurchaseAge: 40,
-  rentalPurchasePrice: 3000000,    // 2-3 properties totaling $3M
-  rentalDownPayment: 750000,       // $750K from V2 balance (25% down)
+  rentalPurchasePrice: 2500000,    // 2-3 properties totaling $2.5M
+  rentalDownPayment: 625000,       // $625K from V2 balance (25% down)
   rentalMortgageRate: 7.0,
   rentalMortgageTerm: 30,
   rentalPropertyAppreciation: 4,   // annual property appreciation
-  rentalGrossRentYear1: 180000,    // ~$5K/mo avg per unit × 3 = $15K/mo ($180K/yr gross)
+  rentalGrossRentYear1: 150000,    // ~$5K/mo avg per unit × 2-3 = $12.5K/mo ($150K/yr gross)
   rentalOccupancy: 90,             // 90% occupancy (Airbnb + long-term mix)
   rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
   rentalRentGrowth: 3,             // annual rent growth

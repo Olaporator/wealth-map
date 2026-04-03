@@ -409,15 +409,16 @@ export default function PlanDashboard() {
       const grossGrowth = totalInvested * (rhReturn / 100);
       robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz + k401LoanDeploy;
 
-      // Land development: $20K/yr from ventures starting at 33 (builds equity)
+      // Land development: $20K/yr financed via construction loan (not cash), builds 1.5x equity
       let landDevCost = 0;
       if (age >= assumptions.landDevStartAge && acres > 0) {
         landDevCost = assumptions.landDevPerYear;
         homeBuild += landDevCost;
+        landMortgage += landDevCost; // financed — added to mortgage, cash stays invested
       }
 
-      // Ventures fund: funded from all positive free cash, pays staff + land dev
-      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses - landDevCost;
+      // Ventures fund: funded from all positive free cash, pays staff (no longer pays dev)
+      ventures = ventures * (1 + assumptions.venturesReturn / 100) + venturesContrib - staffExpenses;
 
       // QOZ Fund — ongoing contributions only (no lump sum), appreciation + RH pulls + free cash
       qozFund = qozFund * (1 + assumptions.qozReturn / 100) + rhPullQoz + freeCashToQoz;

@@ -79,7 +79,7 @@ export const DEFAULT_ASSUMPTIONS = {
 
   // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
   rhPullStartAge: 33,       // start pulling from Robinhood growth
-  rhPullPersonalPct: 20,    // 20% of Robinhood gains → personal (covers expenses)
+  rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal ($1K/mo expenses need minimal pull)
   rhPullQozPct: 20,         // 20% of Robinhood gains → QOZ fund (ongoing contributions)
   rhPullQozStartAge: 31,    // QOZ contributions start at 31
   freeCashToQozPct: 66,     // 66% of positive free cash → QOZ fund
@@ -234,7 +234,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   // PERSONAL EXPENSES (post-divorce, all-in including land housing)
   // ═══════════════════════════════════════════════════════════════
-  livingExpenses: 50000,    // $50K/yr all-in (housing on land, bills, utilities, food, travel)
+  livingExpenses: 12000,    // $1K/mo = $12K/yr personal expenses starting May 2026
+  livingExpensesPriorMonthly: 4167, // ~$50K/yr ÷ 12 for Jan-Apr 2026 before drop
   // Note: Seattle rental contrib ($12K/yr) is SEPARATE — tracked in rental section
   // Note: 401k ($18.4K) and taxes ($12.2K) deducted before take-home, NOT here
 
@@ -375,7 +376,12 @@ export function runSimulation(assumptions) {
     // ═══════════════════════════════════════════════════════════
     // STEP 4: PERSONAL CASH FLOW (take-home vs expenses)
     // ═══════════════════════════════════════════════════════════
-    let expenses = assumptions.livingExpenses; // $50K all-in
+    // Personal expenses: $1K/mo from May 2026 onward
+    // First year prorated: Jan-Apr at old rate ($4,167/mo) + May-Dec at $1K/mo
+    let expenses = assumptions.livingExpenses; // $12K/yr
+    if (age === assumptions.currentAge) {
+      expenses = (assumptions.livingExpensesPriorMonthly * 4) + (1000 * 8); // Jan-Apr old + May-Dec new
+    }
 
     // Seattle rental contribution (separate from living expenses)
     let rentalNet = 0;

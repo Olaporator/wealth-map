@@ -35,12 +35,10 @@ export const DEFAULT_ASSUMPTIONS = {
   // Total NT revenue - W2 gross - employer payroll taxes = S-Corp distributions
   // Distributions taxed at personal rate, then flow to Robinhood
   // ═══════════════════════════════════════════════════════════════
-  ntTotalRevenue: 207000,   // total NimbusTech consulting revenue/yr
+  ntTotalRevenue: 287000,   // total NimbusTech consulting revenue/yr ($207K base + $80K additional work secured Apr 2026)
+  ntAdditionalWork: 80000,  // $80K/yr additional work (secured, starts Apr 13 2026, indefinite)
+  ntAdditionalWorkStartMonth: 4, // April 2026
   distributionTaxRate: 24,  // federal + state on S-Corp distributions (pass-through)
-
-  // NT Additional Work (toggle): extra $5K/mo revenue → distributions
-  ntNewWorkMonthly: 5000,
-  ntNewWorkStartMonth: 7,   // July 2026
 
   // ═══════════════════════════════════════════════════════════════
   // RETURNS & APPRECIATION
@@ -249,14 +247,14 @@ export const DEFAULT_ASSUMPTIONS = {
   // Phase 1-2: NT consulting at capacity
   // Phase 3+: transitioning to land business
   // ═══════════════════════════════════════════════════════════════
-  // Phase 1 (31-35): NT at full capacity
-  phase1NTRevenue: 207000,
+  // Phase 1 (31-35): NT at full capacity + additional work ($207K + $80K)
+  phase1NTRevenue: 287000,
 
-  // Phase 2 (36-37): Transition — NT winds down, land ramps up
-  phase2NTRevenue: 150000,
+  // Phase 2 (36-37): Transition — NT winds down + additional work ($150K + $80K)
+  phase2NTRevenue: 230000,
 
-  // Phase 3 (38): Gap year — W2 maintained at $80K
-  phase3NTRevenue: 80000,
+  // Phase 3 (38-39): Winding down NT + additional work ($80K + $80K)
+  phase3NTRevenue: 160000,
 
   // Phase 4 (39-45): Building phase — land business growing
   phase4NTRevenue: 80000,
@@ -284,7 +282,7 @@ export const DEFAULT_ASSUMPTIONS = {
 };
 
 // Run the wealth simulation — returns array of yearly data objects
-export function runSimulation(assumptions, ntNewWorkEnabled = false) {
+export function runSimulation(assumptions) {
   const years = [];
   let k401 = assumptions.k401Start;
   let ira = assumptions.iraStart;
@@ -344,14 +342,12 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       staffExpenses = age <= 40 ? 35000 : Math.min(35000 + (age - 40) * 10000, assumptions.staffExpensesMax);
     }
 
-    // NT additional work toggle: extra revenue → all to distributions
-    let ntNewWorkIncome = 0;
-    if (ntNewWorkEnabled && age <= 33) {
-      if (age === assumptions.currentAge) {
-        ntNewWorkIncome = assumptions.ntNewWorkMonthly * 6; // Jul-Dec partial year
-      } else {
-        ntNewWorkIncome = assumptions.ntNewWorkMonthly * 12;
-      }
+    // NT additional work ($80K/yr secured Apr 2026, indefinite) — baked into phase revenues
+    // First year prorated: Apr-Dec = 9 months of $80K instead of full 12
+    if (age === assumptions.currentAge) {
+      const monthsActive = 12 - assumptions.ntAdditionalWorkStartMonth + 1; // Apr-Dec = 9
+      const prorated = assumptions.ntAdditionalWork * (monthsActive / 12);
+      ntRevenue = ntRevenue - assumptions.ntAdditionalWork + prorated; // swap full year for prorated
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -364,7 +360,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
     const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40 (last year 39)
     const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
     const ntOverhead = w2Gross + employerPayrollTax;
-    const grossDistributions = Math.max(0, ntRevenue - ntOverhead) + ntNewWorkIncome;
+    const grossDistributions = Math.max(0, ntRevenue - ntOverhead);
     const distributionTax = grossDistributions * (assumptions.distributionTaxRate / 100);
     const netDistributions = grossDistributions - distributionTax; // after-tax → flows to Robinhood
 
@@ -1026,7 +1022,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
       businessIncome: Math.round(businessIncome),
       passiveIncome: Math.round(passiveIncome),
       safeWithdrawal: Math.round(safeWithdrawal),
-      ntNewWorkIncome: Math.round(ntNewWorkIncome),
+      ntNewWorkIncome: 0, // now baked into phase revenues
       freeCashSources: {
         takeHome,
         w2Gross,
@@ -1034,7 +1030,7 @@ export function runSimulation(assumptions, ntNewWorkEnabled = false) {
         grossDistributions,
         netDistributions,
         distributionTax: -distributionTax,
-        ntNewWork: ntNewWorkIncome,
+        ntNewWork: 0,
         k401Contrib: -k401Contrib,
         personalTaxes: -personalTaxes,
         rentalShare: ayoolaRentalShare,

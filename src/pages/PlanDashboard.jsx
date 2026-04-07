@@ -26,7 +26,7 @@ export default function PlanDashboard() {
   const [settingsTab, setSettingsTab] = useState('overview');
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [activeCard, setActiveCard] = useState(null);
-  const [ntNewWorkEnabled, setNtNewWorkEnabled] = useState(false); // toggle: NT wins additional $5K/mo work
+  // NT additional work ($80K/yr) now permanent — no toggle needed
   const tableContainerRef = useRef(null);
 
   const [liveBalancesLoaded, setLiveBalancesLoaded] = useState(false);
@@ -71,7 +71,7 @@ export default function PlanDashboard() {
     setActiveTooltip(activeTooltip === id ? null : id);
   };
 
-  const data = useMemo(() => runSimulation(assumptions, ntNewWorkEnabled), [assumptions, ntNewWorkEnabled]);
+  const data = useMemo(() => runSimulation(assumptions), [assumptions]);
 
   const formatCurrency = (value) => {
     if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -113,7 +113,6 @@ export default function PlanDashboard() {
               NT Revenue: {formatCurrency(src.ntRevenue)} → W2: {formatCurrency(src.w2Gross)} + Distrib: {formatCurrency(src.netDistributions)} (→ Robinhood)
             </div>
             <div className="text-emerald-400">+ Take-Home Pay: {formatCurrency(src.takeHome)}</div>
-            {src.ntNewWork > 0 && <div className="text-lime-400">+ NT New Work → Distributions: {formatCurrency(src.ntNewWork)}</div>}
             {src.rentalShare !== 0 && <div className="text-blue-400">+ Rental (50%): {formatCurrency(src.rentalShare)}</div>}
             {src.businessIncome > 0 && <div className="text-amber-400">+ Business Income: {formatCurrency(src.businessIncome)}</div>}
             <div className="text-red-400">− Living (incl ${Math.round(Math.abs(src.rentalContrib)/1000)}K rental): {formatCurrency(Math.abs(src.expenses))}</div>
@@ -623,20 +622,6 @@ export default function PlanDashboard() {
           ))}
         </div>
         <div className="h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500 rounded mt-3" />
-      </div>
-
-      {/* Scenario Toggles */}
-      <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-4 flex items-center justify-between">
-        <div>
-          <span className="text-sm text-white font-medium">NT Wins Additional Work</span>
-          <span className="text-xs text-gray-500 ml-2">+$5K/mo → S-Corp distributions (Jul '26 through age 33)</span>
-        </div>
-        <button
-          onClick={() => setNtNewWorkEnabled(!ntNewWorkEnabled)}
-          className={`relative w-12 h-6 rounded-full transition-colors ${ntNewWorkEnabled ? 'bg-emerald-500' : 'bg-gray-700'}`}
-        >
-          <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${ntNewWorkEnabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-        </button>
       </div>
 
       {/* Settings Panel */}

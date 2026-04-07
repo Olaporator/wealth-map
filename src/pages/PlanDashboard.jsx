@@ -7,7 +7,7 @@ import { DEFAULT_ASSUMPTIONS, runSimulation } from '../lib/simulation';
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
 const DESCRIPTIONS = {
-  seattle: "10737 3rd Ave NW — 50/50 co-owned rental. Both contribute $1K/mo toward costs, reduced $100/yr until breakeven. Profit split 50/50. Either party can trigger sale (other gets first dibs to buy).",
+  seattle: "10737 3rd Ave NW — sold at 31 (divorce settlement). 50% of net proceeds fund land down payment, remainder → Robinhood.",
   land: "Rural land acquisitions — financed with down payment + mortgage, appreciating ~4%/year",
   qoz: "Qualified Opportunity Zone Fund — Robinhood gains rolled in tax-deferred, 501(c)(3) operates permaculture/community programs on OZ land. After 10yr hold, all new appreciation is tax-free.",
   k401: "Ayoola's 401k + Robinhood IRA",
@@ -938,42 +938,30 @@ export default function PlanDashboard() {
             {/* Homes */}
             {settingsTab === 'homes' && (
               <div className="space-y-4">
-                {/* Seattle Home */}
-                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
-                  <div className="text-xs text-emerald-400 mb-2 font-semibold">🏠 Seattle Home — 10737 3rd Ave NW</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { key: 'seattleCurrentValue', label: 'Current Value', prefix: '$' },
-                      { key: 'seattleMortgageBalance', label: 'Mortgage Balance', prefix: '$' },
-                      { key: 'seattleMortgageRate', label: 'Interest Rate', suffix: '%', step: 0.125 },
-                      { key: 'seattlePrincipal', label: 'Principal Paydown/yr', prefix: '$' },
-                    ].map(({ key, label, prefix, suffix, step }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                          <input type="number" step={step || 1000} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 mt-3">
+                {/* Seattle Home — SOLD */}
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                  <div className="text-xs text-gray-400 mb-2 font-semibold">🏠 Seattle Home — 10737 3rd Ave NW (SOLD at {assumptions.seattleSaleAge})</div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Appreciation Rate</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="0.5" value={assumptions.homeAppreciation} onChange={(e) => setAssumptions({ ...assumptions, homeAppreciation: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">%/yr</span>
+                      <label className="text-xs text-gray-500 block mb-1">Sale Value</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 font-medium">
+                        {formatCurrency(assumptions.seattleCurrentValue)}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Current Equity</label>
-                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
+                      <label className="text-xs text-gray-500 block mb-1">Equity at Sale</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 font-medium">
                         {formatCurrency(assumptions.seattleCurrentValue - assumptions.seattleMortgageBalance)}
                       </div>
                     </div>
+                    <div>
+                      <label className="text-xs text-gray-500 block mb-1">Proceeds (50%)</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-emerald-400 font-medium">
+                        {formatCurrency((assumptions.seattleCurrentValue - assumptions.seattleMortgageBalance - assumptions.seattleCurrentValue * assumptions.seattleSellerFeePct / 100) / 2)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs text-blue-400 mt-2">→ Converts to rental property at age {assumptions.moveOutAge}</div>
+                  <div className="text-xs text-gray-500 mt-2">Divorce settlement — 50% of net proceeds funded land down payment, remainder → Robinhood</div>
                 </div>
                 
                 {/* Land Housing */}
@@ -997,108 +985,68 @@ export default function PlanDashboard() {
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Included In</label>
                       <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-xs">
-                        $50K living expenses
+                        $12K living expenses
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-yellow-400 mt-2">💡 No mortgage — housing cost included in $50K/yr living expenses</div>
+                  <div className="text-xs text-yellow-400 mt-2">💡 No mortgage — housing cost included in $12K/yr ($1K/mo) living expenses</div>
                 </div>
               </div>
             )}
 
-            {/* Rental Property */}
+            {/* City Rental Properties (V2-owned) */}
             {settingsTab === 'rental' && (
               <div className="space-y-4">
-                <div className="text-xs text-blue-400 font-semibold mb-2">Seattle Rental Income (Starting Age {assumptions.moveOutAge})</div>
-                
-                {/* Income */}
+                <div className="text-xs text-blue-400 font-semibold mb-2">City Rental Properties — V2-owned (Age {assumptions.rentalPurchaseAge}+)</div>
+
                 <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
-                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Rental Income</div>
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Acquisition</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Gross Rent (Year 1)</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <span className="text-gray-500 text-sm">$</span>
-                        <input type="number" step="1000" value={assumptions.grossRentYear1} onChange={(e) => setAssumptions({ ...assumptions, grossRentYear1: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-xs">/yr</span>
+                      <label className="text-xs text-gray-400 block mb-1">Total Purchase Price</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-white font-medium text-sm">
+                        {formatCurrency(assumptions.rentalPurchasePrice)}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Monthly Rent</label>
-                      <div className="bg-emerald-900/30 rounded px-2 py-2 text-emerald-400 font-medium">
-                        {formatCurrency(assumptions.grossRentYear1 / 12)}/mo
+                      <label className="text-xs text-gray-400 block mb-1">Down Payment (25%)</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-yellow-400 font-medium text-sm">
+                        {formatCurrency(assumptions.rentalDownPayment)}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">Annual Rent Increase</label>
-                      <div className="flex items-center bg-gray-800 rounded px-2">
-                        <input type="number" step="0.5" value={assumptions.rentGrowth} onChange={(e) => setAssumptions({ ...assumptions, rentGrowth: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                        <span className="text-gray-500 text-sm">%</span>
+                      <label className="text-xs text-gray-400 block mb-1">Mortgage Rate</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-white font-medium text-sm">
+                        {assumptions.rentalMortgageRate}%
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Expenses */}
-                <div className="bg-red-900/20 rounded-lg p-3 border border-red-800">
-                  <div className="text-xs text-red-400 mb-2 font-semibold">Rental Expenses</div>
+
+                <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-800">
+                  <div className="text-xs text-emerald-400 mb-2 font-semibold">Income</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { key: 'mortgagePayment', label: 'Mortgage Payment/yr', prefix: '$' },
-                      { key: 'propertyTaxes', label: 'Property Taxes/yr', prefix: '$' },
-                      { key: 'insurance', label: 'Insurance/yr', prefix: '$' },
-                      { key: 'maintenanceRate', label: 'Maintenance Reserve', suffix: '%' },
-                      { key: 'vacancyRate', label: 'Vacancy Rate', suffix: '%' },
-                      { key: 'propertyManagement', label: 'Management Fee', suffix: '%' },
-                    ].map(({ key, label, prefix, suffix }) => (
-                      <div key={key}>
-                        <label className="text-xs text-gray-400 block mb-1">{label}</label>
-                        <div className="flex items-center bg-gray-800 rounded px-2">
-                          {prefix && <span className="text-gray-500 text-sm">{prefix}</span>}
-                          <input type="number" step={suffix === '%' ? 0.5 : 100} value={assumptions[key]} onChange={(e) => setAssumptions({ ...assumptions, [key]: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
-                          {suffix && <span className="text-gray-500 text-sm">{suffix}</span>}
-                        </div>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Gross Rent Year 1</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-emerald-400 font-medium text-sm">
+                        {formatCurrency(assumptions.rentalGrossRentYear1)}/yr
                       </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Net Income Calculation */}
-                <div className="bg-gray-800 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-2">Net Rental Income Calculation (Year 1)</div>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Gross Rent</span>
-                      <span className="text-emerald-400">+{formatCurrency(assumptions.grossRentYear1)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Mortgage</span>
-                      <span className="text-red-400">-{formatCurrency(assumptions.mortgagePayment)}</span>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Occupancy</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-white font-medium text-sm">
+                        {assumptions.rentalOccupancy}%
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Property Taxes</span>
-                      <span className="text-red-400">-{formatCurrency(assumptions.propertyTaxes)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Insurance</span>
-                      <span className="text-red-400">-{formatCurrency(assumptions.insurance)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Maintenance ({assumptions.maintenanceRate}%)</span>
-                      <span className="text-red-400">-{formatCurrency(assumptions.grossRentYear1 * assumptions.maintenanceRate / 100)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400">Vacancy ({assumptions.vacancyRate}%)</span>
-                      <span className="text-red-400">-{formatCurrency(assumptions.grossRentYear1 * assumptions.vacancyRate / 100)}</span>
-                    </div>
-                    <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-semibold">
-                      <span className="text-white">Net Cash Flow</span>
-                      <span className={`${(assumptions.grossRentYear1 - assumptions.mortgagePayment - assumptions.propertyTaxes - assumptions.insurance - (assumptions.grossRentYear1 * (assumptions.maintenanceRate + assumptions.vacancyRate) / 100)) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {formatCurrency(assumptions.grossRentYear1 - assumptions.mortgagePayment - assumptions.propertyTaxes - assumptions.insurance - (assumptions.grossRentYear1 * (assumptions.maintenanceRate + assumptions.vacancyRate) / 100))}/yr
-                      </span>
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1">Rent Growth</label>
+                      <div className="bg-gray-800 rounded px-2 py-2 text-white font-medium text-sm">
+                        {assumptions.rentalRentGrowth}%/yr
+                      </div>
                     </div>
                   </div>
                 </div>
+                <div className="text-xs text-gray-500 mt-2">2-3 city units (Airbnb + long-term mix). Income flows to V2 balance, not personal.</div>
               </div>
             )}
 
@@ -1410,7 +1358,7 @@ export default function PlanDashboard() {
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Includes</label>
                       <div className="bg-gray-800 rounded px-2 py-2 text-gray-400 text-xs">
-                        Land housing, bills, utilities, food, travel, Seattle rental contrib ({formatCurrency(assumptions.ayoolaRentalContrib)}/yr)
+                        $1K/mo — bills, utilities, food, travel (Seattle sold at 31)
                       </div>
                     </div>
                     <div>
@@ -1480,7 +1428,7 @@ export default function PlanDashboard() {
                   <div className="text-xs text-purple-400 mb-2 font-semibold">Key Life Milestones (Ages)</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'moveOutAge', label: 'Move Out / Rent Starts' },
+                      { key: 'seattleSaleAge', label: 'Seattle Sale Age' },
                       { key: 'retirementAge', label: 'Target Retirement' },
                     ].map(({ key, label }) => (
                       <div key={key}>
@@ -1499,7 +1447,8 @@ export default function PlanDashboard() {
                   <div className="text-xs text-blue-400 mb-2 font-semibold">Investment Milestones</div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {[
-                      { key: 'mortgagePaidAge', label: 'Seattle Mortgage Paid' },
+                      { key: 'qozInvestAge', label: 'QOZ Fund Investment' },
+                      { key: 'debtPayoffAge', label: 'Debt Payoff Target' },
                     ].map(({ key, label }) => (
                       <div key={key}>
                         <label className="text-xs text-gray-400 block mb-1">{label}</label>
@@ -1566,54 +1515,82 @@ export default function PlanDashboard() {
         <h3 className="text-sm font-semibold text-emerald-400 mb-4">📋 Major Moves</h3>
         <div className="space-y-3">
           {[
-            { 
-              age: 31, 
-              year: 2026, 
-              icon: '🌾', 
-              title: '20 Acre Land Purchase', 
-              desc: 'Initial rural land acquisition',
-              cost: assumptions.landPricePerAcre * 20,
+            {
+              age: 31,
+              year: 2026,
+              icon: '🏠',
+              title: 'Sell Seattle Home',
+              desc: 'Divorce settlement sale — 50% of net proceeds fund land down payment, rest → Robinhood.',
+              cost: 0,
+              status: targetAge1 >= 31 ? 'complete' : 'upcoming',
+              category: 'home'
+            },
+            {
+              age: 31,
+              year: 2026,
+              icon: '🌾',
+              title: 'Land Purchase (15+ acres)',
+              desc: `${formatCurrency(assumptions.landPurchasePrice)} rural homestead — financed with Seattle proceeds + mortgage.`,
+              cost: assumptions.landPurchasePrice,
               status: targetAge1 >= 31 ? 'complete' : 'upcoming',
               category: 'land'
             },
             {
               age: 32,
               year: 2027,
-              icon: '🏠',
-              title: 'Seattle → Rental + Move to Land',
-              desc: 'Seattle becomes 50/50 rental. Ayoola moves to 20 acres.',
-              cost: 0,
-              income: 72000,
+              icon: '🏗️',
+              title: 'Construction Loan + V1 LOC',
+              desc: `${formatCurrency(assumptions.constructionLoanAmount)} home build + ${formatCurrency(assumptions.venturesLocAmount)} business LOC. V2 launches.`,
+              cost: assumptions.constructionLoanAmount + assumptions.venturesLocAmount,
               status: targetAge1 >= 32 ? 'complete' : 'upcoming',
+              category: 'milestone'
+            },
+            {
+              age: 33,
+              year: 2028,
+              icon: '🇳🇬',
+              title: 'Nigeria Ops Hub + Hard Assets',
+              desc: 'Ops hub launches (2 staff). Hard assets purchasing begins. Offshore land acquired.',
+              cost: assumptions.offshorePurchasePrice,
+              status: targetAge1 >= 33 ? 'complete' : 'upcoming',
+              category: 'milestone'
+            },
+            {
+              age: 36,
+              year: 2031,
+              icon: '🌍',
+              title: 'Nigeria Land Purchase',
+              desc: `${formatCurrency(assumptions.nigeriaPurchasePrice)} cash from Robinhood.`,
+              cost: assumptions.nigeriaPurchasePrice,
+              status: targetAge1 >= 36 ? 'complete' : 'upcoming',
+              category: 'land'
+            },
+            {
+              age: 40,
+              year: 2035,
+              icon: '🏙️',
+              title: 'City Rental Properties',
+              desc: `${formatCurrency(assumptions.rentalPurchasePrice)} in 2-3 units (V2-owned, Airbnb/rental @ 90% occupancy).`,
+              cost: assumptions.rentalPurchasePrice,
+              status: targetAge1 >= 40 ? 'complete' : 'upcoming',
               category: 'rental'
             },
             {
-              age: 45,
-              year: 2040,
-              icon: '🌲',
-              title: 'Future Expansion (TBD)',
-              desc: 'Equipment, infrastructure, offshore land — financing TBD',
-              cost: assumptions.landPricePerAcre * 100,
-              status: targetAge1 >= 40 ? 'complete' : 'upcoming',
-              category: 'land'
-            },
-            { 
-              age: 45, 
-              year: 2040, 
-              icon: '🎯', 
-              title: 'Full Operations Mode', 
-              desc: 'All business units running, staff in place',
-              cost: 0,
-              income: 150000,
-              status: targetAge1 >= 45 ? 'complete' : 'upcoming',
+              age: 42,
+              year: 2037,
+              icon: '🎯',
+              title: 'QOZ Fund Investment',
+              desc: `${formatCurrency(assumptions.qozInvestAmount)} rolled from RH gains — tax-free appreciation after 10yr hold.`,
+              cost: assumptions.qozInvestAmount,
+              status: targetAge1 >= 42 ? 'complete' : 'upcoming',
               category: 'milestone'
             },
-            { 
-              age: 60, 
-              year: 2055, 
-              icon: '👑', 
-              title: 'Retirement Target', 
-              desc: 'Coast on investments + passive income',
+            {
+              age: 60,
+              year: 2055,
+              icon: '👑',
+              title: 'Retirement Target',
+              desc: 'Coast on investments + passive income. Family fund deploys from 401k.',
               cost: 0,
               status: targetAge1 >= 60 ? 'complete' : 'upcoming',
               category: 'milestone'

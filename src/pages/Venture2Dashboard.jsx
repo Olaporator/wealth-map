@@ -146,7 +146,7 @@ export default function Venture2Dashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Houses the Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools. S-Corp deductions (health, home office, vehicle, travel, equipment, wellness) reduce taxable distributions.
+          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Webull funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Webull account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 30% of ops hub costs. Houses Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools.
         </p>
       </div>
 

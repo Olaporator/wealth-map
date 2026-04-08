@@ -67,12 +67,12 @@ export const DEFAULT_ASSUMPTIONS = {
   // RETURNS & APPRECIATION
   // ═══════════════════════════════════════════════════════════════
   k401Return: 8,            // 401k in standard index funds
-  robinhoodReturn: 30,      // individual brokerage — aggressive fund strategy (ages 31-34)
-  robinhoodReturnPost35: 15, // modest growth from age 35+ (shift to safer allocation)
-  marginPct: 35,            // 35% of Robinhood equity used as margin
+  robinhoodReturn: 25,      // individual brokerage — aggressive fund strategy (ages 31-34)
+  robinhoodReturnPost35: 25, // same strategy continues (no shift)
+  marginPct: 0,             // 0% — 25% return already accounts for leveraged strategy
   marginRateLow: 5,         // margin interest rate below $500K
   marginRateHigh: 4.5,      // margin interest rate at $500K+
-  iraReturn: 30,            // Robinhood IRA — same fund strategy
+  iraReturn: 25,            // Robinhood IRA — same fund strategy, no new contributions
   venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
   venturesCreditRate: 9,    // business line of credit rate for ventures operations
   // V1 Staffing: ops hub handles admin — minimal US presence

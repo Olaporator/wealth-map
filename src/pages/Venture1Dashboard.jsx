@@ -26,7 +26,7 @@ export default function Venture1Dashboard() {
       const age = year.age;
       const ventureBalance = year.ventures || 0;
 
-      // LOC Debt: $200K at age 32, minus paydowns
+      // LOC Debt: $150K at age 32, minus paydowns
       // 50% of net gain pays down LOC
       let locDebt = 0;
       if (age >= assumptions.venturesLocAge) {
@@ -140,7 +140,7 @@ export default function Venture1Dashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          New entity for agro, land, and property operations. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Funded by $150K LOC at age 32, invested at 12% returns. Nigeria Ops Hub (V1 subsidiary) handles all back-office operations.
+          Agro, land, and property operations funded by 15% of after-tax distributions. Farm income flows to V2 ($50K/yr from age 35, 3% growth). V2 sub-venture income starts at 36 ($25K base, 12% growth). Construction interest split 50/50 V2/personal. Offshore/Nigeria maintenance paid by V2. V2 pays 40% of ops hub costs. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Invested at 12% returns with $150K LOC revolving facility.
         </p>
       </div>
 

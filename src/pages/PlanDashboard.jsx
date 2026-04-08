@@ -14,7 +14,7 @@ const DESCRIPTIONS = {
   freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities (Ayoola's share only)",
   ayoolaIncome: "Ayoola's W2 salary from NimbusTech S-Corp",
-  robinhood: "Robinhood Individual Brokerage — receives S-Corp distributions + Ayoola's fund strategy at ~30% returns",
+  robinhood: "Robinhood Individual Brokerage — receives S-Corp distributions + Ayoola's fund strategy at 25% returns (no margin leverage)",
   distributions: "S-Corp distributions — NT revenue minus W2 salary and employer payroll taxes, taxed as personal income, flows to Robinhood",
   w2: "W2 salary from NimbusTech S-Corp — $40/hr via Gusto",
 };

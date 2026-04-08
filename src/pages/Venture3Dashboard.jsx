@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function Venture3Dashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute venture 3 data from years
   const yearsData = useMemo(() => {
@@ -48,6 +50,8 @@ export default function Venture3Dashboard() {
       };
     });
   }, [data, assumptions]);
+
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
 
   // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
@@ -122,6 +126,11 @@ export default function Venture3Dashboard() {
         </p>
       </div>
 
+      {/* Age Slider */}
+      <div className="mb-8">
+        <AgeSlider age={targetAge} onChange={setTargetAge} />
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {summaryCards.map((card, idx) => (
@@ -159,8 +168,8 @@ export default function Venture3Dashboard() {
             </thead>
             <tbody>
               {chartData.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                  <td className="text-left px-4 py-3 font-semibold">{row.age}</td>
+                <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                  <td className={`text-left px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                   <td className="text-right px-4 py-3">{formatCurrency(row.v3Balance)}</td>
                   <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.v3Seed)}</td>
                   <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.v3V2Contrib)}</td>

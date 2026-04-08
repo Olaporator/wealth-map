@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function Venture2Dashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute venture 2 data from years
   const yearsData = useMemo(() => {
@@ -65,6 +67,8 @@ export default function Venture2Dashboard() {
     });
   }, [data, assumptions]);
 
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
+
   // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
 
@@ -91,17 +95,17 @@ export default function Venture2Dashboard() {
   const summaryCards = [
     {
       label: 'V2 Balance',
-      value: formatCurrency(currentYear?.v2Balance || 0),
+      value: formatCurrency(selectedYear?.v2Balance || 0),
       icon: '🚀',
     },
     {
       label: 'V2 LOC Debt',
-      value: formatCurrency(currentYear?.v2LocDebt || 0),
+      value: formatCurrency(selectedYear?.v2LocDebt || 0),
       icon: '💳',
     },
     {
       label: 'Net Equity',
-      value: formatCurrency(currentYear?.netEquity || 0),
+      value: formatCurrency(selectedYear?.netEquity || 0),
       icon: '💎',
     },
     {
@@ -116,12 +120,12 @@ export default function Venture2Dashboard() {
     },
     {
       label: 'Self-Generated Income',
-      value: formatCurrency(currentYear?.v2SelfIncome || 0),
+      value: formatCurrency(selectedYear?.v2SelfIncome || 0),
       icon: '📈',
     },
     {
       label: 'Employees',
-      value: currentYear?.employees || 0,
+      value: selectedYear?.employees || 0,
       icon: '👥',
     },
   ];
@@ -149,6 +153,11 @@ export default function Venture2Dashboard() {
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
           Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Webull funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Webull account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 30% of ops hub costs. Houses Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools.
         </p>
+      </div>
+
+      {/* Age Slider */}
+      <div className="mb-8">
+        <AgeSlider age={targetAge} onChange={setTargetAge} />
       </div>
 
       {/* Summary Cards */}
@@ -215,8 +224,8 @@ export default function Venture2Dashboard() {
           </thead>
           <tbody>
             {yearsData.filter(y => y.age >= assumptions.venture2StartAge).map((row, idx) => (
-              <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                <td className="px-4 py-3 font-semibold">{row.age}</td>
+              <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                 <td className="text-right px-4 py-3 text-blue-400">{formatCurrency(row.v2Balance)}</td>
                 <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.v2LocDebt)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.netEquity)}</td>
@@ -279,7 +288,7 @@ export default function Venture2Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">Current Staff</p>
-            <p className="text-3xl font-bold text-blue-400">{currentYear?.employees || 0}</p>
+            <p className="text-3xl font-bold text-blue-400">{selectedYear?.employees || 0}</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">Average Cost per Employee</p>
@@ -332,11 +341,11 @@ export default function Venture2Dashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Current Staff</p>
-            <p className="text-2xl font-bold text-green-400">{currentYear?.opsHubEmployees || 0}</p>
+            <p className="text-2xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Total Hub Cost</p>
-            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(currentYear?.opsHubCost || 0)}</p>
+            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(selectedYear?.opsHubCost || 0)}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Cost per Employee</p>
@@ -354,15 +363,15 @@ export default function Venture2Dashboard() {
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
               <p className="text-gray-400 text-xs mb-1">V1 ({assumptions.opsHubBillV1Pct}%)</p>
-              <p className="text-lg font-bold text-orange-400">{formatCurrency(currentYear?.opsHubBillV1 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+              <p className="text-lg font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
             </div>
             <div className="text-center">
               <p className="text-gray-400 text-xs mb-1">V2 ({assumptions.opsHubBillV2Pct}%)</p>
-              <p className="text-lg font-bold text-pink-400">{formatCurrency(currentYear?.opsHubBillV2 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+              <p className="text-lg font-bold text-pink-400">{formatCurrency(selectedYear?.opsHubBillV2 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
             </div>
             <div className="text-center">
               <p className="text-gray-400 text-xs mb-1">Nonprofit ({assumptions.opsHubBillNpPct}%)</p>
-              <p className="text-lg font-bold text-purple-400">{formatCurrency(currentYear?.opsHubBillNp || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+              <p className="text-lg font-bold text-purple-400">{formatCurrency(selectedYear?.opsHubBillNp || 0)}<span className="text-xs text-gray-500">/yr</span></p>
             </div>
           </div>
           <p className="text-gray-500 text-[10px] mt-2 text-center">Transfers between related entities — no tax implications</p>
@@ -416,8 +425,8 @@ export default function Venture2Dashboard() {
               </thead>
               <tbody>
                 {chartData.filter(r => r.opsHubEmployees > 0).map((row, idx) => (
-                  <tr key={idx} className="border-b border-gray-800/50 hover:bg-gray-800 transition-colors">
-                    <td className="text-left px-3 py-2 font-semibold">{row.age}</td>
+                  <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800/50 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                    <td className={`text-left px-3 py-2 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                     <td className="text-right px-3 py-2 text-green-400">{row.opsHubEmployees}</td>
                     <td className="text-right px-3 py-2 text-yellow-400">{formatCurrency(row.opsHubCost)}</td>
                     <td className="text-right px-3 py-2 text-orange-400">{formatCurrency(row.opsHubBillV1)}</td>

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function NonprofitDashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute nonprofit data from years
   const yearsData = useMemo(() => {
@@ -73,38 +75,40 @@ export default function NonprofitDashboard() {
     });
   }, [data, assumptions]);
 
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
+
   // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
 
   const summaryCards = [
     {
       label: 'Reserves',
-      value: formatCurrency(currentYear?.reserves || 0),
+      value: formatCurrency(selectedYear?.reserves || 0),
       icon: '💚',
     },
     {
       label: 'LOC Debt',
-      value: formatCurrency(currentYear?.locDebt || 0),
+      value: formatCurrency(selectedYear?.locDebt || 0),
       icon: '💳',
     },
     {
       label: 'Net Equity',
-      value: formatCurrency(currentYear?.netEquity || 0),
+      value: formatCurrency(selectedYear?.netEquity || 0),
       icon: '💎',
     },
     {
       label: 'Investment Return (12% Tax-Free)',
-      value: formatCurrency(currentYear?.investGain || 0),
+      value: formatCurrency(selectedYear?.investGain || 0),
       icon: '📈',
     },
     {
       label: 'Annual Donations',
-      value: formatCurrency(currentYear?.donations || 0),
+      value: formatCurrency(selectedYear?.donations || 0),
       icon: '🎁',
     },
     {
       label: 'Employees',
-      value: currentYear?.employees || 0,
+      value: selectedYear?.employees || 0,
       icon: '👥',
     },
   ];
@@ -161,6 +165,11 @@ export default function NonprofitDashboard() {
         </p>
       </div>
 
+      {/* Age Slider */}
+      <div className="mb-8">
+        <AgeSlider age={targetAge} onChange={setTargetAge} />
+      </div>
+
       {/* Year-by-Year Table */}
       <CollapsibleYearByYear title="Year-by-Year Projection">
         <table className="w-full text-sm">
@@ -181,8 +190,8 @@ export default function NonprofitDashboard() {
           </thead>
           <tbody>
             {yearsData.filter(y => y.age >= assumptions.nonprofitStartAge).map((row, idx) => (
-              <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                <td className="px-4 py-3 font-semibold">{row.age}</td>
+              <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                 <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.reserves)}</td>
                 <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.locDebt)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.netEquity)}</td>
@@ -242,17 +251,17 @@ export default function NonprofitDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
-            <p className="text-3xl font-bold text-green-400">{currentYear?.opsHubEmployees || 0}</p>
+            <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">NP Hub Bill</p>
-            <p className="text-3xl font-bold text-purple-400">{formatCurrency(currentYear?.opsHubBillNp || 0)}<span className="text-sm text-gray-500">/yr</span></p>
+            <p className="text-3xl font-bold text-purple-400">{formatCurrency(selectedYear?.opsHubBillNp || 0)}<span className="text-sm text-gray-500">/yr</span></p>
             <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">US Staff</p>
-            <p className="text-3xl font-bold text-emerald-400">{currentYear?.employees || 0}</p>
+            <p className="text-3xl font-bold text-emerald-400">{selectedYear?.employees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Only at $5M+ reserves</p>
           </div>
         </div>

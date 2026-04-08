@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function OffshoreDashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute offshore data from years
   const yearsData = useMemo(() => {
@@ -70,11 +72,12 @@ export default function OffshoreDashboard() {
   const purchaseYear = yearsData.find(y => y.age === assumptions.offshorePurchaseAge);
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
   const latestYear = yearsData[yearsData.length - 1];
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
 
   const summaryCards = [
     {
       label: 'Property Value (Current)',
-      value: formatCurrency(currentYear?.propertyValue || 0),
+      value: formatCurrency(selectedYear?.propertyValue || 0),
       icon: '🌴',
     },
     {
@@ -89,7 +92,7 @@ export default function OffshoreDashboard() {
     },
     {
       label: 'Annual Maintenance (Current)',
-      value: formatCurrency(currentYear?.annualMaintenance || 0),
+      value: formatCurrency(selectedYear?.annualMaintenance || 0),
       icon: '🔧',
     },
     {
@@ -104,12 +107,12 @@ export default function OffshoreDashboard() {
     },
     {
       label: 'Net Equity (Current)',
-      value: formatCurrency(currentYear?.netEquity || 0),
+      value: formatCurrency(selectedYear?.netEquity || 0),
       icon: '💎',
     },
     {
       label: 'Cumulative Maintenance',
-      value: formatCurrency(currentYear?.cumulativeMaintenance || 0),
+      value: formatCurrency(selectedYear?.cumulativeMaintenance || 0),
       icon: '📊',
     },
   ];
@@ -130,6 +133,8 @@ export default function OffshoreDashboard() {
         <span className="text-5xl">🌴</span>
         <h1 className="text-4xl font-bold">Offshore — Belize / Costa Rica</h1>
       </div>
+
+      <AgeSlider age={targetAge} onChange={setTargetAge} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -165,8 +170,8 @@ export default function OffshoreDashboard() {
             </thead>
             <tbody>
               {chartData.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                  <td className="text-left px-4 py-3 font-semibold">{row.age}</td>
+                <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                  <td className={`text-left px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                   <td className="text-right px-4 py-3 text-emerald-400 font-semibold">{formatCurrency(row.propertyValue)}</td>
                   <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.appreciationGain)}</td>
                   <td className="text-right px-4 py-3">{formatCurrency(row.annualMaintenance)}</td>

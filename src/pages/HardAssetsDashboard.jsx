@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -14,6 +15,7 @@ const formatCurrency = (value) => {
 
 export default function HardAssetsDashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   const yearsData = useMemo(() => {
     if (!data || !data.years) return [];
@@ -54,6 +56,7 @@ export default function HardAssetsDashboard() {
   const startYear = yearsData.find(y => y.age === assumptions.hardAssetsStartAge);
   const age50 = yearsData.find(y => y.age === 50);
   const latestYear = yearsData[yearsData.length - 1];
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
 
   const summaryCards = [
     { label: 'Start Age', value: assumptions.hardAssetsStartAge, icon: '📅' },
@@ -84,6 +87,8 @@ export default function HardAssetsDashboard() {
           <p className="text-gray-400 mt-1">Gold, Silver, Metals, Antiques, Premium Building Materials</p>
         </div>
       </div>
+
+      <AgeSlider age={targetAge} onChange={setTargetAge} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -162,8 +167,8 @@ export default function HardAssetsDashboard() {
             </thead>
             <tbody>
               {chartData.map((row, idx) => (
-                <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                  <td className="text-left px-4 py-3 font-semibold">{row.age}</td>
+                <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                  <td className={`text-left px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                   <td className="text-right px-4 py-3 text-orange-400">{formatCurrency(row.rhPull)}</td>
                   <td className="text-right px-4 py-3 text-yellow-400">{formatCurrency(row.purchase)}</td>
                   <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.appreciation)}</td>

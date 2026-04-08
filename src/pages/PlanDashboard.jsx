@@ -447,7 +447,7 @@ export default function PlanDashboard() {
             <input
               type="range"
               min="31"
-              max="85"
+              max="60"
               value={targetAge1}
               onChange={(e) => setTargetAge1(parseInt(e.target.value))}
               className="w-48 accent-emerald-400"

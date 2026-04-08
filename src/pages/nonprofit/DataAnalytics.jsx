@@ -1,9 +1,13 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useWealthData } from '../../hooks/useWealthData';
 import CollapsibleYearByYear from '../../components/CollapsibleYearByYear';
+import AgeSlider from '../../components/AgeSlider';
 
 export default function DataAnalytics() {
   const { data } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
+  const selectedYear = data?.years?.find(y => y.age === targetAge) || data?.years?.[0];
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -100,6 +104,21 @@ export default function DataAnalytics() {
           </p>
         </div>
 
+        <AgeSlider age={targetAge} onChange={setTargetAge} />
+
+        {selectedYear && (
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <p className="text-gray-400 text-sm mb-1">NP Reserves @ {targetAge}</p>
+              <p className="text-2xl font-bold text-emerald-400">{selectedYear.nonprofit >= 1000000 ? '$' + (selectedYear.nonprofit / 1000000).toFixed(1) + 'M' : selectedYear.nonprofit >= 1000 ? '$' + (selectedYear.nonprofit / 1000).toFixed(0) + 'K' : '$' + (selectedYear.nonprofit || 0)}</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <p className="text-gray-400 text-sm mb-1">Net Worth @ {targetAge}</p>
+              <p className="text-2xl font-bold text-white">{selectedYear.netWorth >= 1000000 ? '$' + (selectedYear.netWorth / 1000000).toFixed(1) + 'M' : selectedYear.netWorth >= 1000 ? '$' + (selectedYear.netWorth / 1000).toFixed(0) + 'K' : '$' + (selectedYear.netWorth || 0)}</p>
+            </div>
+          </div>
+        )}
+
         {/* Year-by-Year (Parent Entity: Nonprofit) */}
         {data?.years && (
           <CollapsibleYearByYear title="Year-by-Year Projection (Nonprofit Entity)">
@@ -113,8 +132,8 @@ export default function DataAnalytics() {
               </thead>
               <tbody>
                 {data.years.map((row, idx) => (
-                  <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                    <td className="px-4 py-3 font-semibold">{row.age}</td>
+                  <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                    <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                     <td className="text-right px-4 py-3 text-emerald-400">{row.nonprofit >= 1000000 ? '$' + (row.nonprofit / 1000000).toFixed(1) + 'M' : row.nonprofit >= 1000 ? '$' + (row.nonprofit / 1000).toFixed(0) + 'K' : '$' + (row.nonprofit || 0)}</td>
                     <td className="text-right px-4 py-3 text-white font-semibold">{row.netWorth >= 1000000 ? '$' + (row.netWorth / 1000000).toFixed(1) + 'M' : row.netWorth >= 1000 ? '$' + (row.netWorth / 1000).toFixed(0) + 'K' : '$' + (row.netWorth || 0)}</td>
                   </tr>

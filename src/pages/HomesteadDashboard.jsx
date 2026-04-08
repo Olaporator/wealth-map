@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function HomesteadDashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute homestead data from years
   const yearsData = useMemo(() => {
@@ -70,36 +72,37 @@ export default function HomesteadDashboard() {
   // Summary cards
   const latestYear = yearsData[yearsData.length - 1] || yearsData[0];
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
 
   const summaryCards = [
     {
       label: 'Total Land Value',
-      value: formatCurrency(currentYear?.landValue || 0),
+      value: formatCurrency(selectedYear?.landValue || 0),
       icon: '🏞️',
     },
     {
       label: 'Land Equity',
-      value: formatCurrency(currentYear?.landEquity || 0),
+      value: formatCurrency(selectedYear?.landEquity || 0),
       icon: '🔑',
     },
     {
       label: 'Mortgage Balance',
-      value: formatCurrency(currentYear?.landMortgage || 0),
+      value: formatCurrency(selectedYear?.landMortgage || 0),
       icon: '🏦',
     },
     {
       label: 'Farm Income (Current)',
-      value: formatCurrency(currentYear?.farmIncome || 0),
+      value: formatCurrency(selectedYear?.farmIncome || 0),
       icon: '🌾',
     },
     {
       label: 'Construction Loan Status',
-      value: currentYear?.age >= 52 ? 'Paid Off ✓' : 'Active',
+      value: selectedYear?.age >= 52 ? 'Paid Off ✓' : 'Active',
       icon: '🏗️',
     },
     {
       label: 'Acres',
-      value: (currentYear?.acres || 0).toFixed(0),
+      value: (selectedYear?.acres || 0).toFixed(0),
       icon: '📍',
     },
   ];
@@ -120,6 +123,8 @@ export default function HomesteadDashboard() {
         <span className="text-5xl">🌱</span>
         <h1 className="text-4xl font-bold">US Homestead</h1>
       </div>
+
+      <AgeSlider age={targetAge} onChange={setTargetAge} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -156,8 +161,8 @@ export default function HomesteadDashboard() {
           </thead>
           <tbody>
             {yearsData.filter(y => y.age >= assumptions.landPurchase1Age).map((row, idx) => (
-              <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                <td className="px-4 py-3 font-semibold">{row.age}</td>
+              <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.landValue)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.landEquity)}</td>
                 <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.landMortgage)}</td>

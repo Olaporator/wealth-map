@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
+import AgeSlider from '../components/AgeSlider';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -18,6 +19,7 @@ const formatCurrency = (value) => {
 
 export default function Venture1Dashboard() {
   const { data, assumptions } = useWealthData();
+  const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute venture 1 data from years
   const yearsData = useMemo(() => {
@@ -84,38 +86,40 @@ export default function Venture1Dashboard() {
     });
   }, [data, assumptions]);
 
+  const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
+
   // Summary cards
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
 
   const summaryCards = [
     {
       label: 'Venture Balance',
-      value: formatCurrency(currentYear?.ventureBalance || 0),
+      value: formatCurrency(selectedYear?.ventureBalance || 0),
       icon: '⚡',
     },
     {
       label: 'LOC Debt',
-      value: formatCurrency(currentYear?.locDebt || 0),
+      value: formatCurrency(selectedYear?.locDebt || 0),
       icon: '💳',
     },
     {
       label: 'Net Equity',
-      value: formatCurrency(currentYear?.netEquity || 0),
+      value: formatCurrency(selectedYear?.netEquity || 0),
       icon: '💎',
     },
     {
       label: 'Investment Return (12%)',
-      value: formatCurrency(currentYear?.investmentGain || 0),
+      value: formatCurrency(selectedYear?.investmentGain || 0),
       icon: '📈',
     },
     {
       label: 'Ops Loss (10%)',
-      value: formatCurrency(currentYear?.opsLoss || 0),
+      value: formatCurrency(selectedYear?.opsLoss || 0),
       icon: '📉',
     },
     {
       label: 'Net Annual Gain (2%)',
-      value: formatCurrency(currentYear?.netGain || 0),
+      value: formatCurrency(selectedYear?.netGain || 0),
       icon: '✓',
     },
   ];
@@ -143,6 +147,11 @@ export default function Venture1Dashboard() {
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
           Agro, land, and property operations funded by 15% of after-tax distributions. Farm income flows to V2 ($50K/yr from age 35, 3% growth). V2 sub-venture income starts at 36 ($25K base, 12% growth). Construction interest split 50/50 V2/personal. Offshore/Nigeria maintenance paid by V2. V2 pays 40% of ops hub costs. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Invested at 12% returns with $150K LOC revolving facility.
         </p>
+      </div>
+
+      {/* Age Slider */}
+      <div className="mb-8">
+        <AgeSlider age={targetAge} onChange={setTargetAge} />
       </div>
 
       {/* Summary Cards */}
@@ -181,8 +190,8 @@ export default function Venture1Dashboard() {
           </thead>
           <tbody>
             {yearsData.filter(y => y.age >= assumptions.venturesLocAge).map((row, idx) => (
-              <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
-                <td className="px-4 py-3 font-semibold">{row.age}</td>
+              <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
                 <td className="text-right px-4 py-3 text-blue-400">{formatCurrency(row.ventureBalance)}</td>
                 <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.locDebt)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.netEquity)}</td>
@@ -240,17 +249,17 @@ export default function Venture1Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
-            <p className="text-3xl font-bold text-green-400">{currentYear?.opsHubEmployees || 0}</p>
+            <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">V1 Hub Bill</p>
-            <p className="text-3xl font-bold text-orange-400">{formatCurrency(currentYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
+            <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
             <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">US Staff</p>
-            <p className="text-3xl font-bold text-blue-400">{currentYear?.employees || 0}</p>
+            <p className="text-3xl font-bold text-blue-400">{selectedYear?.employees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Only at $1M+ balance</p>
           </div>
         </div>

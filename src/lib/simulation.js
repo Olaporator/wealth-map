@@ -106,7 +106,7 @@ export const DEFAULT_ASSUMPTIONS = {
   farmIncomeStartAge: 35,         // farm produces sellable income by 35
   farmIncomeAnnual: 50000,        // $50K/yr from produce/livestock sales
   farmIncomeGrowth: 3,            // 3% annual growth in farm income
-  venturesLocAmount: 200000,      // single ventures business LOC
+  venturesLocAmount: 150000,      // single ventures business LOC (reduced from $200K)
   venturesLocAge: 32,             // taken at age 32
   debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
   familyFundStartAge: 60,          // start deploying 401k to family legacy
@@ -151,13 +151,24 @@ export const DEFAULT_ASSUMPTIONS = {
   // Pulls 5% of RH gains, generates matching own income, secures
   // revolving LOC where RH pull covers debt service (P&I)
   // ═══════════════════════════════════════════════════════════════
-  venture2StartAge: 32,           // venture 2 starts at 32
+  venture2StartAge: 32,           // venture 2 starts at beginning of 32
   venture2RhPullPct: 15,          // 15% of RH leveraged gains → venture 2 seed (keeps V2 non-negative)
   venture2IncomeMatch: 1.0,       // own income matches RH contribution (1:1)
   venture2LocRate: 9,             // business LOC rate
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
+  // V2 Seed: $100K Webull entity account at age 32
+  // $30K diverted from V1 business income (capital contribution)
+  // $10K gift from family (under $19K annual exclusion)
+  // $10K interest-free loan from family (under $10K, no imputed interest)
+  // $50K from V1 LOC at 9% (penalty-free, repaid in 6 months)
+  v2SeedDiverted: 30000,          // capital contribution from business income
+  v2SeedGift: 10000,              // family gift (no tax)
+  v2SeedLoan: 10000,              // family loan (interest-free, <$10K rule)
+  v2SeedLocAmount: 50000,         // from V1 LOC at 9%
+  v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
+  v2SeedTotal: 100000,            // total Webull deposit (meets $100K minimum)
   // V2 Staffing: ops hub handles admin — minimal US presence
   v2EmployeeCost: 50000,         // $50K fully loaded per US employee (if any)
   v2StaffThreshold: 1000000,     // 1 US employee per $1M+ balance (rare, ops hub handles most)
@@ -172,7 +183,8 @@ export const DEFAULT_ASSUMPTIONS = {
   opsHubInitialStaff: 2,         // 2 employees from day 1
   opsHubGrowthInterval: 1,       // add 1 employee every year
   opsHubMaxStaff: 12,            // cap hub at 12 (plenty for entity portfolio)
-  opsHubEmployeeCost: 7000,      // $7K/yr fully loaded per Nigerian employee
+  opsHubEmployeeCostBase: 5000,   // $5K/yr starting salary per Nigerian employee
+  opsHubEmployeeRaise: 10,        // 10% annual raise per employee
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
   // Inter-company billing: ops hub bills each entity for services (tax-free between related entities)
@@ -647,15 +659,26 @@ export function runSimulation(assumptions) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // VENTURE 2: RH-funded operating business with revolving LOC
-    // RH pull (10% of gains) → covers LOC debt service (P&I)
-    // Venture generates matching own income → reinvested for growth
-    // LOC sized so P&I = RH pull; venture keeps borrowing indefinitely
+    // VENTURE 2: Webull entity account seeded at 32
+    // $100K: $30K diverted + $10K gift + $10K loan + $50K V1 LOC
+    // LOC portion repaid in 6 months, family loan repaid over time
+    // Then: RH pull (15%) → fund growth + LOC debt service
     // ═══════════════════════════════════════════════════════════
     let v2LocDraw = 0;
     let v2DebtService = 0;
     let v2SelfIncome = 0;
     if (age >= assumptions.venture2StartAge) {
+      // V2 SEED at age 32: $100K into Webull entity account
+      if (age === assumptions.venture2StartAge) {
+        venture2 += assumptions.v2SeedTotal; // $100K deposited
+        // $50K LOC portion: borrowed from V1 LOC at 9%, repaid in 6 months
+        venture2Loc += assumptions.v2SeedLocAmount;
+        const v2SeedLocInterest = assumptions.v2SeedLocAmount * (assumptions.venture2LocRate / 100) * (assumptions.v2SeedLocRepayMonths / 12);
+        // Repay LOC + interest from V2 balance within the year
+        venture2 -= (assumptions.v2SeedLocAmount + v2SeedLocInterest);
+        venture2Loc -= assumptions.v2SeedLocAmount;
+      }
+
       // RH pull covers debt service — size LOC draw so annual P&I = rhPullVenture2
       // Amortized P&I on revolving term: monthly = P * r(1+r)^n / ((1+r)^n - 1)
       const v2r = (assumptions.venture2LocRate / 100) / 12;
@@ -700,8 +723,11 @@ export function runSimulation(assumptions) {
       } else {
         opsHubEmployees = 0;
       }
+      // Employee cost: $5K base with 10% annual raises
+      const hubYearsForCost = age - assumptions.opsHubStartAge;
+      const avgEmployeeCost = assumptions.opsHubEmployeeCostBase * Math.pow(1 + assumptions.opsHubEmployeeRaise / 100, hubYearsForCost);
       opsHubCost = opsHubEmployees > 0
-        ? (opsHubEmployees * assumptions.opsHubEmployeeCost) + assumptions.opsHubCpaFee
+        ? (opsHubEmployees * avgEmployeeCost) + assumptions.opsHubCpaFee
         : 0;
       // Inter-company billing: each entity pays its share (tax-free transfers)
       opsHubBillV1 = opsHubCost * (assumptions.opsHubBillV1Pct / 100);
@@ -984,6 +1010,7 @@ export function runSimulation(assumptions) {
       npEmployees,
       opsHubEmployees,
       opsHubCost: Math.round(opsHubCost),
+      opsHubCostPerEmployee: opsHubEmployees > 0 ? Math.round((opsHubCost - assumptions.opsHubCpaFee) / opsHubEmployees) : 0,
       opsHubBillV1: Math.round(opsHubBillV1),
       opsHubBillV2: Math.round(opsHubBillV2),
       opsHubBillNp: Math.round(opsHubBillNp),

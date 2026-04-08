@@ -229,7 +229,7 @@ export default function NonprofitDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          All admin, accounting, HR, and tax handled by the Nigeria Ops Hub at $7K/yr per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free). US program director only at $5M+ reserves.
+          All admin, accounting, HR, and tax handled by the Nigeria Ops Hub at $5K/yr starting + 10% annual raises per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free). US program director only at $5M+ reserves.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
@@ -294,7 +294,7 @@ export default function NonprofitDashboard() {
       </div>
 
       {/* Funding Model Section */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">📊 Funding Model & Operations</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -315,6 +315,44 @@ export default function NonprofitDashboard() {
               <li>✓ <span className="text-gray-400">Build endowment for long-term sustainability</span></li>
             </ul>
           </div>
+        </div>
+      </div>
+
+      {/* Sub-Programs */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
+        <h2 className="text-xl font-bold mb-4">📂 Programs</h2>
+        <p className="text-gray-400 text-sm mb-4">Manage individual programs within the 501(c)(3).</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/nonprofit/permaculture" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🌱</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Permaculture Development</h3>
+            <p className="text-gray-500 text-xs mt-1">Food forests & regenerative agriculture</p>
+          </Link>
+          <Link to="/nonprofit/community" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🤝</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Community Organizing</h3>
+            <p className="text-gray-500 text-xs mt-1">Climate adaptation & food sovereignty</p>
+          </Link>
+          <Link to="/nonprofit/education" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🎓</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Education & Fellowships</h3>
+            <p className="text-gray-500 text-xs mt-1">Scholarships, training & apprenticeships</p>
+          </Link>
+          <Link to="/nonprofit/homestead-support" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🏡</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Homestead Support</h3>
+            <p className="text-gray-500 text-xs mt-1">Grants & loans for regenerative homes</p>
+          </Link>
+          <Link to="/nonprofit/policy" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">📜</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Policy & Advocacy</h3>
+            <p className="text-gray-500 text-xs mt-1">Land rights & conservation research</p>
+          </Link>
+          <Link to="/nonprofit/data-analytics" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">📊</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Data Analytics (R&D)</h3>
+            <p className="text-gray-500 text-xs mt-1">Internal research & data infrastructure</p>
+          </Link>
         </div>
       </div>
     </div>

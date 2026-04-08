@@ -287,7 +287,7 @@ export default function Venture2Dashboard() {
           <div>
             <h3 className="font-semibold text-emerald-400 mb-3">Funding Mechanism</h3>
             <ul className="text-gray-300 space-y-2 text-sm">
-              <li>✓ <span className="text-gray-400">10% of Robinhood leveraged gains → V2 seed</span></li>
+              <li>✓ <span className="text-gray-400">15% of Robinhood leveraged gains → V2 seed</span></li>
               <li>✓ <span className="text-gray-400">Matching self-generated income (1:1 ratio)</span></li>
               <li>✓ <span className="text-gray-400">Revolving LOC at 9%, 7-year term</span></li>
               <li>✓ <span className="text-gray-400">RH pull covers all debt service (P&I)</span></li>
@@ -317,7 +317,7 @@ export default function Venture2Dashboard() {
           <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V2 Subsidiary)</span></h2>
         </div>
         <p className="text-gray-300 text-sm mb-4">
-          Centralized back-office managing all entities from Nigeria at $7K/yr per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
+          Centralized back-office managing all entities from Nigeria at $5K/yr starting + 10% annual raises per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
         </p>
 
         {/* Ops Hub Summary Cards */}
@@ -433,6 +433,39 @@ export default function Venture2Dashboard() {
           <p className="text-gray-400 text-xs leading-relaxed">
             The ops hub is designed to expand into a family cooperative structure. Family members can contribute capital to employ additional Nigerians for work that directly benefits them — then participate in the same fund and reap the same benefits (investment returns, tax advantages, operational leverage). Each contributor gets access to the full infrastructure: back-office, AI tooling, and the venture portfolio. Effectively a generational wealth on-ramp run through the V2 subsidiary.
           </p>
+        </div>
+      </div>
+
+      {/* Sub-Ventures */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
+        <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
+        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 2.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/venture2/webull-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">📊</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Webull Portfolio</h3>
+            <p className="text-gray-500 text-xs mt-1">$100K entity investment account (S-Corp)</p>
+          </Link>
+          <Link to="/venture2/ops-hub" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🇳🇬</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Nigeria Ops Hub</h3>
+            <p className="text-gray-500 text-xs mt-1">Centralized back-office for all entities</p>
+          </Link>
+          <Link to="/venture2/city-rentals" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🏢</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">City Rentals</h3>
+            <p className="text-gray-500 text-xs mt-1">2-3 rental/Airbnb properties at age 40</p>
+          </Link>
+          <Link to="/venture2/content-media" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🎬</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Content & Media</h3>
+            <p className="text-gray-500 text-xs mt-1">Centralized content creation across ventures</p>
+          </Link>
+          <Link to="/venture2/internal-tools" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🔧</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Internal Tools</h3>
+            <p className="text-gray-500 text-xs mt-1">Internal-only business management tools</p>
+          </Link>
         </div>
       </div>
     </div>

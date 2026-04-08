@@ -227,7 +227,7 @@ export default function Venture1Dashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          Day-to-day operations handled by the Nigeria Ops Hub (V2 subsidiary) at $7K/yr per employee. US hires only at $1M+ balance.
+          Day-to-day operations handled by the Nigeria Ops Hub (V2 subsidiary) at $5K/yr starting + 10% annual raises per employee. US hires only at $1M+ balance.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
@@ -249,7 +249,7 @@ export default function Venture1Dashboard() {
       </div>
 
       {/* Business Model Section */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">🏢 Business Model</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
@@ -268,6 +268,34 @@ export default function Venture1Dashboard() {
         <p className="text-gray-400 text-sm mt-4 italic">
           Nigeria Ops Hub handles HR, accounting, taxes, logistics, and DevOps — V1 pays 30% of hub costs via inter-company billing (tax-free).
         </p>
+      </div>
+
+      {/* Sub-Ventures */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
+        <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
+        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 1.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link to="/venture1/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🌿</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Landscape Consulting</h3>
+            <p className="text-gray-500 text-xs mt-1">Consulting services for landscaping projects</p>
+          </Link>
+          <Link to="/venture1/garden-app" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">📱</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Garden App</h3>
+            <p className="text-gray-500 text-xs mt-1">Digital platform for garden planning & management</p>
+          </Link>
+          <Link to="/venture1/agro-equipment" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🚜</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Agro Equipment</h3>
+            <p className="text-gray-500 text-xs mt-1">Equipment rental & leasing for agriculture</p>
+          </Link>
+          <Link to="/venture1/property-management" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+            <span className="text-2xl block mb-2">🏘️</span>
+            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Property Management</h3>
+            <p className="text-gray-500 text-xs mt-1">Full-service property & vacation rental mgmt</p>
+          </Link>
+        </div>
       </div>
     </div>
   );

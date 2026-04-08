@@ -10,6 +10,24 @@ import Venture3Dashboard from './pages/Venture3Dashboard';
 import NigeriaDashboard from './pages/NigeriaDashboard';
 import OffshoreDashboard from './pages/OffshoreDashboard';
 import HardAssetsDashboard from './pages/HardAssetsDashboard';
+// V1 Sub-ventures
+import LandscapeConsulting from './pages/venture1/LandscapeConsulting';
+import GardenApp from './pages/venture1/GardenApp';
+import AgroEquipment from './pages/venture1/AgroEquipment';
+import PropertyManagement from './pages/venture1/PropertyManagement';
+// V2 Sub-ventures
+import WebullPortfolio from './pages/venture2/WebullPortfolio';
+import NigeriaOpsHub from './pages/venture2/NigeriaOpsHub';
+import CityRentals from './pages/venture2/CityRentals';
+import ContentMedia from './pages/venture2/ContentMedia';
+import InternalTools from './pages/venture2/InternalTools';
+// Nonprofit Sub-programs
+import PermacultureDev from './pages/nonprofit/PermacultureDev';
+import CommunityOrganizing from './pages/nonprofit/CommunityOrganizing';
+import EducationFellowships from './pages/nonprofit/EducationFellowships';
+import HomesteadSupport from './pages/nonprofit/HomesteadSupport';
+import PolicyAdvocacy from './pages/nonprofit/PolicyAdvocacy';
+import DataAnalytics from './pages/nonprofit/DataAnalytics';
 
 function NavBar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,6 +138,24 @@ export default function App() {
           <Route path="/nigeria" element={<NigeriaDashboard />} />
           <Route path="/offshore" element={<OffshoreDashboard />} />
           <Route path="/hard-assets" element={<HardAssetsDashboard />} />
+          {/* V1 Sub-ventures */}
+          <Route path="/venture1/landscape-consulting" element={<LandscapeConsulting />} />
+          <Route path="/venture1/garden-app" element={<GardenApp />} />
+          <Route path="/venture1/agro-equipment" element={<AgroEquipment />} />
+          <Route path="/venture1/property-management" element={<PropertyManagement />} />
+          {/* V2 Sub-ventures */}
+          <Route path="/venture2/webull-portfolio" element={<WebullPortfolio />} />
+          <Route path="/venture2/ops-hub" element={<NigeriaOpsHub />} />
+          <Route path="/venture2/city-rentals" element={<CityRentals />} />
+          <Route path="/venture2/content-media" element={<ContentMedia />} />
+          <Route path="/venture2/internal-tools" element={<InternalTools />} />
+          {/* Nonprofit Sub-programs */}
+          <Route path="/nonprofit/permaculture" element={<PermacultureDev />} />
+          <Route path="/nonprofit/community" element={<CommunityOrganizing />} />
+          <Route path="/nonprofit/education" element={<EducationFellowships />} />
+          <Route path="/nonprofit/homestead-support" element={<HomesteadSupport />} />
+          <Route path="/nonprofit/policy" element={<PolicyAdvocacy />} />
+          <Route path="/nonprofit/data-analytics" element={<DataAnalytics />} />
         </Routes>
       </div>
     </BrowserRouter>

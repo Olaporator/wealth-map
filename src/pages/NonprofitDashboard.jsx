@@ -170,7 +170,7 @@ export default function NonprofitDashboard() {
               <th className="text-right px-4 py-3 text-gray-300">Reserves</th>
               <th className="text-right px-4 py-3 text-gray-300">LOC Debt</th>
               <th className="text-right px-4 py-3 text-gray-300">Net Equity</th>
-              <th className="text-right px-4 py-3 text-gray-300">RH Donation In</th>
+              <th className="text-right px-4 py-3 text-gray-300">Distro Alloc In</th>
               <th className="text-right px-4 py-3 text-gray-300">External Donations</th>
               <th className="text-right px-4 py-3 text-gray-300">Invest Gains (12%)</th>
               <th className="text-right px-4 py-3 text-gray-300">Ops Cost (8%)</th>
@@ -308,7 +308,7 @@ export default function NonprofitDashboard() {
           <div>
             <h3 className="font-semibold text-emerald-400 mb-3">Revenue Streams</h3>
             <ul className="text-gray-300 space-y-2 text-sm">
-              <li>✓ <span className="text-gray-400">5% of Robinhood gains as tax-deductible donations (from LTCG harvesting)</span></li>
+              <li>✓ <span className="text-gray-400">5% of after-tax distributions allocated as tax-deductible donations</span></li>
               <li>✓ <span className="text-gray-400">External donations: $5K year 1, grow 10%/yr</span></li>
               <li>✓ <span className="text-gray-400">12% tax-free investment return on reserves (permaculture/land assets)</span></li>
               <li>✓ <span className="text-gray-400">Program partnerships with QOZ fund for on-the-ground work</span></li>

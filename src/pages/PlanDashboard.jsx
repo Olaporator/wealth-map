@@ -397,7 +397,7 @@ export default function PlanDashboard() {
     const src = d.freeCashSources;
     const items = [
       { label: 'Take-Home Pay', value: src.takeHome, color: 'text-green-400' },
-      { label: 'RH Pull (personal)', value: src.rhPullPersonal, color: 'text-orange-400' },
+      { label: 'Distro → Personal', value: src.rhPullPersonal, color: 'text-orange-400' },
       { label: 'Rental (50%)', value: src.rentalShare, color: 'text-blue-400' },
       { label: 'Business Income', value: src.businessIncome, color: 'text-amber-400' },
       { label: 'Living Expenses', value: src.expenses, color: 'text-red-400' },
@@ -409,10 +409,10 @@ export default function PlanDashboard() {
       items.push({ label: `S-Corp Distrib → Robinhood`, value: src.netDistributions, color: 'text-blue-400' });
     }
     if (src.rhPullQoz < 0) {
-      items.push({ label: `RH Pull → QOZ`, value: src.rhPullQoz, color: 'text-cyan-400' });
+      items.push({ label: `Distro → QOZ`, value: src.rhPullQoz, color: 'text-cyan-400' });
     }
     if (src.rhPullNonprofit < 0) {
-      items.push({ label: `RH Pull → Nonprofit`, value: src.rhPullNonprofit, color: 'text-green-400' });
+      items.push({ label: `Distro → Nonprofit`, value: src.rhPullNonprofit, color: 'text-green-400' });
     }
     if (src.freeCashToQoz < 0) {
       items.push({ label: `Free Cash → QOZ (66%)`, value: src.freeCashToQoz, color: 'text-cyan-400' });
@@ -586,7 +586,7 @@ export default function PlanDashboard() {
                       {row.taxBreakdown.w2Tax > 0 && <div className="flex justify-between"><span className="text-gray-400">W2 ({assumptions.personalTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.w2Tax)}</span></div>}
                       {row.taxBreakdown.distributionTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Distrib ({assumptions.distributionTaxRate}%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.distributionTax)}</span></div>}
                       {row.taxBreakdown.additionalTax > 0 && <div className="flex justify-between"><span className="text-gray-400">Add'l Income (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.additionalTax)}</span></div>}
-                      {row.taxBreakdown.rhPullTax > 0 && <div className="flex justify-between"><span className="text-gray-400">RH LTCG (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.rhPullTax)}</span></div>}
+                      {row.taxBreakdown.rhPullTax > 0 && <div className="flex justify-between"><span className="text-gray-400">LTCG on Allocations (15%)</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.rhPullTax)}</span></div>}
                       {row.taxBreakdown.employerPayroll > 0 && <div className="flex justify-between"><span className="text-gray-400">Employer Payroll</span><span className="text-red-400">{formatCurrency(row.taxBreakdown.employerPayroll)}</span></div>}
                       <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-bold">
                         <span className="text-white">Total</span>
@@ -1253,7 +1253,7 @@ export default function PlanDashboard() {
                 
                 {/* Robinhood Growth Pulls */}
                 <div className="bg-orange-900/20 rounded-lg p-3 border border-orange-800">
-                  <div className="text-xs text-orange-400 mb-2 font-semibold">Robinhood Growth Pulls (Tax-Strategic LTCG from Age {assumptions.rhPullStartAge})</div>
+                  <div className="text-xs text-orange-400 mb-2 font-semibold">After-Tax Distribution Allocations (from Age {assumptions.rhPullStartAge})</div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs text-gray-400 block mb-1">Start Age</label>
@@ -1263,14 +1263,14 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ Personal (% of growth)</label>
+                      <label className="text-xs text-gray-400 block mb-1">→ Personal (% of distros)</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <input type="number" step="0.5" value={assumptions.rhPullPersonalPct} onChange={(e) => setAssumptions({ ...assumptions, rhPullPersonalPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 block mb-1">→ QOZ Fund (% of growth)</label>
+                      <label className="text-xs text-gray-400 block mb-1">→ QOZ Fund (% of distros)</label>
                       <div className="flex items-center bg-gray-800 rounded px-2">
                         <input type="number" step="0.5" value={assumptions.rhPullQozPct} onChange={(e) => setAssumptions({ ...assumptions, rhPullQozPct: parseFloat(e.target.value) || 0 })} className="bg-transparent w-full py-2 text-white text-sm outline-none" />
                         <span className="text-gray-500 text-sm">%</span>
@@ -1286,7 +1286,7 @@ export default function PlanDashboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">RH pulls: {assumptions.rhPullPersonalPct}% personal + {assumptions.rhPullQozPct}% QOZ. Plus {assumptions.freeCashToQozPct}% of positive free cash → QOZ. LTCG at 15%.</div>
+                  <div className="text-xs text-gray-500 mt-2">After-tax distro splits: {assumptions.rhPullPersonalPct}% personal + {assumptions.rhPullQozPct}% QOZ. Plus {assumptions.freeCashToQozPct}% of positive free cash → QOZ. Remainder → Robinhood.</div>
                 </div>
 
                 {/* Withdrawal Strategy */}

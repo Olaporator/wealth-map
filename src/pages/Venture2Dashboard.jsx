@@ -205,7 +205,7 @@ export default function Venture2Dashboard() {
               <th className="text-right px-4 py-3 text-gray-300">V2 Balance</th>
               <th className="text-right px-4 py-3 text-gray-300">V2 LOC</th>
               <th className="text-right px-4 py-3 text-gray-300">Net Equity</th>
-              <th className="text-right px-4 py-3 text-gray-300">RH Pull In</th>
+              <th className="text-right px-4 py-3 text-gray-300">Distro Alloc In</th>
               <th className="text-right px-4 py-3 text-gray-300">Self Income</th>
               <th className="text-right px-4 py-3 text-gray-300">Invest Gains (12%)</th>
               <th className="text-right px-4 py-3 text-gray-300">Rental Net Income</th>
@@ -295,10 +295,10 @@ export default function Venture2Dashboard() {
           <div>
             <h3 className="font-semibold text-emerald-400 mb-3">Funding Mechanism</h3>
             <ul className="text-gray-300 space-y-2 text-sm">
-              <li>✓ <span className="text-gray-400">15% of Robinhood leveraged gains → V2 seed</span></li>
+              <li>✓ <span className="text-gray-400">15% of after-tax distributions allocated → V2</span></li>
               <li>✓ <span className="text-gray-400">Matching self-generated income (1:1 ratio)</span></li>
               <li>✓ <span className="text-gray-400">Revolving LOC at 9%, 7-year term</span></li>
-              <li>✓ <span className="text-gray-400">RH pull covers all debt service (P&I)</span></li>
+              <li>✓ <span className="text-gray-400">Distribution allocation covers all debt service (P&I)</span></li>
               <li>✓ <span className="text-gray-400">50% of net gains → LOC paydown</span></li>
             </ul>
           </div>

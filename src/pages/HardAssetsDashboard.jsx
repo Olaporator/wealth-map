@@ -56,7 +56,7 @@ export default function HardAssetsDashboard() {
 
   const summaryCards = [
     { label: 'Start Age', value: assumptions.hardAssetsStartAge, icon: '📅' },
-    { label: 'RH Pull Rate', value: assumptions.hardAssetsRhPullPct + '%', icon: '💸' },
+    { label: 'Distro Allocation', value: assumptions.hardAssetsRhPullPct + '%', icon: '💸' },
     { label: 'Avg Appreciation', value: assumptions.hardAssetsAppreciation + '%', icon: '📈' },
     { label: 'Storage + Insurance', value: formatCurrency(assumptions.hardAssetsStorageCost) + '/yr + ' + assumptions.hardAssetsInsurancePct + '%', icon: '🔒' },
     { label: 'Value at 50', value: formatCurrency(age50?.totalValue || 0), icon: '🪙' },
@@ -151,7 +151,7 @@ export default function HardAssetsDashboard() {
             <thead>
               <tr className="border-b border-gray-700">
                 <th className="text-left px-4 py-3 text-gray-300">Age</th>
-                <th className="text-right px-4 py-3 text-gray-300">RH Pull</th>
+                <th className="text-right px-4 py-3 text-gray-300">Distro Alloc</th>
                 <th className="text-right px-4 py-3 text-gray-300">Purchased</th>
                 <th className="text-right px-4 py-3 text-gray-300">Appreciation</th>
                 <th className="text-right px-4 py-3 text-gray-300">Costs</th>
@@ -214,7 +214,7 @@ export default function HardAssetsDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">Strategy</h2>
         <p className="text-gray-200 leading-relaxed mb-3">
-          Starting at age {assumptions.hardAssetsStartAge}, {assumptions.hardAssetsRhPullPct}% of Robinhood leveraged gains are allocated to hard asset acquisitions. Items are placed in insured, climate-controlled storage and held for long-term appreciation averaging {assumptions.hardAssetsAppreciation}% annually across the portfolio mix.
+          Starting at age {assumptions.hardAssetsStartAge}, {assumptions.hardAssetsRhPullPct}% of after-tax distributions are allocated to hard asset acquisitions. Items are placed in insured, climate-controlled storage and held for long-term appreciation averaging {assumptions.hardAssetsAppreciation}% annually across the portfolio mix.
         </p>
         <p className="text-gray-200 leading-relaxed mb-3">
           Annual carrying costs are {formatCurrency(assumptions.hardAssetsStorageCost)} base storage plus {assumptions.hardAssetsInsurancePct}% of portfolio value for insurance — covered by personal cash flow via the credit card strategy. These tangible assets provide portfolio diversification away from paper/digital assets and serve as an inflation-resistant store of value.

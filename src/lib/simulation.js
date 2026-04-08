@@ -173,9 +173,19 @@ export const DEFAULT_ASSUMPTIONS = {
   rentalRentGrowth: 3,             // annual rent growth
 
   // ═══════════════════════════════════════════════════════════════
-  // VENTURE 2 — RH-funded operating business (equipment/services)
-  // Pulls 5% of RH gains, generates matching own income, secures
-  // revolving LOC where RH pull covers debt service (P&I)
+  // V1 WEBULL (S-Corp entity brokerage) — accumulates from retained earnings
+  // S-Corp only needs ~$15K operating buffer; excess retained → Webull once at $100K
+  // Before $100K threshold: excess distributions go to personal RH (stay invested)
+  // ═══════════════════════════════════════════════════════════════
+  v1WebullMinimum: 100000,         // $100K Webull entity account minimum
+  v1OperatingBuffer: 15000,        // S-Corp keeps ~$15K for monthly ops (payroll, overhead)
+  v1RetainedPerMonth: 8000,        // ~$8K/mo retained above ops buffer → Webull fund
+  // At $8K/mo, V1 Webull hits $100K in ~12.5 months (mid age 32)
+  // Until then, bulk of distributions → personal RH (keeps earning 30% leveraged)
+
+  // ═══════════════════════════════════════════════════════════════
+  // VENTURE 2 — agro/land entity, funded by distribution allocations
+  // Pulls 15% of distributions, generates own income, secures LOC
   // ═══════════════════════════════════════════════════════════════
   venture2StartAge: 32,           // venture 2 starts at beginning of 32
   venture2RhPullPct: 15,          // 15% of RH leveraged gains → venture 2 seed (keeps V2 non-negative)
@@ -336,7 +346,9 @@ export function runSimulation(assumptions) {
   let qozFund = 0;
   let ventures = 0;
   let venturesLocDebt = 0;   // Outstanding ventures LOC principal (liability)
-  let venture2 = 0;          // Venture 2 net equity (assets - LOC debt)
+  let venture2 = 0;          // V1 NimbusTech Webull — only earns returns AFTER $100K funded
+  let v1WebullAccum = 0;     // Cash sitting in S-Corp checking, earning 0%, waiting for $100K
+  let v1WebullActive = false; // Flips true once accumulation hits $100K minimum
   let venture2Loc = 0;       // Venture 2 outstanding LOC balance
   let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
   let venture3 = 0;           // Venture 3 reserves
@@ -589,14 +601,23 @@ export function runSimulation(assumptions) {
       if (age >= assumptions.hardAssetsStartAge) {
         distroToHardAssets = netDistributions * (assumptions.hardAssetsRhPullPct / 100);
       }
-      // Everything NOT allocated above → stays in S-Corp Webull (V1 NimbusTech)
-      // Before V1 Webull is active (age < venture2StartAge), residual goes to RH instead
+      // Everything NOT allocated above → retained in S-Corp for V1 Webull
       const totalAllocated = distroToPersonal + distroToQoz + distroToV2 + distroToNonprofit + distroToHardAssets;
       const residual = Math.max(0, netDistributions - totalAllocated);
-      if (age >= assumptions.venture2StartAge) {
-        distroToV1Webull = residual; // V1 Webull active → bulk goes there
+
+      if (v1WebullActive) {
+        // Webull funded — residual goes straight to V1 Webull (earns returns)
+        distroToV1Webull = residual;
       } else {
-        distroToPersonal += residual; // V1 not yet active → RH earns returns on it
+        // Still accumulating toward $100K minimum — cash sits in S-Corp checking at 0%
+        v1WebullAccum += residual;
+        if (v1WebullAccum >= assumptions.v1WebullMinimum) {
+          // Hit $100K! Transfer to Webull, activate investment returns
+          v1WebullActive = true;
+          distroToV1Webull = v1WebullAccum; // dump full accumulation into Webull
+          v1WebullAccum = 0;
+        }
+        // While accumulating: residual earns nothing (dead cash in checking)
       }
     }
 

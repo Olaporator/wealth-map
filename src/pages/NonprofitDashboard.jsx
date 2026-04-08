@@ -125,7 +125,7 @@ export default function NonprofitDashboard() {
           <span className="text-5xl">💚</span>
           <div>
             <h1 className="text-4xl font-bold">501(c)(3) Nonprofit</h1>
-            <p className="text-lg text-emerald-400 font-semibold">AAYO Foundation</p>
+            <p className="text-lg text-emerald-400 font-semibold">Entity Name TBD</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">

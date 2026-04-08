@@ -142,11 +142,11 @@ export default function Venture2Dashboard() {
           <span className="text-5xl">🚀</span>
           <div>
             <h1 className="text-4xl font-bold">Venture 2</h1>
-            <p className="text-lg text-purple-400 font-semibold">NimbusTech S-Corp</p>
+            <p className="text-lg text-purple-400 font-semibold">New S-Corp (TBD)</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Tech, AI, and investment operations entity. Rebranded from existing NimbusTech S-Corp (already connected to Nigeria via EOR). Houses the $100K Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools.
+          Separate S-Corp entity for tech, AI, and investment operations. Connected to Nigeria via EOR. Houses the $100K Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools. Seeded at age 32.
         </p>
       </div>
 

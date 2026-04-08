@@ -136,11 +136,11 @@ export default function Venture1Dashboard() {
           <span className="text-5xl">⚡</span>
           <div>
             <h1 className="text-4xl font-bold">Venture 1</h1>
-            <p className="text-lg text-blue-400 font-semibold">AAYO Tech S-Corp</p>
+            <p className="text-lg text-blue-400 font-semibold">AAYO Tech LLC DBA NimbusTech Consulting</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Parent entity for agro, land, and property operations. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Funded by $150K V1 LOC at age 32, invested at 12% returns. Nigeria Ops Hub (V2 subsidiary) handles all back-office operations.
+          Existing S-Corp entity — consulting, agro, land, and property operations. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Funded by $150K V1 LOC at age 32, invested at 12% returns. Nigeria Ops Hub (V2 subsidiary) handles all back-office operations.
         </p>
       </div>
 

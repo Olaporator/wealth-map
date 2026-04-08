@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { DEFAULT_ASSUMPTIONS, runSimulation } from '../lib/simulation';
+import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
@@ -198,14 +199,14 @@ export default function PlanDashboard() {
       case 'freeCash':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data.filter(d => d.age <= 55)}>
+            <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="age" stroke="#9CA3AF" tick={{ fontSize: 10 }} />
               <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} tickFormatter={formatCurrency} />
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" />
               <Bar dataKey="freeCash" radius={[4, 4, 0, 0]} name="Free Cash">
-                {data.filter(d => d.age <= 55).map((entry, index) => (
+                {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.freeCash < 0 ? '#EF4444' : '#10B981'} />
                 ))}
               </Bar>
@@ -542,9 +543,10 @@ export default function PlanDashboard() {
       </div>
 
       {/* Data Table */}
-      <div ref={tableContainerRef} className="bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto max-h-[500px] overflow-y-auto">
-        <table className="w-full text-xs">
-          <thead className="sticky top-0 bg-gray-900 z-10">
+      <CollapsibleYearByYear title="Year-by-Year Projection">
+        <div ref={tableContainerRef} className="overflow-x-auto max-h-[500px] overflow-y-auto">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-gray-900 z-10">
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
@@ -559,7 +561,7 @@ export default function PlanDashboard() {
             </tr>
           </thead>
           <tbody>
-            {data.filter(d => d.age <= 50 || d.age % 10 === 0).map((row) => (
+            {data.map((row) => (
               <tr
                 key={row.age}
                 data-age={row.age}
@@ -608,7 +610,8 @@ export default function PlanDashboard() {
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      </CollapsibleYearByYear>
 
       {/* Timeline */}
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6 mt-6 overflow-x-auto">

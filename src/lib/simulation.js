@@ -376,7 +376,7 @@ export function runSimulation(assumptions) {
   let rentalEquity = 0;      // City rental properties equity
   let rentalMortgage = 0;    // City rental mortgage balance
 
-  for (let age = assumptions.currentAge; age <= 85; age++) {
+  for (let age = assumptions.currentAge; age <= 60; age++) {
     // ═══════════════════════════════════════════════════════════
     // STEP 1: DETERMINE NT REVENUE FOR THIS YEAR (phase-based)
     // ═══════════════════════════════════════════════════════════

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
+import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -60,7 +61,7 @@ export default function NigeriaDashboard() {
       icon: '🌍',
     },
     {
-      label: 'Property Value at 85',
+      label: 'Property Value at 60',
       value: formatCurrency(latestYear?.propertyValue || 0),
       icon: '🌍',
     },
@@ -133,8 +134,7 @@ export default function NigeriaDashboard() {
 
       {/* Year-by-Year Table */}
       {chartData.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 overflow-x-auto">
-          <h2 className="text-xl font-bold mb-4">Year-by-Year Projection (Age 35+)</h2>
+        <CollapsibleYearByYear title="Year-by-Year Projection (Age 35+)">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-700">
@@ -157,7 +157,7 @@ export default function NigeriaDashboard() {
               ))}
             </tbody>
           </table>
-        </div>
+        </CollapsibleYearByYear>
       )}
 
       {/* Property Value Chart */}

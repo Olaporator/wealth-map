@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useWealthData } from '../../hooks/useWealthData';
+import CollapsibleYearByYear from '../../components/CollapsibleYearByYear';
 
 export default function PolicyAdvocacy() {
+  const { data } = useWealthData();
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -89,6 +92,30 @@ export default function PolicyAdvocacy() {
             </li>
           </ul>
         </div>
+
+        {/* Year-by-Year (Parent Entity: Nonprofit) */}
+        {data?.years && (
+          <CollapsibleYearByYear title="Year-by-Year Projection (Nonprofit Entity)">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left px-4 py-3 text-gray-300">Age</th>
+                  <th className="text-right px-4 py-3 text-gray-300">NP Reserves</th>
+                  <th className="text-right px-4 py-3 text-gray-300">Net Worth</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.years.map((row, idx) => (
+                  <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+                    <td className="px-4 py-3 font-semibold">{row.age}</td>
+                    <td className="text-right px-4 py-3 text-emerald-400">{row.nonprofit >= 1000000 ? '$' + (row.nonprofit / 1000000).toFixed(1) + 'M' : row.nonprofit >= 1000 ? '$' + (row.nonprofit / 1000).toFixed(0) + 'K' : '$' + (row.nonprofit || 0)}</td>
+                    <td className="text-right px-4 py-3 text-white font-semibold">{row.netWorth >= 1000000 ? '$' + (row.netWorth / 1000000).toFixed(1) + 'M' : row.netWorth >= 1000 ? '$' + (row.netWorth / 1000).toFixed(0) + 'K' : '$' + (row.netWorth || 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CollapsibleYearByYear>
+        )}
       </div>
     </div>
   );

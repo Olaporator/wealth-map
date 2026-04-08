@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useWealthData } from '../../hooks/useWealthData';
+import CollapsibleYearByYear from '../../components/CollapsibleYearByYear';
 
 export default function InternalTools() {
+  const { data } = useWealthData();
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
@@ -134,7 +137,7 @@ export default function InternalTools() {
         </div>
 
         {/* Usage & Access */}
-        <div className="bg-gray-900 rounded-lg p-6">
+        <div className="bg-gray-900 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
             <span className="text-xl">🔒</span>
             Access & Security
@@ -163,6 +166,30 @@ export default function InternalTools() {
             </div>
           </div>
         </div>
+
+        {/* Year-by-Year (Parent Entity: V1 NimbusTech) */}
+        {data?.years && (
+          <CollapsibleYearByYear title="Year-by-Year Projection (V1 NimbusTech Entity)">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left px-4 py-3 text-gray-300">Age</th>
+                  <th className="text-right px-4 py-3 text-gray-300">V1 Balance</th>
+                  <th className="text-right px-4 py-3 text-gray-300">Net Worth</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.years.map((row, idx) => (
+                  <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+                    <td className="px-4 py-3 font-semibold">{row.age}</td>
+                    <td className="text-right px-4 py-3 text-pink-400">{row.venture2 >= 1000000 ? '$' + (row.venture2 / 1000000).toFixed(1) + 'M' : row.venture2 >= 1000 ? '$' + (row.venture2 / 1000).toFixed(0) + 'K' : '$' + (row.venture2 || 0)}</td>
+                    <td className="text-right px-4 py-3 text-white font-semibold">{row.netWorth >= 1000000 ? '$' + (row.netWorth / 1000000).toFixed(1) + 'M' : row.netWorth >= 1000 ? '$' + (row.netWorth / 1000).toFixed(0) + 'K' : '$' + (row.netWorth || 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CollapsibleYearByYear>
+        )}
       </div>
     </div>
   );

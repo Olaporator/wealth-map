@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
+import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -60,9 +61,9 @@ export default function HardAssetsDashboard() {
     { label: 'Avg Appreciation', value: assumptions.hardAssetsAppreciation + '%', icon: '📈' },
     { label: 'Storage + Insurance', value: formatCurrency(assumptions.hardAssetsStorageCost) + '/yr + ' + assumptions.hardAssetsInsurancePct + '%', icon: '🔒' },
     { label: 'Value at 50', value: formatCurrency(age50?.totalValue || 0), icon: '🪙' },
-    { label: 'Value at 85', value: formatCurrency(latestYear?.totalValue || 0), icon: '💎' },
-    { label: 'Total Purchased (85)', value: formatCurrency(latestYear?.cumulativePurchases || 0), icon: '🛒' },
-    { label: 'Net Value at 85', value: formatCurrency(latestYear?.netValue || 0), icon: '✨' },
+    { label: 'Value at 60', value: formatCurrency(latestYear?.totalValue || 0), icon: '💎' },
+    { label: 'Total Purchased (60)', value: formatCurrency(latestYear?.cumulativePurchases || 0), icon: '🛒' },
+    { label: 'Net Value at 60', value: formatCurrency(latestYear?.netValue || 0), icon: '✨' },
   ];
 
   const chartData = yearsData.filter(y => y.age >= assumptions.hardAssetsStartAge);
@@ -145,8 +146,7 @@ export default function HardAssetsDashboard() {
 
       {/* Year-by-Year Table */}
       {chartData.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 overflow-x-auto">
-          <h2 className="text-xl font-bold mb-4">Year-by-Year Projection</h2>
+        <CollapsibleYearByYear title="Year-by-Year Projection">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-700">
@@ -175,7 +175,7 @@ export default function HardAssetsDashboard() {
               ))}
             </tbody>
           </table>
-        </div>
+        </CollapsibleYearByYear>
       )}
 
       {/* Asset Categories */}

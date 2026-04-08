@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
+import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -141,8 +142,7 @@ export default function Venture3Dashboard() {
 
       {/* Year-by-Year Table */}
       {chartData.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 overflow-x-auto">
-          <h2 className="text-xl font-bold mb-4">Year-by-Year Projection (Age 60+)</h2>
+        <CollapsibleYearByYear title="Year-by-Year Projection (Age 60+)">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-700">
@@ -173,7 +173,7 @@ export default function Venture3Dashboard() {
               ))}
             </tbody>
           </table>
-        </div>
+        </CollapsibleYearByYear>
       )}
 
       {/* V3 Balance Chart */}

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
+import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -161,8 +162,7 @@ export default function NonprofitDashboard() {
       </div>
 
       {/* Year-by-Year Table */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8 overflow-x-auto">
-        <h2 className="text-xl font-bold mb-4">Year-by-Year Projection</h2>
+      <CollapsibleYearByYear title="Year-by-Year Projection">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-700">
@@ -197,7 +197,7 @@ export default function NonprofitDashboard() {
             ))}
           </tbody>
         </table>
-      </div>
+      </CollapsibleYearByYear>
 
       {/* Chart: Reserves vs LOC Debt */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">

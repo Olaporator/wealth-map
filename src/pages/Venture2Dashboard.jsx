@@ -141,12 +141,12 @@ export default function Venture2Dashboard() {
         <div className="flex items-center gap-3 mb-2">
           <span className="text-5xl">🚀</span>
           <div>
-            <h1 className="text-4xl font-bold">Venture 2</h1>
-            <p className="text-lg text-purple-400 font-semibold">New S-Corp (TBD)</p>
+            <h1 className="text-4xl font-bold">Venture 1</h1>
+            <p className="text-lg text-purple-400 font-semibold">AAYO Tech LLC DBA NimbusTech Consulting</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Separate S-Corp entity for tech, AI, and investment operations. Connected to Nigeria via EOR. Houses the $100K Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools. Seeded at age 32.
+          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Houses the Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools. S-Corp deductions (health, home office, vehicle, travel, equipment, wellness) reduce taxable distributions.
         </p>
       </div>
 
@@ -447,29 +447,29 @@ export default function Venture2Dashboard() {
       {/* Sub-Ventures */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
         <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
-        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 2.</p>
+        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 1.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link to="/venture2/webull-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/webull-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">📊</span>
             <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Webull Portfolio</h3>
             <p className="text-gray-500 text-xs mt-1">$100K entity investment account (S-Corp)</p>
           </Link>
-          <Link to="/venture2/ops-hub" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/ops-hub" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">🇳🇬</span>
             <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Nigeria Ops Hub</h3>
             <p className="text-gray-500 text-xs mt-1">Centralized back-office for all entities</p>
           </Link>
-          <Link to="/venture2/city-rentals" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/city-rentals" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">🏢</span>
             <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">City Rentals</h3>
             <p className="text-gray-500 text-xs mt-1">2-3 rental/Airbnb properties at age 40</p>
           </Link>
-          <Link to="/venture2/content-media" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/content-media" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">🎬</span>
             <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Content & Media</h3>
             <p className="text-gray-500 text-xs mt-1">Centralized content creation across ventures</p>
           </Link>
-          <Link to="/venture2/internal-tools" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/internal-tools" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">🔧</span>
             <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Internal Tools</h3>
             <p className="text-gray-500 text-xs mt-1">Internal-only business management tools</p>

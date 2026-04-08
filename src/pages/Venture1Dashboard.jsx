@@ -135,12 +135,12 @@ export default function Venture1Dashboard() {
         <div className="flex items-center gap-3 mb-2">
           <span className="text-5xl">⚡</span>
           <div>
-            <h1 className="text-4xl font-bold">Venture 1</h1>
-            <p className="text-lg text-blue-400 font-semibold">AAYO Tech LLC DBA NimbusTech Consulting</p>
+            <h1 className="text-4xl font-bold">Venture 2</h1>
+            <p className="text-lg text-blue-400 font-semibold">New Entity (TBD)</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Existing S-Corp entity — consulting, agro, land, and property operations. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Funded by $150K V1 LOC at age 32, invested at 12% returns. Nigeria Ops Hub (V2 subsidiary) handles all back-office operations.
+          New entity for agro, land, and property operations. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Funded by $150K LOC at age 32, invested at 12% returns. Nigeria Ops Hub (V1 subsidiary) handles all back-office operations.
         </p>
       </div>
 
@@ -281,24 +281,24 @@ export default function Venture1Dashboard() {
       {/* Sub-Ventures */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
         <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
-        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 1.</p>
+        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 2.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to="/venture1/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+          <Link to="/venture2/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🌿</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Landscape Consulting</h3>
             <p className="text-gray-500 text-xs mt-1">Consulting services for landscaping projects</p>
           </Link>
-          <Link to="/venture1/garden-app" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+          <Link to="/venture2/garden-app" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">📱</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Garden App</h3>
             <p className="text-gray-500 text-xs mt-1">Digital platform for garden planning & management</p>
           </Link>
-          <Link to="/venture1/agro-equipment" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+          <Link to="/venture2/agro-equipment" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🚜</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Agro Equipment</h3>
             <p className="text-gray-500 text-xs mt-1">Equipment rental & leasing for agriculture</p>
           </Link>
-          <Link to="/venture1/property-management" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
+          <Link to="/venture2/property-management" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🏘️</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Property Management</h3>
             <p className="text-gray-500 text-xs mt-1">Full-service property & vacation rental mgmt</p>

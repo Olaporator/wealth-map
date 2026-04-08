@@ -6,9 +6,9 @@ export default function NigeriaOpsHub() {
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
-        <Link to="/venture2" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-8">
+        <Link to="/venture1" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-8">
           <span>←</span>
-          Back to Venture 2
+          Back to Venture 1
         </Link>
 
         {/* Header */}

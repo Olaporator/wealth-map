@@ -41,6 +41,28 @@ export const DEFAULT_ASSUMPTIONS = {
   distributionTaxRate: 24,  // federal + state on S-Corp distributions (pass-through)
 
   // ═══════════════════════════════════════════════════════════════
+  // S-CORP DEDUCTIBLE EXPENSES (reduce taxable distributions)
+  // These are owner benefits as >2% shareholder — NOT employee perks
+  // ═══════════════════════════════════════════════════════════════
+  scorpHealthInsurance: 10000,    // S-Corp pays owner health/dental/vision premiums ($830/mo)
+  scorpHomeOffice: 8000,          // Home office deduction (% of mortgage, utilities, insurance, repairs)
+  scorpVehicle: 5000,             // Business-use vehicle (gas, insurance, maintenance, depreciation)
+  scorpTravel: 8000,              // Business travel (Nigeria ops hub oversight, clients, conferences)
+  scorpEquipment: 5000,           // Section 179 equipment (computers, tools, software)
+  scorpWellness: 2000,            // Wellness program (home gym equipment, ergonomic gear)
+  scorpPhoneInternet: 2400,       // Business-use phone + internet (80% of costs)
+  // Total deductible: ~$40,400/yr — reduces taxable distributions by this amount
+  // Tax savings: ~$40,400 × 24% = ~$9,700/yr
+
+  // ═══════════════════════════════════════════════════════════════
+  // SOLO 401(k) — upgraded from standard 401k at age 33
+  // Employee contribution ($23K) + Employer match (25% of W2 = $20K) = $43K/yr
+  // ═══════════════════════════════════════════════════════════════
+  solo401kStartAge: 33,           // upgrade to Solo 401(k) at 33
+  solo401kEmployeeMax: 23000,     // 2026 employee contribution limit
+  solo401kEmployerMatchPct: 25,   // employer can contribute 25% of W2 ($80K × 25% = $20K)
+
+  // ═══════════════════════════════════════════════════════════════
   // RETURNS & APPRECIATION
   // ═══════════════════════════════════════════════════════════════
   k401Return: 8,            // 401k in standard index funds
@@ -106,6 +128,10 @@ export const DEFAULT_ASSUMPTIONS = {
   farmIncomeStartAge: 35,         // farm produces sellable income by 35
   farmIncomeAnnual: 50000,        // $50K/yr from produce/livestock sales
   farmIncomeGrowth: 3,            // 3% annual growth in farm income
+  // V2 Agro sub-venture income (equipment leasing, property mgmt, landscape consulting)
+  v2AgroIncomeStartAge: 36,      // sub-ventures start generating at 36
+  v2AgroIncomeBase: 25000,       // $25K/yr initial (modest — equipment rental, consulting gigs)
+  v2AgroIncomeGrowth: 12,        // 12%/yr growth as business matures
   venturesLocAmount: 150000,      // single ventures business LOC (reduced from $200K)
   venturesLocAge: 32,             // taken at age 32
   debtPayoffAge: 60,              // pay off remaining debts via RH (LTCG) at 20yr maturity
@@ -364,24 +390,50 @@ export function runSimulation(assumptions) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + DISTRIBUTIONS (S-Corp)
-    // Every dollar of NT revenue goes somewhere:
-    //   W2 gross → employee (taxes + 401k + take-home)
-    //   Employer payroll taxes → government
-    //   Remainder → S-Corp distributions (taxed at personal rate, flows to Robinhood)
+    // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + DEDUCTIONS + DISTRIBUTIONS
+    // Revenue → W2 + payroll → S-Corp deductible expenses → taxable distributions
+    // Deductions reduce the taxable base; remainder invested in S-Corp Webull
     // ═══════════════════════════════════════════════════════════
     const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40 (last year 39)
     const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
     const ntOverhead = w2Gross + employerPayrollTax;
-    const grossDistributions = Math.max(0, ntRevenue - ntOverhead);
+
+    // S-Corp deductible expenses: reduce taxable distributions (owner benefits, not employee perks)
+    const scorpDeductions = ntRevenue > 0 ? (
+      assumptions.scorpHealthInsurance +
+      assumptions.scorpHomeOffice +
+      assumptions.scorpVehicle +
+      assumptions.scorpTravel +
+      assumptions.scorpEquipment +
+      assumptions.scorpWellness +
+      assumptions.scorpPhoneInternet
+    ) : 0;
+
+    // Solo 401(k) employer contribution (25% of W2, starts at 33)
+    const solo401kEmployerContrib = (age >= assumptions.solo401kStartAge && w2Gross > 0)
+      ? w2Gross * (assumptions.solo401kEmployerMatchPct / 100) // 25% of $80K = $20K
+      : 0;
+
+    const grossDistributions = Math.max(0, ntRevenue - ntOverhead - scorpDeductions - solo401kEmployerContrib);
     const distributionTax = grossDistributions * (assumptions.distributionTaxRate / 100);
-    const netDistributions = grossDistributions - distributionTax; // after-tax → flows to Robinhood
+    const netDistributions = grossDistributions - distributionTax; // after-tax → mostly to S-Corp Webull, minimal to personal RH
 
     // ═══════════════════════════════════════════════════════════
     // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
     // ═══════════════════════════════════════════════════════════
-    let k401Contrib = age <= 45 ? w2Gross * (assumptions.k401Rate / 100) : 0;
-    const taxableW2 = w2Gross - k401Contrib; // 401k is pre-tax
+    // Solo 401(k) at 33+: employee max ($23K) + employer match ($20K) = $43K/yr
+    // Before 33: standard 401(k) at 20% of W2 = $16K/yr
+    let k401Contrib = 0;
+    if (age <= 45 && w2Gross > 0) {
+      if (age >= assumptions.solo401kStartAge) {
+        k401Contrib = Math.min(assumptions.solo401kEmployeeMax, w2Gross); // $23K employee max
+      } else {
+        k401Contrib = w2Gross * (assumptions.k401Rate / 100); // 20% = $16K
+      }
+    }
+    // Employer match goes directly to 401k (already deducted from revenue above)
+    const total401kContrib = k401Contrib + solo401kEmployerContrib; // employee + employer
+    const taxableW2 = w2Gross - k401Contrib; // employee 401k is pre-tax
     const personalTaxes = w2Gross * (assumptions.personalTaxRate / 100);
     const takeHome = w2Gross - k401Contrib - personalTaxes;
 
@@ -453,25 +505,32 @@ export function runSimulation(assumptions) {
     const additionalTaxableIncome = Math.max(0, ayoolaRentalShare) + farmIncomeForTax;
     const additionalTaxes = additionalTaxableIncome * 0.15; // ~15% effective on additional income
 
-    // Interest-only payments on credit lines — paid from personal cash
+    // Interest-only payments on credit lines
     const venturesDebtBal = Math.abs(Math.min(0, ventures));
     const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
-    // Construction loan interest — $500K interest-only til payoff from RH at 20yr
-    // Only applies after construction loan age and before payoff
+    // Construction loan interest — $500K interest-only til payoff at 20yr
+    // Split 50/50: V2 agro (farm business use) + personal (homestead residence)
     const hasConstructionDebt = age >= assumptions.constructionLoanAge && age < assumptions.constructionLoanAge + 20;
     const constructionDebt = hasConstructionDebt ? assumptions.constructionLoanAmount : 0;
     const constructionInterest = constructionDebt * (assumptions.constructionLoanRate / 100);
+    const constructionInterestV2 = constructionInterest * 0.5; // farm/business portion
+    const constructionInterestPersonal = constructionInterest * 0.5; // residence portion
+    if (constructionInterestV2 > 0) {
+      ventures -= constructionInterestV2;
+    }
 
-    // Offshore + Nigeria maintenance costs (paid from personal cash)
+    // Offshore + Nigeria maintenance costs — paid by V2 agro entity (property management sub-venture)
     let offshoreMaint = 0;
     if (age >= assumptions.offshorePurchaseAge) {
       offshoreMaint = age < assumptions.offshoreMaintenanceDropAge
         ? assumptions.offshoreMaintenance
         : assumptions.offshoreMaintenanceReduced;
+      ventures -= offshoreMaint; // V2 agro covers offshore land maintenance
     }
     let nigeriaMaint = 0;
     if (age >= assumptions.nigeriaPurchaseAge) {
       nigeriaMaint = assumptions.nigeriaMaintenance;
+      ventures -= nigeriaMaint; // V2 agro covers Nigeria land maintenance
     }
 
     // City rental properties: owned by Venture 2 — income flows into V2, not personal
@@ -497,52 +556,76 @@ export function runSimulation(assumptions) {
     const hardAssetsMaintEst = age >= assumptions.hardAssetsStartAge
       ? assumptions.hardAssetsStorageCost + hardAssets * (assumptions.hardAssetsInsurancePct / 100)
       : 0;
-    const totalPersonalOut = expenses + additionalTaxes + constructionInterest + offshoreMaint + nigeriaMaint + hardAssetsMaintEst;
+    // Personal expenses: living + taxes + construction interest (personal 50%) + hard assets storage
+    // Offshore/Nigeria maintenance now paid by V2 agro entity (property management)
+    const totalPersonalOut = expenses + additionalTaxes + constructionInterestPersonal + hardAssetsMaintEst;
 
-    // Robinhood growth-based pulls (tax-strategic LTCG harvesting) — based on leveraged gains
-    let rhPullPersonal = 0;
-    let rhPullQoz = 0;
-    let rhPullVenture2 = 0;
-    let rhPullNonprofit = 0;
-    let rhPullHardAssets = 0;
-    let rhPullFreeCash = 0;
-    if (robinhood > 0) {
-      const rhReturn = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
-      const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
-      const rhGrowth = leveragedBase * (rhReturn / 100);
-      // Age 32 only: one-time RH pull to cover deficit (~$16K)
-      if (age === 32) {
-        rhPullFreeCash = rhGrowth * 0.15;
-      }
+    // ═══════════════════════════════════════════════════════════
+    // AFTER-TAX DISTRIBUTION ALLOCATIONS
+    // Net distributions split: S-Corp Webull (primary), then smaller %s to other vehicles
+    // Personal Robinhood gets minimal new money — it compounds on its own
+    // ═══════════════════════════════════════════════════════════
+    let distroToPersonal = 0;    // → personal expenses / RH
+    let distroToQoz = 0;         // → QOZ fund
+    let distroToV2 = 0;          // → V2 (agro/land entity) — was venture2RhPullPct
+    let distroToNonprofit = 0;   // → nonprofit (tax-deductible donation)
+    let distroToHardAssets = 0;  // → hard assets
+    let distroToV1Webull = 0;    // → S-Corp Webull (V1 NimbusTech) — the PRIMARY vehicle
+    let rhPullFreeCash = 0;      // legacy: covers personal shortfalls post-40
+
+    if (netDistributions > 0) {
       if (age >= assumptions.rhPullStartAge) {
-        rhPullPersonal = rhGrowth * (assumptions.rhPullPersonalPct / 100);
+        distroToPersonal = netDistributions * (assumptions.rhPullPersonalPct / 100);
       }
-      // After work stops at 40: RH covers lost take-home (~$53K/yr)
-      // Pull enough to replace W2 take-home that no longer exists
-      if (age >= 40) {
-        const lostTakeHome = assumptions.w2Gross - assumptions.w2Gross * (assumptions.k401Rate / 100) - assumptions.w2Gross * (assumptions.personalTaxRate / 100);
-        rhPullFreeCash = Math.min(lostTakeHome, rhGrowth * 0.15); // cap at 15% of gains
-      }
-      // QOZ contributions start at 35
       if (age >= assumptions.rhPullQozStartAge) {
-        rhPullQoz = rhGrowth * (assumptions.rhPullQozPct / 100);
+        distroToQoz = netDistributions * (assumptions.rhPullQozPct / 100);
       }
       if (age >= assumptions.venture2StartAge) {
-        rhPullVenture2 = rhGrowth * (assumptions.venture2RhPullPct / 100);
+        distroToV2 = netDistributions * (assumptions.venture2RhPullPct / 100);
       }
-      // Nonprofit contributions start at 31
       if (age >= assumptions.nonprofitStartAge) {
-        rhPullNonprofit = rhGrowth * (assumptions.nonprofitRhPullPct / 100);
+        distroToNonprofit = netDistributions * (assumptions.nonprofitRhPullPct / 100);
       }
-      // Hard assets purchases start at 33
       if (age >= assumptions.hardAssetsStartAge) {
-        rhPullHardAssets = rhGrowth * (assumptions.hardAssetsRhPullPct / 100);
+        distroToHardAssets = netDistributions * (assumptions.hardAssetsRhPullPct / 100);
       }
+      // Everything NOT allocated above → stays in S-Corp Webull (V1 NimbusTech)
+      const totalAllocated = distroToPersonal + distroToQoz + distroToV2 + distroToNonprofit + distroToHardAssets;
+      distroToV1Webull = Math.max(0, netDistributions - totalAllocated);
     }
 
-    // LTCG tax on Robinhood pulls (15% rate)
-    // Nonprofit donations are tax-deductible — offset LTCG on that portion
-    const rhPullTax = (rhPullPersonal + rhPullQoz + rhPullVenture2 + rhPullHardAssets + rhPullFreeCash) * 0.15; // nonprofit pull is a charitable deduction, no LTCG
+    // After work stops at 40: V2 agro pays Ayoola a salary (he runs the business)
+    // Plus RH covers any remaining shortfall from growth
+    let v2SalaryToPersonal = 0;
+    if (age >= 40 && ventures > 0) {
+      // V2 pays a salary to cover personal expenses (capped at what V2 can afford: 15% of balance)
+      v2SalaryToPersonal = Math.min(totalPersonalOut, ventures * 0.15);
+      ventures -= v2SalaryToPersonal;
+    }
+    if (age >= 40 && robinhood > 0) {
+      const rhReturnRate = age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn;
+      const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
+      const rhGrowth = leveragedBase * (rhReturnRate / 100);
+      // RH covers remaining expense shortfall after V2 salary
+      const remainingNeed = Math.max(0, totalPersonalOut - v2SalaryToPersonal);
+      rhPullFreeCash = Math.min(remainingNeed, rhGrowth * 0.7);
+    }
+    // Age 32 deficit cover from RH gains
+    if (age === 32 && robinhood > 0) {
+      const leveragedBase = robinhood * (1 + assumptions.marginPct / 100);
+      const rhGrowth = leveragedBase * ((age >= 35 ? assumptions.robinhoodReturnPost35 : assumptions.robinhoodReturn) / 100);
+      rhPullFreeCash = rhGrowth * 0.15;
+    }
+
+    // Backward-compatible variable names for existing code references
+    const rhPullPersonal = distroToPersonal;
+    const rhPullQoz = distroToQoz;
+    const rhPullVenture2 = distroToV2;
+    const rhPullNonprofit = distroToNonprofit;
+    const rhPullHardAssets = distroToHardAssets;
+
+    // LTCG tax only on personal RH pulls + QOZ + hard assets (nonprofit is charitable deduction)
+    const rhPullTax = rhPullFreeCash * 0.15; // only taxed when actually pulling FROM Robinhood
 
     // ═══════════════════════════════════════════════════════════
     // TOTAL TAX BURDEN (all sources)
@@ -552,16 +635,24 @@ export function runSimulation(assumptions) {
     const effectiveTaxRate = totalGrossIncome > 0 ? (totalTax / totalGrossIncome) * 100 : 0;
 
     // Farm income: land produces $50K/yr starting at 35 (ventures staff + self/family/volunteer labor)
-    // No additional expense — labor covered by existing ventures overhead + sweat equity
+    // Farm income flows to V2 agro entity (not personal) — it's the agro business's revenue
     let farmIncome = 0;
     if (age >= assumptions.farmIncomeStartAge && acres > 0) {
       const farmYears = age - assumptions.farmIncomeStartAge;
       farmIncome = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, farmYears);
+      ventures += farmIncome; // V2 agro entity receives farm revenue
+    }
+    // V2 Agro sub-venture income: equipment leasing, property management, landscape consulting
+    let v2AgroIncome = 0;
+    if (age >= assumptions.v2AgroIncomeStartAge) {
+      const agroYears = age - assumptions.v2AgroIncomeStartAge;
+      v2AgroIncome = assumptions.v2AgroIncomeBase * Math.pow(1 + assumptions.v2AgroIncomeGrowth / 100, agroYears);
+      ventures += v2AgroIncome;
     }
 
-    // Total personal inflows (includes Robinhood pulls for expenses + farm income)
-    // Ventures handles its own P&L (10% net loss); no profit distributed to personal
-    const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash + farmIncome;
+    // Total personal inflows: W2 take-home + V2 salary (post-40) + RH pulls
+    // Farm income goes to V2 agro; V2 pays Ayoola a salary for running the business
+    const totalPersonalIn = takeHome + Math.max(0, ayoolaRentalShare) + rhPullPersonal + rhPullFreeCash + v2SalaryToPersonal;
 
     // ═══════════════════════════════════════════════════════════
     // CREDIT CARD STRATEGY: keep money in RH, use CC for shortfalls
@@ -596,17 +687,13 @@ export function runSimulation(assumptions) {
     // STEP 5: INVESTMENT GROWTH (returns compound on existing balances)
     // ═══════════════════════════════════════════════════════════
 
-    // 401k: pre-tax growth, contributions come from W2 deduction (already subtracted from take-home)
-    k401 = k401 * (1 + assumptions.k401Return / 100) + k401Contrib;
+    // 401k: pre-tax growth, employee + employer contributions
+    // Solo 401(k) at 33+: $23K employee + $20K employer = $43K/yr tax-deferred
+    k401 = k401 * (1 + assumptions.k401Return / 100) + total401kContrib;
 
-    // 401k loan: borrow max available (50% of balance, cap $50K) → deploy to Robinhood
-    // No tax, no penalty — interest paid back to yourself. Repaid over 5 years.
+    // 401k loan: DISABLED — user prefers borrowing bank funds at moderate interest
+    // rates rather than pulling cash from investments (gains > interest costs)
     let k401LoanDeploy = 0;
-    if (age >= assumptions.currentAge && k401 > 0) {
-      const maxLoan = Math.min(k401 * 0.5, 50000);
-      k401LoanDeploy = maxLoan;
-      k401 -= k401LoanDeploy; // borrowed out (repayment modeled via continued contributions)
-    }
 
     // IRA: grows on existing balance, no new contributions
     ira = ira * (1 + assumptions.iraReturn / 100);
@@ -619,7 +706,9 @@ export function runSimulation(assumptions) {
     const marginInterest = marginBalance * (marginRate / 100);
     const totalInvested = rhBase + marginBalance; // equity + borrowed
     const grossGrowth = totalInvested * (rhReturn / 100);
-    robinhood = robinhood + grossGrowth - marginInterest + netDistributions - rhPullPersonal - rhPullQoz - rhPullVenture2 - rhPullNonprofit - rhPullHardAssets - rhPullFreeCash + k401LoanDeploy + freeCashToRobinhood;
+    // Robinhood: personal brokerage grows on its own, gets minimal new inflows
+    // Distributions now go to S-Corp Webull (V1), not personal RH
+    robinhood = robinhood + grossGrowth - marginInterest - rhPullFreeCash + freeCashToRobinhood + distroToPersonal;
 
     // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
     let landDevCost = 0;
@@ -648,10 +737,12 @@ export function runSimulation(assumptions) {
     const v1OverheadRate = age >= assumptions.opsHubStartAge ? 0.01 : 0.03; // 3% → 1% with ops hub
     const venturesOpsOverhead = Math.max(0, ventures) * v1OverheadRate;
     // V1's share of ops hub inter-company bill (tax-free between related entities)
-    const venturesOpsLoss = v1StaffCost + venturesOpsOverhead + opsHubBillV1;
+    // V2 agro entity: pays its own ops hub bill (40%), not V1's bill
+    const venturesOpsLoss = v1StaffCost + venturesOpsOverhead + opsHubBillV2;
     const venturesInvestGain = Math.max(0, ventures) * (assumptions.venturesReturn / 100); // 12% on invested cash
     const venturesNetGain = venturesInvestGain - venturesOpsLoss;
-    ventures = ventures + venturesLoanDraw + venturesNetGain;
+    // distroToV2 = 15% of after-tax distributions allocated to V2 agro entity
+    ventures = ventures + venturesLoanDraw + venturesNetGain + distroToV2;
     // Investment profits pay down LOC when net positive
     if (venturesNetGain > 0 && venturesLocDebt > 0) {
       const locPaydown = Math.min(venturesLocDebt, venturesNetGain * 0.5); // 50% of net profit → LOC paydown
@@ -737,9 +828,10 @@ export function runSimulation(assumptions) {
       // Venture 2 invested cash returns (12% on equity, same strategy as RH)
       const v2InvestGain = Math.max(0, venture2) * (assumptions.venture2InvestReturn / 100);
 
-      // Update venture 2: new LOC draw + own income + investment gains - staff - V2's share of ops hub
+      // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Webull + gains - costs
+      // V1 pays its own ops hub bill (30%), not V2's bill
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
-      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost - opsHubBillV2;
+      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain + distroToV1Webull - v2StaffCost - opsHubBillV1;
       // Investment profits + self income pay down LOC
       if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
         const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown
@@ -796,19 +888,23 @@ export function runSimulation(assumptions) {
       }
     }
 
-    // Debt payoff at 52 (20yr from 32) — construction loan paid from RH (LTCG)
+    // Debt payoff at 52 (20yr from 32) — construction loan is personal homestead debt → paid from RH
     // Construction is interest-only, so payoff = original draw amount ($500K)
     if (age === assumptions.constructionLoanAge + 20) {
       const constructionPayoff = assumptions.constructionLoanAmount; // $500K — interest-only, no amortization
       if (constructionPayoff > 0 && landMortgage >= constructionPayoff) {
-        robinhood -= constructionPayoff * 1.08; // principal + ~8% LTCG tax
+        robinhood -= constructionPayoff * 1.08; // principal + ~8% LTCG tax (personal account)
         landMortgage -= constructionPayoff;
         landEquity += constructionPayoff;
       }
     }
+    // Ventures LOC payoff: split between V1 Webull and RH based on available balances
     if (age === assumptions.venturesLocAge + 20) {
       if (venturesLocDebt > 0) {
-        robinhood -= venturesLocDebt * 1.08; // principal + ~8% LTCG tax estimate
+        const v1SharePayoff = Math.min(Math.max(0, venture2 * 0.5), venturesLocDebt);
+        const rhSharePayoff = venturesLocDebt - v1SharePayoff;
+        venture2 -= v1SharePayoff;
+        robinhood -= rhSharePayoff * 1.08; // LTCG on personal portion
         venturesLocDebt = 0;
       }
     }
@@ -919,29 +1015,41 @@ export function runSimulation(assumptions) {
       acres += assumptions.landPurchase1Acres;
     }
 
-    // Offshore (Belize/Costa Rica): cash purchase from RH at 33
+    // Offshore (Belize/Costa Rica): cash purchase at 33 — split between V1 Webull (primary) and RH
     if (age === assumptions.offshorePurchaseAge) {
-      robinhood -= assumptions.offshorePurchasePrice;
+      // V1 Webull funds up to what it can afford; RH covers the rest
+      const v1CanAfford = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
+      const fromV1 = Math.min(v1CanAfford, assumptions.offshorePurchasePrice);
+      const fromRH = assumptions.offshorePurchasePrice - fromV1;
+      venture2 -= fromV1;
+      robinhood -= fromRH;
       offshoreEquity += assumptions.offshorePurchasePrice;
     }
     if (offshoreEquity > 0) {
       offshoreEquity = offshoreEquity * (1 + assumptions.offshoreAppreciation / 100);
     }
 
-    // Nigeria: cash purchase from RH at 35
+    // Nigeria: cash purchase at 36 — split between V1 Webull (primary) and RH
     if (age === assumptions.nigeriaPurchaseAge) {
-      robinhood -= assumptions.nigeriaPurchasePrice;
+      const v1CanAffordNg = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
+      const fromV1Ng = Math.min(v1CanAffordNg, assumptions.nigeriaPurchasePrice);
+      const fromRHNg = assumptions.nigeriaPurchasePrice - fromV1Ng;
+      venture2 -= fromV1Ng;
+      robinhood -= fromRHNg;
       nigeriaEquity += assumptions.nigeriaPurchasePrice;
     }
     if (nigeriaEquity > 0) {
       nigeriaEquity = nigeriaEquity * (1 + assumptions.nigeriaAppreciation / 100);
     }
 
-    // City rental property: owned by Venture 2 — $300K down from V2 balance at 40
+    // City rental property: owned by V1 NimbusTech — down payment from V1 Webull at 40
+    // Uses up to 60% of V1 balance; shortfall added to rental mortgage
     if (age === assumptions.rentalPurchaseAge) {
-      venture2 -= assumptions.rentalDownPayment; // V2 funds the down payment
-      rentalEquity += assumptions.rentalDownPayment;
-      rentalMortgage += assumptions.rentalPurchasePrice - assumptions.rentalDownPayment;
+      const v1AvailForRental = Math.max(0, venture2 * 0.6);
+      const actualDown = Math.min(v1AvailForRental, assumptions.rentalDownPayment);
+      venture2 -= actualDown;
+      rentalEquity += actualDown;
+      rentalMortgage += assumptions.rentalPurchasePrice - actualDown;
     }
     // Rental net income flows into Venture 2 (not personal)
     if (rentalNetIncome !== 0 && age >= assumptions.rentalPurchaseAge) {
@@ -1019,6 +1127,10 @@ export function runSimulation(assumptions) {
       v3V2Contrib: Math.round(v3V2Contrib),
       v3NpContrib: Math.round(v3NpContrib),
       familyFundDeploy: Math.round(familyFundDeploy),
+      distroToV1Webull: Math.round(distroToV1Webull),
+      scorpDeductions: Math.round(scorpDeductions),
+      solo401kEmployerContrib: Math.round(solo401kEmployerContrib),
+      total401kContrib: Math.round(total401kContrib),
       rhPullVenture2: Math.round(rhPullVenture2),
       rhPullHardAssets: Math.round(rhPullHardAssets),
       hardAssets: Math.round(hardAssets),

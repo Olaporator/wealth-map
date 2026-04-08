@@ -7,10 +7,10 @@ export default function PropertyManagement() {
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
         <Link
-          to="/venture1"
+          to="/venture2"
           className="text-blue-400 hover:text-blue-300 mb-8 inline-flex items-center gap-2 text-lg"
         >
-          ← Back to Venture 1
+          ← Back to Venture 2
         </Link>
 
         {/* Header */}

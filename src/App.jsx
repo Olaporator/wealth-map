@@ -131,24 +131,24 @@ export default function App() {
           <Route path="/accounts" element={<AccountsDashboard />} />
           <Route path="/plan" element={<PlanDashboard />} />
           <Route path="/homestead" element={<HomesteadDashboard />} />
-          <Route path="/venture1" element={<Venture1Dashboard />} />
-          <Route path="/venture2" element={<Venture2Dashboard />} />
+          <Route path="/venture1" element={<Venture2Dashboard />} />
+          <Route path="/venture2" element={<Venture1Dashboard />} />
           <Route path="/nonprofit" element={<NonprofitDashboard />} />
           <Route path="/venture3" element={<Venture3Dashboard />} />
           <Route path="/nigeria" element={<NigeriaDashboard />} />
           <Route path="/offshore" element={<OffshoreDashboard />} />
           <Route path="/hard-assets" element={<HardAssetsDashboard />} />
-          {/* V1 Sub-ventures */}
-          <Route path="/venture1/landscape-consulting" element={<LandscapeConsulting />} />
-          <Route path="/venture1/garden-app" element={<GardenApp />} />
-          <Route path="/venture1/agro-equipment" element={<AgroEquipment />} />
-          <Route path="/venture1/property-management" element={<PropertyManagement />} />
-          {/* V2 Sub-ventures */}
-          <Route path="/venture2/webull-portfolio" element={<WebullPortfolio />} />
-          <Route path="/venture2/ops-hub" element={<NigeriaOpsHub />} />
-          <Route path="/venture2/city-rentals" element={<CityRentals />} />
-          <Route path="/venture2/content-media" element={<ContentMedia />} />
-          <Route path="/venture2/internal-tools" element={<InternalTools />} />
+          {/* V1 Sub-ventures (NimbusTech — tech/AI/investments) */}
+          <Route path="/venture1/webull-portfolio" element={<WebullPortfolio />} />
+          <Route path="/venture1/ops-hub" element={<NigeriaOpsHub />} />
+          <Route path="/venture1/city-rentals" element={<CityRentals />} />
+          <Route path="/venture1/content-media" element={<ContentMedia />} />
+          <Route path="/venture1/internal-tools" element={<InternalTools />} />
+          {/* V2 Sub-ventures (New entity — agro/land/property) */}
+          <Route path="/venture2/landscape-consulting" element={<LandscapeConsulting />} />
+          <Route path="/venture2/garden-app" element={<GardenApp />} />
+          <Route path="/venture2/agro-equipment" element={<AgroEquipment />} />
+          <Route path="/venture2/property-management" element={<PropertyManagement />} />
           {/* Nonprofit Sub-programs */}
           <Route path="/nonprofit/permaculture" element={<PermacultureDev />} />
           <Route path="/nonprofit/community" element={<CommunityOrganizing />} />

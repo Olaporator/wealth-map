@@ -137,9 +137,17 @@ export default function Venture2Dashboard() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-3 mb-8">
-        <span className="text-5xl">🚀</span>
-        <h1 className="text-4xl font-bold">Venture 2</h1>
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-5xl">🚀</span>
+          <div>
+            <h1 className="text-4xl font-bold">Venture 2</h1>
+            <p className="text-lg text-purple-400 font-semibold">NimbusTech S-Corp</p>
+          </div>
+        </div>
+        <p className="text-gray-400 text-sm mt-2 max-w-2xl">
+          Tech, AI, and investment operations entity. Rebranded from existing NimbusTech S-Corp (already connected to Nigeria via EOR). Houses the $100K Webull entity portfolio, Nigeria Ops Hub subsidiary, city rental properties, content/media, and internal tools.
+        </p>
       </div>
 
       {/* Summary Cards */}

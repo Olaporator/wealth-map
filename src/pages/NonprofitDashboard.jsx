@@ -120,9 +120,17 @@ export default function NonprofitDashboard() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-3 mb-8">
-        <span className="text-5xl">💚</span>
-        <h1 className="text-4xl font-bold">501(c)(3) Nonprofit</h1>
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-5xl">💚</span>
+          <div>
+            <h1 className="text-4xl font-bold">501(c)(3) Nonprofit</h1>
+            <p className="text-lg text-emerald-400 font-semibold">AAYO Foundation</p>
+          </div>
+        </div>
+        <p className="text-gray-400 text-sm mt-2 max-w-2xl">
+          Tax-exempt entity for land stewardship, community development, and education. Investment gains are 100% tax-free. Partners with QOZ fund for on-the-ground work. Nigeria Ops Hub handles admin at 30% of hub costs.
+        </p>
       </div>
 
       {/* Summary Cards */}

@@ -1,17 +1,18 @@
 // Default assumptions — extracted from PlanDashboard
 export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
-  // STARTING BALANCES (real as of April 2026, post-divorce settlement)
+  // STARTING BALANCES (real as of April 8, 2026)
+  // Birthday: Dec 23 — currently 31, turns 32 Dec 23 2026
   // ═══════════════════════════════════════════════════════════════
-  currentAge: 31,           // Dec birthday — currently 31, turns 32 Dec 2026
-  k401Start: 14819,         // Human Interest 401k (real: $14,818.55)
-  iraStart: 4588,           // Robinhood Traditional IRA (real: $4,588.22)
-  robinhoodStart: 82168,    // Robinhood Individual Brokerage (real: $82,167.79)
-  seattleEquityStart: 290000, // $1.25M value - $960K mortgage (total equity; 50% counted)
-  ccDebtStart: 0,           // Chase CC paid off, Cap One split 50/50 in divorce → $0
+  currentAge: 31,           // Dec 23 birthday — 31 now, turns 32 EOY 2026
+  k401Start: 8200,          // Human Interest 401k (real: $8,200 as of Apr 8 2026)
+  iraStart: 5000,           // Robinhood Traditional IRA (real: $5,000 as of Apr 8 2026)
+  robinhoodStart: 96000,    // Robinhood Individual Brokerage (real: $96,000 as of Apr 8 2026)
+  seattleEquityStart: 0,    // Seattle sale modeled directly via net proceeds (see below)
+  ccDebtStart: 0,           // CC paid off
   ccInterestRate: 20,       // average CC APR on carried balance
   ccPayoffPct: 85,          // pay off 85% of balance each month, carry 15%
-  cashStart: 135,           // $6,835 - $6,700 (CC settlement from savings) ≈ $135
+  cashStart: 0,             // no idle cash — everything deployed
 
   // ═══════════════════════════════════════════════════════════════
   // W2 INCOME (from Gusto pay stub: $40/hr via AAYO Tech / Nimbus Tech)
@@ -260,26 +261,29 @@ export const DEFAULT_ASSUMPTIONS = {
   venture3EmployeeCost: 50000,    // $50K per employee fully loaded
 
   // ═══════════════════════════════════════════════════════════════
-  // SEATTLE RENTAL (50/50 co-owned with ex-wife)
-  // Both contribute $1K/mo toward costs, reduced $100/mo/yr until breakeven
+  // SEATTLE SALE (50/50 co-owned with ex-wife) — selling in 2026
+  // $1.3M sale - $960K mortgage - $100K sell/close fees - $10K fix-up = $230K net
+  // Ayoola's 50% = $115K take-home → funds land down payment
   // ═══════════════════════════════════════════════════════════════
-  seattleCurrentValue: 1250000,
+  seattleSaleAge: 31,           // sell Seattle during age 31 (2026)
+  seattleNetProceeds: 115000,   // Ayoola's 50% after all costs ($230K / 2)
+  // Legacy fields (kept for any remaining references)
+  seattleCurrentValue: 1300000,
   seattleMortgageBalance: 960000,
-  seattleSaleAge: 31,           // sell Seattle by end of year 31
-  seattleSellerFeePct: 6,       // 6% closing costs (agent ~5% + title/excise ~1%)
+  seattleSellerFeePct: 0,       // fees already baked into net proceeds
   seattleMortgageRate: 3.25,
-  grossRentYear1: 72000,        // ~$6K/mo market rent
-  mortgagePayment: 67200,       // annual mortgage (P&I)
-  propertyTaxes: 10000,
-  insurance: 2400,
-  propertyManagement: 7200,     // ~10% of gross rent
-  maintenanceRate: 7,           // % of rent
-  vacancyRate: 3,
-  rentGrowth: 2.5,
-  seattlePrincipal: 18000,      // annual principal paydown (builds equity)
-  ayoolaRentalContrib: 12000,   // $1K/mo toward rental costs
-  exWifeRentalContrib: 12000,   // $1K/mo from ex-wife
-  contribReductionPerYear: 1200, // reduce by $100/mo each year
+  grossRentYear1: 0,
+  mortgagePayment: 0,
+  propertyTaxes: 0,
+  insurance: 0,
+  propertyManagement: 0,
+  maintenanceRate: 0,
+  vacancyRate: 0,
+  rentGrowth: 0,
+  seattlePrincipal: 0,
+  ayoolaRentalContrib: 0,
+  exWifeRentalContrib: 0,
+  contribReductionPerYear: 0,
 
   // ═══════════════════════════════════════════════════════════════
   // PERSONAL EXPENSES (post-divorce, all-in including land housing)
@@ -395,12 +399,11 @@ export function runSimulation(assumptions) {
       staffExpenses = age <= 40 ? 35000 : Math.min(35000 + (age - 40) * 10000, assumptions.staffExpensesMax);
     }
 
-    // NT additional work ($80K/yr secured Apr 2026, indefinite) — baked into phase revenues
-    // First year prorated: Apr-Dec = 9 months of $80K instead of full 12
+    // First year proration: starting Apr 8, 2026 — ~8.7 months remaining
+    // All income/expenses for age 31 prorated to 8.7/12 of annual amounts
+    const firstYearFraction = 8.7 / 12; // Apr 8 to Dec 31 ≈ 8.7 months
     if (age === assumptions.currentAge) {
-      const monthsActive = 12 - assumptions.ntAdditionalWorkStartMonth + 1; // Apr-Dec = 9
-      const prorated = assumptions.ntAdditionalWork * (monthsActive / 12);
-      ntRevenue = ntRevenue - assumptions.ntAdditionalWork + prorated; // swap full year for prorated
+      ntRevenue = ntRevenue * firstYearFraction;
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -413,6 +416,7 @@ export function runSimulation(assumptions) {
     const ntOverhead = w2Gross + employerPayrollTax;
 
     // S-Corp deductible expenses: reduce taxable distributions (owner benefits, not employee perks)
+    const yearFraction = age === assumptions.currentAge ? firstYearFraction : 1;
     const scorpDeductions = ntRevenue > 0 ? (
       assumptions.scorpHealthInsurance +
       assumptions.scorpHomeOffice +
@@ -421,7 +425,7 @@ export function runSimulation(assumptions) {
       assumptions.scorpEquipment +
       assumptions.scorpWellness +
       assumptions.scorpPhoneInternet
-    ) : 0;
+    ) * yearFraction : 0;
 
     // Solo 401(k) employer contribution (25% of W2, starts at 33)
     const solo401kEmployerContrib = (age >= assumptions.solo401kStartAge && w2Gross > 0)
@@ -454,11 +458,11 @@ export function runSimulation(assumptions) {
     // ═══════════════════════════════════════════════════════════
     // STEP 4: PERSONAL CASH FLOW (take-home vs expenses)
     // ═══════════════════════════════════════════════════════════
-    // Personal expenses: $1K/mo from May 2026 onward
-    // First year prorated: Jan-Apr at old rate ($4,167/mo) + May-Dec at $1K/mo
+    // Personal expenses: $1K/mo = $12K/yr
+    // First year: Apr 8 to Dec 31 ≈ 8.7 months at $1K/mo
     let expenses = assumptions.livingExpenses; // $12K/yr
     if (age === assumptions.currentAge) {
-      expenses = (assumptions.livingExpensesPriorMonthly * 4) + (1000 * 8); // Jan-Apr old + May-Dec new
+      expenses = 1000 * 8.7; // $8,700 (Apr 8 to Dec 31)
     }
 
     // Seattle rental contribution (separate from living expenses)
@@ -1011,19 +1015,12 @@ export function runSimulation(assumptions) {
     // STEP 6: REAL ESTATE EQUITY CHANGES
     // ═══════════════════════════════════════════════════════════
 
-    // Seattle: appreciates + principal paydown, OR sell at target age
+    // Seattle: SOLD — direct net proceeds model
+    // $1.3M - $960K mortgage - $100K fees - $10K fixup = $230K net / 2 = $115K Ayoola's share
     let seattleProceeds = 0;
-    if (age === assumptions.seattleSaleAge && seattleEquity > 0) {
-      // Sell: home value = equity + remaining mortgage
-      seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
-      const remainingMortgage = assumptions.seattleMortgageBalance - (age - assumptions.currentAge) * assumptions.seattlePrincipal;
-      const homeValue = seattleEquity + Math.max(0, remainingMortgage);
-      const sellerFees = homeValue * (assumptions.seattleSellerFeePct / 100);
-      const netProceeds = homeValue - Math.max(0, remainingMortgage) - sellerFees;
-      seattleProceeds = netProceeds / 2; // 50% split — used for land down payment first
+    if (age === assumptions.seattleSaleAge) {
+      seattleProceeds = assumptions.seattleNetProceeds; // $115K — already net of all costs
       seattleEquity = 0; // property sold
-    } else if (seattleEquity > 0) {
-      seattleEquity = seattleEquity * (1 + assumptions.homeAppreciation / 100) + assumptions.seattlePrincipal;
     }
 
     // Land: appreciation + principal paydown + development adds equity

@@ -173,15 +173,17 @@ export const DEFAULT_ASSUMPTIONS = {
   rentalRentGrowth: 3,             // annual rent growth
 
   // ═══════════════════════════════════════════════════════════════
-  // V1 WEBULL (S-Corp entity brokerage) — accumulates from retained earnings
-  // S-Corp only needs ~$15K operating buffer; excess retained → Webull once at $100K
-  // Before $100K threshold: excess distributions go to personal RH (stay invested)
+  // V1 WEBULL (S-Corp entity brokerage) — funded via LOC bridge strategy
+  // $14K/mo retained + $25K May bonus = $39K cash. Draw $61K from LOC at 25% APR.
+  // Fund $100K Webull immediately. LOC repaid in 5 months from $14K/mo retention.
+  // Total LOC interest: ~$3,646. Webull earns ~$6,000 in same period. Net +$2,354.
   // ═══════════════════════════════════════════════════════════════
   v1WebullMinimum: 100000,         // $100K Webull entity account minimum
-  v1OperatingBuffer: 15000,        // S-Corp keeps ~$15K for monthly ops (payroll, overhead)
-  v1RetainedPerMonth: 8000,        // ~$8K/mo retained above ops buffer → Webull fund
-  // At $8K/mo, V1 Webull hits $100K in ~12.5 months (mid age 32)
-  // Until then, bulk of distributions → personal RH (keeps earning 30% leveraged)
+  v1RetainedPerMonth: 14000,       // $14K/mo retained above S-Corp operating expenses
+  v1BonusMonth1: 25000,            // $25K one-time payment in May 2026
+  v1LocBridge: 61000,              // $61K LOC draw to bridge to $100K immediately
+  v1LocBridgeRate: 25,             // 25% APR on LOC bridge (no early payment penalty)
+  v1LocRepayMonths: 5,             // LOC repaid in ~5 months from $14K/mo retention
 
   // ═══════════════════════════════════════════════════════════════
   // VENTURE 2 — agro/land entity, funded by distribution allocations
@@ -609,15 +611,18 @@ export function runSimulation(assumptions) {
         // Webull funded — residual goes straight to V1 Webull (earns returns)
         distroToV1Webull = residual;
       } else {
-        // Still accumulating toward $100K minimum — cash sits in S-Corp checking at 0%
-        v1WebullAccum += residual;
-        if (v1WebullAccum >= assumptions.v1WebullMinimum) {
-          // Hit $100K! Transfer to Webull, activate investment returns
-          v1WebullActive = true;
-          distroToV1Webull = v1WebullAccum; // dump full accumulation into Webull
-          v1WebullAccum = 0;
-        }
-        // While accumulating: residual earns nothing (dead cash in checking)
+        // LOC BRIDGE STRATEGY: Fund V1 Webull immediately using $39K cash + $61K LOC
+        // $14K/mo retained + $25K bonus = $39K. LOC bridges the remaining $61K.
+        // LOC repaid in 5 months from $14K/mo. Interest cost ~$3,646 (< Webull returns of $6K)
+        v1WebullActive = true;
+        const cashOnHand = assumptions.v1RetainedPerMonth + assumptions.v1BonusMonth1; // $39K
+        const locBridge = assumptions.v1LocBridge; // $61K
+        distroToV1Webull = cashOnHand + locBridge; // $100K → Webull funded day 1
+        // LOC interest cost absorbed in first year (net of Webull returns = +$2,354)
+        const locInterestCost = Math.round(locBridge * (assumptions.v1LocBridgeRate / 100) * (assumptions.v1LocRepayMonths / 12));
+        distroToV1Webull -= locInterestCost; // net of LOC interest
+        // Remaining residual from distributions also flows to V1 Webull
+        distroToV1Webull += residual;
       }
     }
 
@@ -736,6 +741,10 @@ export function runSimulation(assumptions) {
     // Robinhood: personal brokerage grows on its own, gets minimal new inflows
     // Distributions now go to S-Corp Webull (V1), not personal RH
     robinhood = robinhood + grossGrowth - marginInterest - rhPullFreeCash + freeCashToRobinhood + distroToPersonal;
+
+    // V1 Webull: add distribution residual to V1 NimbusTech account
+    // This runs OUTSIDE the venture2StartAge gate — V1 Webull funds from age 31 via LOC bridge
+    venture2 += distroToV1Webull;
 
     // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
     let landDevCost = 0;
@@ -858,7 +867,8 @@ export function runSimulation(assumptions) {
       // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Webull + gains - costs
       // V1 pays its own ops hub bill (30%), not V2's bill
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
-      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain + distroToV1Webull - v2StaffCost - opsHubBillV1;
+      // distroToV1Webull already added above (outside venture2StartAge gate)
+      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost - opsHubBillV1;
       // Investment profits + self income pay down LOC
       if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
         const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown

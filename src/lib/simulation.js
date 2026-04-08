@@ -590,8 +590,14 @@ export function runSimulation(assumptions) {
         distroToHardAssets = netDistributions * (assumptions.hardAssetsRhPullPct / 100);
       }
       // Everything NOT allocated above → stays in S-Corp Webull (V1 NimbusTech)
+      // Before V1 Webull is active (age < venture2StartAge), residual goes to RH instead
       const totalAllocated = distroToPersonal + distroToQoz + distroToV2 + distroToNonprofit + distroToHardAssets;
-      distroToV1Webull = Math.max(0, netDistributions - totalAllocated);
+      const residual = Math.max(0, netDistributions - totalAllocated);
+      if (age >= assumptions.venture2StartAge) {
+        distroToV1Webull = residual; // V1 Webull active → bulk goes there
+      } else {
+        distroToPersonal += residual; // V1 not yet active → RH earns returns on it
+      }
     }
 
     // After work stops at 40: V2 agro pays Ayoola a salary (he runs the business)

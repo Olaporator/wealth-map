@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 import AgeSlider from '../components/AgeSlider';
+import ContractorWidget from '../components/ContractorWidget';
+import { getContractorsForEntity, ENTITIES } from '../lib/contractors';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -20,6 +22,8 @@ const formatCurrency = (value) => {
 export default function Venture3Dashboard() {
   const { data, assumptions } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
+
+  const v3Contractors = useMemo(() => getContractorsForEntity(ENTITIES.V3), []);
 
   // Filter and compute venture 3 data from years
   const yearsData = useMemo(() => {
@@ -217,7 +221,7 @@ export default function Venture3Dashboard() {
 
       {/* Funding Streams */}
       {age60Year && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
             <h3 className="text-lg font-bold mb-4">💼 401k Seed Draws</h3>
             <p className="text-gray-400 text-sm mb-2">30% of annual family legacy withdrawals</p>
@@ -235,6 +239,13 @@ export default function Venture3Dashboard() {
           </div>
         </div>
       )}
+
+      {/* Contractor Widget */}
+      <ContractorWidget
+        contractors={v3Contractors}
+        title="Venture 3 Contractors & Services"
+        entityLabel="Generational Wealth Vehicle"
+      />
     </div>
   );
 }

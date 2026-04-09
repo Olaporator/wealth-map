@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 import AgeSlider from '../components/AgeSlider';
+import ContractorWidget from '../components/ContractorWidget';
+import { getContractorsForEntity, ENTITIES } from '../lib/contractors';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -80,6 +82,9 @@ export default function NonprofitDashboard() {
   }, [data, assumptions]);
 
   const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
+
+  // Contractors for this entity
+  const npContractors = useMemo(() => getContractorsForEntity(ENTITIES.NP), []);
 
   // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
@@ -386,6 +391,13 @@ export default function NonprofitDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Contractor Widget */}
+      <ContractorWidget
+        contractors={npContractors}
+        title="Nonprofit Contractors & Services"
+        entityLabel="501(c)(3) Foundation"
+      />
     </div>
   );
 }

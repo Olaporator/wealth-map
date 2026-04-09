@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../../hooks/useWealthData';
 import CollapsibleYearByYear from '../../components/CollapsibleYearByYear';
 import AgeSlider from '../../components/AgeSlider';
+import ContractorWidget from '../../components/ContractorWidget';
+import { getContractorsForEntity, ENTITIES } from '../../lib/contractors';
 
 export default function NigeriaOpsHub() {
   const { data } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
   const selectedYear = data?.years?.find(y => y.age === targetAge) || data?.years?.[0];
+  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1, 'ops-hub'), []);
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
@@ -180,6 +183,8 @@ export default function NigeriaOpsHub() {
             </table>
           </CollapsibleYearByYear>
         )}
+
+        <ContractorWidget contractors={contractors} title="Ops Hub Team & Services" entityLabel="Nigeria Operations" />
       </div>
     </div>
   );

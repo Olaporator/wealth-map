@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
 import AgeSlider from '../components/AgeSlider';
+import ContractorWidget from '../components/ContractorWidget';
+import { getContractorsForEntity, ENTITIES } from '../lib/contractors';
 
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return '$0';
@@ -71,6 +73,8 @@ export default function Venture2Dashboard() {
 
   // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
+
+  const v1Contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1), []);
 
   // Rental property details
   const rentalPurchaseAge = assumptions.rentalPurchaseAge;
@@ -487,6 +491,12 @@ export default function Venture2Dashboard() {
           </Link>
         </div>
       </div>
+
+      <ContractorWidget
+        contractors={v1Contractors}
+        title="V1 NimbusTech Contractors & Services"
+        entityLabel="S-Corp Consulting"
+      />
     </div>
   );
 }

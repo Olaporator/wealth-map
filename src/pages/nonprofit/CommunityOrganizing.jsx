@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useWealthData } from '../../hooks/useWealthData';
 import CollapsibleYearByYear from '../../components/CollapsibleYearByYear';
 import AgeSlider from '../../components/AgeSlider';
+import ContractorWidget from '../../components/ContractorWidget';
+import { getContractorsForEntity, ENTITIES } from '../../lib/contractors';
 
 export default function CommunityOrganizing() {
   const { data } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
   const selectedYear = data?.years?.find(y => y.age === targetAge) || data?.years?.[0];
+  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.NP, 'community'), []);
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -135,6 +138,8 @@ export default function CommunityOrganizing() {
             </table>
           </CollapsibleYearByYear>
         )}
+
+        <ContractorWidget contractors={contractors} title="Community Organizing Services" entityLabel="NP Outreach" />
       </div>
     </div>
   );

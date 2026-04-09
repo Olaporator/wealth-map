@@ -499,7 +499,73 @@ export default function PlanDashboard() {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        {/* Total Employees card (with hover breakdown) */}
+        <div
+          className="bg-gray-900 rounded-xl p-4 border border-indigo-800 relative cursor-pointer transition hover:bg-gray-800 group/emp"
+        >
+          <div className="text-gray-400 text-xs">{`Total Employees @ ${targetAge1}`}</div>
+          <div className="text-2xl font-bold text-indigo-400">
+            {(() => {
+              const d = targetData1 || {};
+              const total =
+                (d.v1Employees || 0) +
+                (d.v2Employees || 0) +
+                (d.npEmployees || 0) +
+                (d.opsHubEmployees || 0) +
+                (d.venture3Employees || 0);
+              // Round to 1 decimal since part-time units = 0.5
+              return Number.isInteger(total) ? total : total.toFixed(1);
+            })()}
+          </div>
+          <div className="text-[10px] text-gray-500 mt-1">Hover for per-venture breakdown</div>
+          <div className="hidden group-hover/emp:block absolute z-50 left-0 top-full mt-2 w-80 p-4 bg-gray-800 border border-gray-600 rounded-lg text-xs shadow-xl">
+            <div className="font-bold text-white mb-2 border-b border-gray-700 pb-2">
+              Employees @ Age {targetAge1}
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-purple-400">V1 NimbusTech (US staff)</span>
+                <span className="text-white">{(targetData1?.v1Employees || 0).toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-lime-400">V2 Agro / Land</span>
+                <span className="text-white">{(targetData1?.v2Employees || 0).toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-emerald-400">Nonprofit</span>
+                <span className="text-white">{(targetData1?.npEmployees || 0).toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-amber-400">Nigeria Ops Hub (shared)</span>
+                <span className="text-white">{(targetData1?.opsHubEmployees || 0).toFixed(0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-cyan-400">Venture 3</span>
+                <span className="text-white">{(targetData1?.venture3Employees || 0).toFixed(0)}</span>
+              </div>
+              <div className="border-t border-gray-700 pt-1 mt-2 flex justify-between font-bold">
+                <span className="text-white">Total headcount</span>
+                <span className="text-indigo-300">
+                  {(() => {
+                    const d = targetData1 || {};
+                    const total =
+                      (d.v1Employees || 0) +
+                      (d.v2Employees || 0) +
+                      (d.npEmployees || 0) +
+                      (d.opsHubEmployees || 0) +
+                      (d.venture3Employees || 0);
+                    return Number.isInteger(total) ? total : total.toFixed(1);
+                  })()}
+                </span>
+              </div>
+              <div className="text-[10px] text-gray-500 italic pt-1">
+                0.5 = part-time unit. Ops hub is a shared Nigeria back-office serving V1, V2, and nonprofit.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <StatCard
           id="rental"
           label={`Home Build @ ${targetAge1}`}
@@ -558,6 +624,7 @@ export default function PlanDashboard() {
               <TableHeader id="venture2" label="Venture 2" color="text-pink-400" link="/venture2" />
               <TableHeader id="hardAssets" label="Hard Assets" color="text-yellow-400" link="/hard-assets" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" link="/nonprofit" />
+              <th className="p-2 text-right text-indigo-400">Emp</th>
               <th className="p-2 text-right text-red-400">Tax</th>
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>
@@ -581,6 +648,45 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-pink-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-yellow-400">{formatCurrency(row.hardAssets)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
+                <td className="p-2 text-right text-indigo-400 relative group/emp">
+                  {(() => {
+                    const total =
+                      (row.v1Employees || 0) +
+                      (row.v2Employees || 0) +
+                      (row.npEmployees || 0) +
+                      (row.opsHubEmployees || 0) +
+                      (row.venture3Employees || 0);
+                    return (
+                      <span className="cursor-help">
+                        {Number.isInteger(total) ? total : total.toFixed(1)}
+                      </span>
+                    );
+                  })()}
+                  <div className="hidden group-hover/emp:block absolute right-0 bottom-full mb-1 bg-gray-950 border border-gray-700 rounded-lg p-3 text-xs w-60 z-20 shadow-xl text-left">
+                    <div className="font-bold text-white mb-2">Employees @ {row.age}</div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between"><span className="text-purple-400">V1 NimbusTech</span><span className="text-white">{(row.v1Employees || 0).toFixed(1)}</span></div>
+                      <div className="flex justify-between"><span className="text-lime-400">V2 Agro</span><span className="text-white">{(row.v2Employees || 0).toFixed(1)}</span></div>
+                      <div className="flex justify-between"><span className="text-emerald-400">Nonprofit</span><span className="text-white">{(row.npEmployees || 0).toFixed(1)}</span></div>
+                      <div className="flex justify-between"><span className="text-amber-400">Ops Hub (shared)</span><span className="text-white">{(row.opsHubEmployees || 0).toFixed(0)}</span></div>
+                      <div className="flex justify-between"><span className="text-cyan-400">Venture 3</span><span className="text-white">{(row.venture3Employees || 0).toFixed(0)}</span></div>
+                      <div className="border-t border-gray-700 pt-1 mt-1 flex justify-between font-bold">
+                        <span className="text-white">Total</span>
+                        <span className="text-indigo-300">
+                          {(() => {
+                            const total =
+                              (row.v1Employees || 0) +
+                              (row.v2Employees || 0) +
+                              (row.npEmployees || 0) +
+                              (row.opsHubEmployees || 0) +
+                              (row.venture3Employees || 0);
+                            return Number.isInteger(total) ? total : total.toFixed(1);
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
                 <td className="p-2 text-right text-red-400 relative group/tax">
                   <span className="cursor-help">{formatCurrency(row.totalTax)}</span>
                   <span className="ml-1 text-red-500 text-[9px]">{row.effectiveTaxRate}%</span>

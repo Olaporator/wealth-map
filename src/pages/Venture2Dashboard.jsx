@@ -296,9 +296,9 @@ export default function Venture2Dashboard() {
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">V1 Hub Bill (30%)</p>
+            <p className="text-gray-400 text-sm mb-2">V1 Hub Bill (50%)</p>
             <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
-            <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
+            <p className="text-gray-500 text-xs mt-1">50% of hub cost (tax-free)</p>
           </div>
         </div>
       </div>
@@ -340,7 +340,7 @@ export default function Venture2Dashboard() {
           <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V1 Subsidiary)</span></h2>
         </div>
         <p className="text-gray-300 text-sm mb-4">
-          Centralized back-office managing all entities from Nigeria at $5K/yr starting + 10% annual raises per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
+          Centralized back-office managing all entities from Nigeria at $5K/yr starting + 7% annual raises per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
         </p>
 
         {/* Ops Hub Summary Cards */}

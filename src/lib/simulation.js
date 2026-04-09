@@ -211,18 +211,18 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Webull deposit (meets $100K minimum)
   // V2 Staffing: 3 phased US hires (part-time units = 0.5 FTE each)
-  // Hire 1: Groundskeeper — starts age 33, $15K/yr + perks, 10%/yr raises
-  usHire1StartAge: 33,
+  // Hire 1: Groundskeeper — starts age 35 (when farm income kicks in), $15K/yr + perks, 5%/yr raises
+  usHire1StartAge: 35,
   usHire1StartPay: 15000,
-  usHire1Raise: 10,
-  // Hire 2: House Manager — starts age 36, $15K/yr, 10%/yr raises
-  usHire2StartAge: 36,
+  usHire1Raise: 5,
+  // Hire 2: House Manager — starts age 38, $15K/yr, 5%/yr raises
+  usHire2StartAge: 38,
   usHire2StartPay: 15000,
-  usHire2Raise: 10,
-  // Hire 3: Ops Coordinator — starts age 40, first full-time (1.0 FTE), $30K/yr, 10%/yr raises
-  usHire3StartAge: 40,
+  usHire2Raise: 5,
+  // Hire 3: Ops Coordinator — starts age 42, first full-time (1.0 FTE), $30K/yr, 5%/yr raises
+  usHire3StartAge: 42,
   usHire3StartPay: 30000,
-  usHire3Raise: 10,
+  usHire3Raise: 5,
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
@@ -231,15 +231,16 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   opsHubStartAge: 33,            // ops hub launches at 33
   opsHubInitialStaff: 2,         // 2 employees from day 1
-  opsHubGrowthInterval: 1,       // add 1 employee every year
-  opsHubMaxStaff: 12,            // cap hub at 12 (plenty for entity portfolio)
+  opsHubGrowthInterval: 2,       // add 1 employee every 2 years (measured growth)
+  opsHubMaxStaff: 8,             // cap hub at 8 (lean team + AI handles the rest)
   opsHubEmployeeCostBase: 5000,   // $5K/yr starting salary per Nigerian employee
-  opsHubEmployeeRaise: 10,        // 10% annual raise per employee
+  opsHubEmployeeRaise: 7,         // 7% annual raise per employee (competitive for Nigeria)
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
   // Inter-company billing: ops hub bills each entity for services (tax-free between related entities)
-  opsHubBillV1Pct: 30,            // 30% of ops hub cost billed to V1
-  opsHubBillV2Pct: 40,            // 40% of ops hub cost stays with V2 (hub owner + rentals)
+  // V1 NimbusTech carries bulk (highest revenue, most complex compliance)
+  opsHubBillV1Pct: 50,            // 50% of ops hub cost billed to V1 (S-Corp, consulting, Webull)
+  opsHubBillV2Pct: 20,            // 20% of ops hub cost stays with V2 (farm ops, simpler books)
   opsHubBillNpPct: 30,            // 30% of ops hub cost billed to nonprofit
   // FUTURE EXPANSION: Family members can contribute capital to the ops hub to
   // employ additional Nigerians for work that benefits them directly. Contributors

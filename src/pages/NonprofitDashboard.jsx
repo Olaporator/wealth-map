@@ -255,7 +255,7 @@ export default function NonprofitDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          Leadership transition from mom volunteer (ages 35-44) to hired part-time ED (from age 45). All admin, accounting, HR, and tax handled by Nigeria Ops Hub at $5K/yr starting + 10% annual raises per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free).
+          Leadership transition from mom volunteer (ages 35-44) to hired part-time ED (from age 45). All admin, accounting, HR, and tax handled by Nigeria Ops Hub at $5K/yr starting + 7% annual raises per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free).
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-gray-800 rounded p-4">

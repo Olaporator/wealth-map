@@ -172,17 +172,17 @@ export const DEFAULT_ASSUMPTIONS = {
   nigeriaAppreciation: 5,         // annual appreciation
 
   // ═══════════════════════════════════════════════════════════════
-  // CITY RENTAL PROPERTIES (age 40 — 2 units totaling $1.6M, scoped down from 2-3)
+  // CITY RENTAL PROPERTIES (age 40 — 1 premium unit at $1.5M, final scope)
   // OWNED BY V2 AGRO via a dedicated rental LLC (NOT by V1 NimbusTech S-Corp).
-  // Scaled back so V2 doesn't get squeezed during the mid-40s debt-service window.
+  // Single premium property keeps V2 cash flow healthy through the debt-service window.
   // ═══════════════════════════════════════════════════════════════
   rentalPurchaseAge: 40,
-  rentalPurchasePrice: 1600000,    // 2 properties at ~$800K each
-  rentalDownPayment: 400000,       // $400K down (25%) — sourced from V2 reserves + V1 loan shortfall
+  rentalPurchasePrice: 1500000,    // 1 premium property at $1.5M
+  rentalDownPayment: 375000,       // $375K down (25%) — sourced from V2 reserves + V1 loan shortfall
   rentalMortgageRate: 7.0,
   rentalMortgageTerm: 30,
   rentalPropertyAppreciation: 4,   // annual property appreciation
-  rentalGrossRentYear1: 96000,     // ~$4K/mo per unit × 2 = $8K/mo ($96K/yr gross)
+  rentalGrossRentYear1: 72000,     // ~$6K/mo premium Airbnb/LTR ($72K/yr gross)
   rentalOccupancy: 90,             // 90% occupancy (Airbnb + long-term mix)
   rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
   rentalRentGrowth: 3,             // annual rent growth
@@ -222,18 +222,18 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Webull deposit (meets $100K minimum)
-  // V2 Staffing: 3 phased US hires (part-time units = 0.5 FTE each)
-  // Hire 1: Groundskeeper — starts age 35 (when farm income kicks in), $15K/yr + perks, 5%/yr raises
+  // V2 Staffing: 3 phased US hires — halved pay (leaner US footprint, Nigeria ops hub absorbs more)
+  // Hire 1: Groundskeeper — starts age 35, $7.5K/yr stipend (part-time, 0.5 FTE), 5%/yr raises
   usHire1StartAge: 35,
-  usHire1StartPay: 15000,
+  usHire1StartPay: 7500,
   usHire1Raise: 5,
-  // Hire 2: House Manager — starts age 38, $15K/yr, 5%/yr raises
+  // Hire 2: House Manager — starts age 38, $7.5K/yr stipend (part-time, 0.5 FTE), 5%/yr raises
   usHire2StartAge: 38,
-  usHire2StartPay: 15000,
+  usHire2StartPay: 7500,
   usHire2Raise: 5,
-  // Hire 3: Ops Coordinator — starts age 42, first full-time (1.0 FTE), $30K/yr, 5%/yr raises
+  // Hire 3: Ops Coordinator — starts age 42, $15K/yr (part-time, 0.5 FTE), 5%/yr raises
   usHire3StartAge: 42,
-  usHire3StartPay: 30000,
+  usHire3StartPay: 15000,
   usHire3Raise: 5,
 
   // ═══════════════════════════════════════════════════════════════
@@ -833,7 +833,7 @@ export function runSimulation(assumptions) {
     if (age >= assumptions.usHire3StartAge) {
       const h3Years = age - assumptions.usHire3StartAge;
       usHire3Cost = assumptions.usHire3StartPay * Math.pow(1 + assumptions.usHire3Raise / 100, h3Years);
-      v1Employees += 1.0; // full-time
+      v1Employees += 0.5; // part-time (halved footprint)
     }
     const v1StaffCost = usHire1Cost + usHire2Cost + usHire3Cost;
     // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)

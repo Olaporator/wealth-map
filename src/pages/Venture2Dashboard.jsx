@@ -270,17 +270,17 @@ export default function Venture1Dashboard() {
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🌾 Groundskeeper</p>
             <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire1Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Part-time from age 35, $15K + 5%/yr</p>
+            <p className="text-gray-500 text-xs mt-1">Part-time from age 35, $7.5K + 5%/yr</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🏡 House Manager</p>
             <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire2Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Part-time from age 38, $15K + 5%/yr</p>
+            <p className="text-gray-500 text-xs mt-1">Part-time from age 38, $7.5K + 5%/yr</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">📋 Ops Coordinator</p>
             <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire3Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Full-time from age 42, $30K + 5%/yr</p>
+            <p className="text-gray-500 text-xs mt-1">Part-time from age 42, $15K + 5%/yr</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">👥 Total US Staff (FTE)</p>
@@ -320,7 +320,7 @@ export default function Venture1Dashboard() {
           <Link to="/venture2/city-rentals" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🏢</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">City Rentals</h3>
-            <p className="text-gray-500 text-xs mt-1">2 rental/Airbnb properties ($1.6M) at age 40 — owned by V2 rental LLC</p>
+            <p className="text-gray-500 text-xs mt-1">1 premium rental/Airbnb ($1.5M) at age 40 — owned by V2 rental LLC</p>
           </Link>
           <Link to="/venture2/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🌿</span>

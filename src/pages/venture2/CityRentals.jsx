@@ -35,13 +35,13 @@ export default function CityRentals() {
         <div className="bg-gray-900 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-3">Overview</h2>
           <p className="text-gray-300 leading-relaxed">
-            A focused portfolio of 2 premium rental/Airbnb properties in major cities (scaled down from an earlier 2-3 unit plan to keep V2 Agro's mid-40s debt service manageable).
-            Owned by V2 Agro (moved out of V1 NimbusTech — S-Corps are a poor
+            A single premium rental/Airbnb property in a major city (final scope — dialed down from 2-3 units to keep V2 Agro's mid-40s debt service comfortable).
+            Owned by V2 Agro via a dedicated rental LLC (moved out of V1 NimbusTech — S-Corps are a poor
             vehicle for rental real estate: no tax-free property distributions,
             passive loss trapping, and liability mixing with the operating S-Corp).
             Purchased at age 40 with 25% down payment sourced from V2 reserves
             (with V1 Webull lending the shortfall at an arm's-length rate).
-            Total portfolio value of $2.5M with strong occupancy and stable cash flow.
+            $1.5M property with strong occupancy and stable cash flow.
           </p>
         </div>
 
@@ -76,19 +76,19 @@ export default function CityRentals() {
           <div className="space-y-3">
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Number of Properties</span>
-              <span className="font-semibold">2 units</span>
+              <span className="font-semibold">1 unit</span>
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Total Portfolio Value</span>
-              <span className="font-semibold text-amber-400 text-lg">$1,600,000</span>
+              <span className="font-semibold text-amber-400 text-lg">$1,500,000</span>
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Down Payment (25%)</span>
-              <span className="font-semibold">$400,000</span>
+              <span className="font-semibold">$375,000</span>
             </div>
             <div className="flex justify-between items-center pt-3">
               <span className="text-gray-200 font-semibold">Financing (75%)</span>
-              <span className="font-semibold text-amber-300">$1,200,000</span>
+              <span className="font-semibold text-amber-300">$1,125,000</span>
             </div>
           </div>
         </div>
@@ -125,15 +125,15 @@ export default function CityRentals() {
           </h2>
           <div className="space-y-4">
             <div className="bg-gray-800 rounded p-4">
-              <h3 className="font-semibold text-amber-300 mb-3">Dual Income Streams</h3>
+              <h3 className="font-semibold text-amber-300 mb-3">Flexible Income Strategy</h3>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
-                  Traditional Long-term Rentals
+                  Premium Airbnb short-term stays (primary)
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
-                  Premium Airbnb Short-term Stays
+                  Long-term rental fallback if STR regs tighten
                 </li>
               </ul>
             </div>

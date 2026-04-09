@@ -20,7 +20,7 @@ const formatCurrency = (value) => {
 };
 
 export default function Venture2Dashboard() {
-  const { data, assumptions, toggleNtBoost } = useWealthData();
+  const { data, assumptions } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
 
   // Filter and compute venture 2 data from years
@@ -157,36 +157,6 @@ export default function Venture2Dashboard() {
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
           Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Webull funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Webull account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 50% of ops hub costs. Houses Nigeria Ops Hub subsidiary, content/media, and internal tools. <span className="text-amber-300">City rental properties moved out of V1 → now owned by V2 Agro's rental LLC (S-Corps are a poor vehicle for rentals).</span>
         </p>
-      </div>
-
-      {/* TEMPORARY: $150K pre-tax revenue boost toggle (halfway 31 → halfway 32) */}
-      <div className="mb-6 bg-gradient-to-r from-amber-900/30 to-orange-900/20 border border-amber-700/40 rounded-lg p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">⚡</span>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-amber-300">Temp Toggle: +$150K NT revenue bump</p>
-              <span className="text-[10px] uppercase tracking-wider text-amber-400/70 bg-amber-500/10 px-2 py-0.5 rounded">What-if</span>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              One-time $150K pre-tax NimbusTech revenue, split 50/50 across age 31 (H2) and age 32 (H1).
-              Flows through normal S-Corp taxes → residual fully allocated to investment apportionments (V1 Webull). No personal income update.
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={toggleNtBoost}
-          className={`relative inline-flex items-center h-7 rounded-full w-14 transition-colors flex-shrink-0 ml-4 ${
-            assumptions.ntBoostEnabled ? 'bg-emerald-500' : 'bg-gray-700'
-          }`}
-          aria-label="Toggle $150K revenue boost"
-        >
-          <span
-            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform ${
-              assumptions.ntBoostEnabled ? 'translate-x-8' : 'translate-x-1'
-            }`}
-          />
-        </button>
       </div>
 
       {/* Age Slider */}

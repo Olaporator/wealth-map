@@ -69,7 +69,7 @@ export default function HardAssetsDashboard() {
     { label: 'Net Value at 60', value: formatCurrency(latestYear?.netValue || 0), icon: '✨' },
   ];
 
-  const chartData = yearsData.filter(y => y.age >= assumptions.hardAssetsStartAge);
+  const chartData = yearsData.filter(y => y.age >= assumptions.hardAssetsStartAge && y.age <= 50);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

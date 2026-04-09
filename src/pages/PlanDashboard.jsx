@@ -73,6 +73,7 @@ export default function PlanDashboard() {
   };
 
   const data = useMemo(() => runSimulation(assumptions), [assumptions]);
+  const chartData = useMemo(() => data.filter(d => d.age <= 50), [data]);
 
   const formatCurrency = (value) => {
     if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -161,7 +162,7 @@ export default function PlanDashboard() {
       case 'netWorth':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={data}>
+            <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
@@ -180,7 +181,7 @@ export default function PlanDashboard() {
       case 'assets':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={data}>
+            <AreaChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="age" stroke="#9CA3AF" tick={{ fontSize: 10 }} />
               <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} tickFormatter={formatCurrency} />
@@ -199,14 +200,14 @@ export default function PlanDashboard() {
       case 'freeCash':
         return (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
               <XAxis dataKey="age" stroke="#9CA3AF" tick={{ fontSize: 10 }} />
               <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} tickFormatter={formatCurrency} />
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" />
               <Bar dataKey="freeCash" radius={[4, 4, 0, 0]} name="Free Cash">
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.freeCash < 0 ? '#EF4444' : '#10B981'} />
                 ))}
               </Bar>
@@ -447,7 +448,7 @@ export default function PlanDashboard() {
             <input
               type="range"
               min="31"
-              max="60"
+              max="50"
               value={targetAge1}
               onChange={(e) => setTargetAge1(parseInt(e.target.value))}
               className="w-48 accent-emerald-400"

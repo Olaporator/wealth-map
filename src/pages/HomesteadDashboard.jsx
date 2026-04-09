@@ -108,7 +108,7 @@ export default function HomesteadDashboard() {
   ];
 
   // Chart data
-  const chartData = yearsData.filter(y => y.age >= assumptions.landPurchase1Age);
+  const chartData = yearsData.filter(y => y.age >= assumptions.landPurchase1Age && y.age <= 50);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

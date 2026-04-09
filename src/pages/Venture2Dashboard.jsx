@@ -131,7 +131,7 @@ export default function Venture2Dashboard() {
   ];
 
   // Chart data
-  const chartData = yearsData.filter(y => y.age >= assumptions.venture2StartAge);
+  const chartData = yearsData.filter(y => y.age >= assumptions.venture2StartAge && y.age <= 50);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

@@ -118,7 +118,7 @@ export default function OffshoreDashboard() {
   ];
 
   // Chart data — only from purchase age onward
-  const chartData = yearsData.filter(y => y.age >= assumptions.offshorePurchaseAge && y.age <= 50);
+  const chartData = yearsData.filter(y => y.age >= assumptions.offshorePurchaseAge && y.age <= 60);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

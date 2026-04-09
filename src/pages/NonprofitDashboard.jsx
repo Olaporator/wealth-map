@@ -114,7 +114,7 @@ export default function NonprofitDashboard() {
   ];
 
   // Chart data
-  const chartData = yearsData.filter(y => y.age >= assumptions.nonprofitStartAge && y.age <= 50);
+  const chartData = yearsData.filter(y => y.age >= assumptions.nonprofitStartAge && y.age <= 60);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

@@ -9,7 +9,7 @@ import React from 'react';
  *   min        – minimum age (default 31)
  *   max        – maximum age (default 60)
  */
-export default function AgeSlider({ age, onChange, min = 31, max = 50 }) {
+export default function AgeSlider({ age, onChange, min = 31, max = 60 }) {
   return (
     <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6">
       <div className="flex flex-wrap gap-6 items-center justify-center">

@@ -103,7 +103,7 @@ export default function Venture3Dashboard() {
   ];
 
   // Chart data — only from age 60 onward
-  const chartData = yearsData.filter(y => y.age >= assumptions.venture3StartAge && y.age <= 50);
+  const chartData = yearsData.filter(y => y.age >= assumptions.venture3StartAge && y.age <= 60);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">

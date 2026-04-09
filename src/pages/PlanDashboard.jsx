@@ -73,7 +73,7 @@ export default function PlanDashboard() {
   };
 
   const data = useMemo(() => runSimulation(assumptions), [assumptions]);
-  const chartData = useMemo(() => data.filter(d => d.age <= 50), [data]);
+  const chartData = useMemo(() => data.filter(d => d.age <= 60), [data]);
 
   const formatCurrency = (value) => {
     if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -449,7 +449,7 @@ export default function PlanDashboard() {
             <input
               type="range"
               min="31"
-              max="50"
+              max="60"
               value={targetAge1}
               onChange={(e) => setTargetAge1(parseInt(e.target.value))}
               className="w-48 accent-emerald-400"

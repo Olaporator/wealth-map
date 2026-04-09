@@ -68,6 +68,9 @@ export default function Venture1Dashboard() {
       const employees = year.v1Employees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
       const opsHubBillV1 = year.opsHubBillV1 || 0;
+      const usHire1Cost = year.usHire1Cost || 0;
+      const usHire2Cost = year.usHire2Cost || 0;
+      const usHire3Cost = year.usHire3Cost || 0;
 
       return {
         age,
@@ -82,6 +85,9 @@ export default function Venture1Dashboard() {
         employees,
         opsHubEmployees,
         opsHubBillV1,
+        usHire1Cost,
+        usHire2Cost,
+        usHire3Cost,
       };
     });
   }, [data, assumptions]);
@@ -244,23 +250,38 @@ export default function Venture1Dashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          Day-to-day operations handled by the Nigeria Ops Hub (V1 subsidiary) at $5K/yr starting + 10% annual raises per employee. US hires only at $1M+ balance.
+          3 phased US hires for farm/homestead operations. Back-office handled by Nigeria Ops Hub. V2 pays 40% of hub costs via inter-company billing (tax-free).
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
             <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Hub Bill</p>
+            <p className="text-gray-400 text-sm mb-2">Hub Bill (40%)</p>
             <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
-            <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
+            <p className="text-gray-500 text-xs mt-1">40% of hub cost (tax-free)</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">US Staff</p>
-            <p className="text-3xl font-bold text-blue-400">{selectedYear?.employees || 0}</p>
-            <p className="text-gray-500 text-xs mt-1">Only at $1M+ balance</p>
+            <p className="text-gray-400 text-sm mb-2">🌾 Groundskeeper</p>
+            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire1Cost || 0)}</p>
+            <p className="text-gray-500 text-xs mt-1">Part-time from age 33, $15K + 10%/yr</p>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">🏡 House Manager</p>
+            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire2Cost || 0)}</p>
+            <p className="text-gray-500 text-xs mt-1">Part-time from age 36, $15K + 10%/yr</p>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">📋 Ops Coordinator</p>
+            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire3Cost || 0)}</p>
+            <p className="text-gray-500 text-xs mt-1">Full-time from age 40, $30K + 10%/yr</p>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">👥 Total US Staff (FTE)</p>
+            <p className="text-3xl font-bold text-yellow-400">{selectedYear?.employees || 0}</p>
+            <p className="text-gray-500 text-xs mt-1">0.5 = part-time, 1.0 = full-time</p>
           </div>
         </div>
       </div>

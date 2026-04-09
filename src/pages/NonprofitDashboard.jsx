@@ -55,6 +55,8 @@ export default function NonprofitDashboard() {
       const employees = year.npEmployees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
       const opsHubBillNp = year.opsHubBillNp || 0;
+      const npMomCost = year.npMomCost || 0;
+      const npEDCost = year.npEDCost || 0;
 
       return {
         age,
@@ -71,6 +73,8 @@ export default function NonprofitDashboard() {
         employees,
         opsHubEmployees,
         opsHubBillNp,
+        npMomCost,
+        npEDCost,
       };
     });
   }, [data, assumptions]);
@@ -246,9 +250,9 @@ export default function NonprofitDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          All admin, accounting, HR, and tax handled by the Nigeria Ops Hub at $5K/yr starting + 10% annual raises per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free). US program director only at $5M+ reserves.
+          Leadership transition from mom volunteer (ages 35-44) to hired part-time ED (from age 45). All admin, accounting, HR, and tax handled by Nigeria Ops Hub at $5K/yr starting + 10% annual raises per employee. Nonprofit pays 30% of hub costs via inter-company billing (tax-free).
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
             <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
@@ -260,9 +264,19 @@ export default function NonprofitDashboard() {
             <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">US Staff</p>
+            <p className="text-gray-400 text-sm mb-2">Mom Stipend</p>
+            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.npMomCost || 0)}<span className="text-sm text-gray-500">/yr</span></p>
+            <p className="text-gray-500 text-xs mt-1">Volunteer ED, age 35-44</p>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">Hired ED Cost</p>
+            <p className="text-3xl font-bold text-cyan-400">{formatCurrency(selectedYear?.npEDCost || 0)}<span className="text-sm text-gray-500">/yr</span></p>
+            <p className="text-gray-500 text-xs mt-1">Part-time ED from age 45</p>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">NP Staff</p>
             <p className="text-3xl font-bold text-emerald-400">{selectedYear?.employees || 0}</p>
-            <p className="text-gray-500 text-xs mt-1">Only at $5M+ reserves</p>
+            <p className="text-gray-500 text-xs mt-1">0.5 = part-time unit</p>
           </div>
         </div>
       </div>

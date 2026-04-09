@@ -281,18 +281,20 @@ export default function Venture2Dashboard() {
 
       {/* Employees Section */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">👥 Employees</h2>
+        <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          Team size based on simulation staffing data. Scales with business growth and operational capacity.
+          No dedicated US staff — NimbusTech is a lean S-Corp. All admin, accounting, and HR handled by the Nigeria Ops Hub. US hires are on the V2 Agro/homestead side.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Current Staff</p>
-            <p className="text-3xl font-bold text-blue-400">{selectedYear?.employees || 0}</p>
+            <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
+            <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
+            <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Average Cost per Employee</p>
-            <p className="text-3xl font-bold text-green-400">$50K</p>
+            <p className="text-gray-400 text-sm mb-2">V1 Hub Bill (30%)</p>
+            <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
+            <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
           </div>
         </div>
       </div>
@@ -349,7 +351,7 @@ export default function Venture2Dashboard() {
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Cost per Employee</p>
-            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(assumptions.opsHubEmployeeCost)}</p>
+            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(assumptions.opsHubEmployeeCostBase)}</p>
           </div>
           <div className="bg-gray-800 rounded-lg p-4">
             <p className="text-gray-400 text-xs mb-1">Starts</p>

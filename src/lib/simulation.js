@@ -75,10 +75,8 @@ export const DEFAULT_ASSUMPTIONS = {
   iraReturn: 25,            // Robinhood IRA — same fund strategy, no new contributions
   venturesReturn: 12,       // ventures invested cash return (10-15% avg, index/ETF style)
   venturesCreditRate: 9,    // business line of credit rate for ventures operations
-  // V1 Staffing: ops hub handles admin — minimal US presence
-  v1EmployeeCost: 50000,        // $50K fully loaded per US employee (if any)
-  v1StaffThreshold: 1000000,    // 1 US employee per $1M+ balance (rare, ops hub handles most)
-  v1StaffMax: 2,                // cap at 2 US staff — hub does the rest
+  // V1 Staffing: ops hub handles admin — no dedicated US staff for NimbusTech
+  // (US hires are on V2 agro/homestead side, see v2 staffing below)
   qozReturn: 6,             // QOZ fund — land appreciation + modest development (tax-free after 10yr)
   qozInvestAge: 42,         // age to roll Robinhood gains into QOZ fund
   qozInvestAmount: 600000,  // ~100 acres at $6K/acre via QOZ
@@ -92,10 +90,14 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
   nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
   nonprofitOpsLossPct: 8,       // 8% annual ops cost (overhead beyond staff — funded via credit)
-  // Nonprofit Staffing: ops hub handles admin — no US hires needed
-  npEmployeeCost: 50000,        // $50K fully loaded (placeholder)
-  npStaffThreshold: 5000000,    // effectively never — ops hub handles everything
-  npStaffMax: 1,                // at most 1 US program director at scale
+  // Nonprofit Staffing: Mom as volunteer ED → hired ED transition
+  npMomStipendStart: 5000,      // $5K/yr stipend for mom as volunteer ED
+  npMomStipendGrowth: 20,       // 20% annual raise on stipend
+  npMomYears: 10,               // mom runs it for 10 years (age 35-44)
+  npMomStartAge: 35,            // mom starts when nonprofit has programs running
+  npHiredEDStartAge: 45,        // hired ED replaces mom at age 45
+  npHiredEDStartPay: 30000,     // ~$30K part-time start (roughly where mom's stipend lands)
+  npHiredEDRaise: 10,           // 10% annual raises
   nonprofitLocRate: 7,          // nonprofit LOC rate (CDFIs offer favorable terms)
   nonprofitDonationGrowth: 10,  // annual donation/grant income growth after year 1
   nonprofitInitialDonations: 5000, // modest initial donations year 1
@@ -208,10 +210,19 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Webull deposit (meets $100K minimum)
-  // V2 Staffing: ops hub handles admin — minimal US presence
-  v2EmployeeCost: 50000,         // $50K fully loaded per US employee (if any)
-  v2StaffThreshold: 1000000,     // 1 US employee per $1M+ balance (rare, ops hub handles most)
-  v2StaffMax: 2,                 // cap at 2 US staff — hub does the rest
+  // V2 Staffing: 3 phased US hires (part-time units = 0.5 FTE each)
+  // Hire 1: Groundskeeper — starts age 33, $15K/yr + perks, 10%/yr raises
+  usHire1StartAge: 33,
+  usHire1StartPay: 15000,
+  usHire1Raise: 10,
+  // Hire 2: House Manager — starts age 36, $15K/yr, 10%/yr raises
+  usHire2StartAge: 36,
+  usHire2StartPay: 15000,
+  usHire2Raise: 10,
+  // Hire 3: Ops Coordinator — starts age 40, first full-time (1.0 FTE), $30K/yr, 10%/yr raises
+  usHire3StartAge: 40,
+  usHire3StartPay: 30000,
+  usHire3Raise: 10,
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
@@ -367,6 +378,12 @@ export function runSimulation(assumptions) {
   let opsHubBillV1 = 0;       // Inter-company bill to V1
   let opsHubBillV2 = 0;       // Inter-company bill to V2 (retained)
   let opsHubBillNp = 0;       // Inter-company bill to nonprofit
+  // US hire cost tracking (reset each year inside loop)
+  let usHire1Cost = 0;
+  let usHire2Cost = 0;
+  let usHire3Cost = 0;
+  let npMomCost = 0;
+  let npEDCost = 0;
   let nonprofit = 0;          // Nonprofit reserves (invested)
   let nonprofitLoc = 0;       // Nonprofit LOC balance
   let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
@@ -766,13 +783,25 @@ export function runSimulation(assumptions) {
     }
     // Ventures: staff costs + overhead funded via LOC, cash stays invested
     // Investment gains offset staff/ops costs; profits pay down LOC
-    // V1 Staffing: balance-driven — hire US staff only when entity can support them
-    // Ops hub handles admin, so US hires are revenue/ops roles only
-    v1Employees = Math.min(
-      assumptions.v1StaffMax,
-      Math.max(0, Math.floor(Math.max(0, ventures) / assumptions.v1StaffThreshold))
-    );
-    const v1StaffCost = v1Employees * assumptions.v1EmployeeCost;
+    // V1 (sim: ventures = V2 Agro on display) Staffing: 3 phased US hires
+    usHire1Cost = 0; usHire2Cost = 0; usHire3Cost = 0;
+    v1Employees = 0;
+    if (age >= assumptions.usHire1StartAge) {
+      const h1Years = age - assumptions.usHire1StartAge;
+      usHire1Cost = assumptions.usHire1StartPay * Math.pow(1 + assumptions.usHire1Raise / 100, h1Years);
+      v1Employees += 0.5; // part-time
+    }
+    if (age >= assumptions.usHire2StartAge) {
+      const h2Years = age - assumptions.usHire2StartAge;
+      usHire2Cost = assumptions.usHire2StartPay * Math.pow(1 + assumptions.usHire2Raise / 100, h2Years);
+      v1Employees += 0.5; // part-time
+    }
+    if (age >= assumptions.usHire3StartAge) {
+      const h3Years = age - assumptions.usHire3StartAge;
+      usHire3Cost = assumptions.usHire3StartPay * Math.pow(1 + assumptions.usHire3Raise / 100, h3Years);
+      v1Employees += 1.0; // full-time
+    }
+    const v1StaffCost = usHire1Cost + usHire2Cost + usHire3Cost;
     // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)
     const v1OverheadRate = age >= assumptions.opsHubStartAge ? 0.01 : 0.03; // 3% → 1% with ops hub
     const venturesOpsOverhead = Math.max(0, ventures) * v1OverheadRate;
@@ -835,12 +864,9 @@ export function runSimulation(assumptions) {
       }
       v2SelfIncome = venture2OwnIncome;
 
-      // V2 Staffing: balance-driven — hire US staff only when entity can support them
-      v2Employees = Math.min(
-        assumptions.v2StaffMax,
-        Math.max(0, Math.floor(Math.max(0, venture2) / assumptions.v2StaffThreshold))
-      );
-      const v2StaffCost = v2Employees * assumptions.v2EmployeeCost;
+      // V2 (sim: venture2 = V1 NimbusTech on display) Staffing: no dedicated US staff — ops hub handles admin
+      v2Employees = 0;
+      const v2StaffCost = 0;
 
       // Nigeria Ops Hub (V2 subsidiary): centralized back-office for all entities
       // HR, Accounting, Taxes, Logistics, DevOps — AI-assisted + minimal US CPA
@@ -901,12 +927,23 @@ export function runSimulation(assumptions) {
       // Invested reserves earn 12% tax-free
       const npInvestGain = Math.max(0, nonprofit) * (assumptions.nonprofitInvestReturn / 100);
 
-      // Nonprofit Staffing: balance-driven — hire US staff only when reserves support them
-      npEmployees = Math.min(
-        assumptions.npStaffMax,
-        Math.max(0, Math.floor(Math.max(0, nonprofit) / assumptions.npStaffThreshold))
-      );
-      const npStaffCost = npEmployees * assumptions.npEmployeeCost;
+      // Nonprofit Staffing: Mom as volunteer ED (age 35-44) → Hired ED (age 45+)
+      npMomCost = 0;
+      npEDCost = 0;
+      if (age >= assumptions.npMomStartAge && age < assumptions.npHiredEDStartAge) {
+        // Mom phase: $5K stipend + 20%/yr growth
+        const momYears = age - assumptions.npMomStartAge;
+        npMomCost = assumptions.npMomStipendStart * Math.pow(1 + assumptions.npMomStipendGrowth / 100, momYears);
+        npEmployees = 0.5; // part-time unit
+      } else if (age >= assumptions.npHiredEDStartAge) {
+        // Hired ED phase: ~$30K start + 10%/yr raises
+        const edYears = age - assumptions.npHiredEDStartAge;
+        npEDCost = assumptions.npHiredEDStartPay * Math.pow(1 + assumptions.npHiredEDRaise / 100, edYears);
+        npEmployees = 0.5; // part-time unit
+      } else {
+        npEmployees = 0;
+      }
+      const npStaffCost = npMomCost + npEDCost;
 
       // Ops costs: staff + overhead funded via LOC (programs, admin)
       // Overhead reduced once ops hub handles admin/accounting centrally
@@ -1151,6 +1188,11 @@ export function runSimulation(assumptions) {
       v2Employees,
       npEmployees,
       opsHubEmployees,
+      usHire1Cost: Math.round(usHire1Cost),
+      usHire2Cost: Math.round(usHire2Cost),
+      usHire3Cost: Math.round(usHire3Cost),
+      npMomCost: Math.round(npMomCost),
+      npEDCost: Math.round(npEDCost),
       opsHubCost: Math.round(opsHubCost),
       opsHubCostPerEmployee: opsHubEmployees > 0 ? Math.round((opsHubCost - assumptions.opsHubCpaFee) / opsHubEmployees) : 0,
       opsHubBillV1: Math.round(opsHubBillV1),

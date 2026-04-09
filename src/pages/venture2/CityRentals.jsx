@@ -10,14 +10,14 @@ export default function CityRentals() {
   const { data } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
   const selectedYear = data?.years?.find(y => y.age === targetAge) || data?.years?.[0];
-  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1, 'city-rentals'), []);
+  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.V2, 'city-rentals'), []);
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
         {/* Back Link */}
-        <Link to="/venture1" className="flex items-center gap-2 text-blue-400 hover:text-blue-300 mb-8">
+        <Link to="/venture2" className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 mb-8">
           <span>←</span>
-          Back to Venture 1
+          Back to Venture 2
         </Link>
 
         {/* Header */}
@@ -36,7 +36,11 @@ export default function CityRentals() {
           <h2 className="text-xl font-semibold mb-3">Overview</h2>
           <p className="text-gray-300 leading-relaxed">
             A portfolio of 2-3 premium rental and Airbnb properties in major cities.
-            Purchased at age 40 using 25% down payment from V2 balance.
+            Owned by V2 Agro (moved out of V1 NimbusTech — S-Corps are a poor
+            vehicle for rental real estate: no tax-free property distributions,
+            passive loss trapping, and liability mixing with the operating S-Corp).
+            Purchased at age 40 with 25% down payment sourced from V2 reserves
+            (with V1 Webull lending the shortfall at an arm's-length rate).
             Total portfolio value of $2.5M with strong occupancy and stable cash flow.
           </p>
         </div>
@@ -150,8 +154,8 @@ export default function CityRentals() {
         {selectedYear && (
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-1">V1 NimbusTech Balance @ {targetAge}</p>
-              <p className="text-2xl font-bold text-pink-400">{selectedYear.venture2 >= 1000000 ? '$' + (selectedYear.venture2 / 1000000).toFixed(1) + 'M' : selectedYear.venture2 >= 1000 ? '$' + (selectedYear.venture2 / 1000).toFixed(0) + 'K' : '$' + (selectedYear.venture2 || 0)}</p>
+              <p className="text-gray-400 text-sm mb-1">V2 Agro Balance @ {targetAge}</p>
+              <p className="text-2xl font-bold text-lime-400">{selectedYear.ventures >= 1000000 ? '$' + (selectedYear.ventures / 1000000).toFixed(1) + 'M' : selectedYear.ventures >= 1000 ? '$' + (selectedYear.ventures / 1000).toFixed(0) + 'K' : '$' + (selectedYear.ventures || 0)}</p>
             </div>
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
               <p className="text-gray-400 text-sm mb-1">Net Worth @ {targetAge}</p>
@@ -160,14 +164,14 @@ export default function CityRentals() {
           </div>
         )}
 
-        {/* Year-by-Year (Parent Entity: V1 NimbusTech) */}
+        {/* Year-by-Year (Parent Entity: V2 Agro) */}
         {data?.years && (
-          <CollapsibleYearByYear title="Year-by-Year Projection (V1 NimbusTech Entity)">
+          <CollapsibleYearByYear title="Year-by-Year Projection (V2 Agro Entity)">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-700">
                   <th className="text-left px-4 py-3 text-gray-300">Age</th>
-                  <th className="text-right px-4 py-3 text-gray-300">V1 Balance</th>
+                  <th className="text-right px-4 py-3 text-gray-300">V2 Balance</th>
                   <th className="text-right px-4 py-3 text-gray-300">Net Worth</th>
                 </tr>
               </thead>
@@ -175,7 +179,7 @@ export default function CityRentals() {
                 {data.years.map((row, idx) => (
                   <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
                     <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
-                    <td className="text-right px-4 py-3 text-pink-400">{row.venture2 >= 1000000 ? '$' + (row.venture2 / 1000000).toFixed(1) + 'M' : row.venture2 >= 1000 ? '$' + (row.venture2 / 1000).toFixed(0) + 'K' : '$' + (row.venture2 || 0)}</td>
+                    <td className="text-right px-4 py-3 text-lime-400">{row.ventures >= 1000000 ? '$' + (row.ventures / 1000000).toFixed(1) + 'M' : row.ventures >= 1000 ? '$' + (row.ventures / 1000).toFixed(0) + 'K' : '$' + (row.ventures || 0)}</td>
                     <td className="text-right px-4 py-3 text-white font-semibold">{row.netWorth >= 1000000 ? '$' + (row.netWorth / 1000000).toFixed(1) + 'M' : row.netWorth >= 1000 ? '$' + (row.netWorth / 1000).toFixed(0) + 'K' : '$' + (row.netWorth || 0)}</td>
                   </tr>
                 ))}
@@ -184,7 +188,7 @@ export default function CityRentals() {
           </CollapsibleYearByYear>
         )}
 
-        <ContractorWidget contractors={contractors} title="Rental Property Services" entityLabel="V1 Real Estate" />
+        <ContractorWidget contractors={contractors} title="Rental Property Services" entityLabel="V2 Real Estate" />
       </div>
     </div>
   );

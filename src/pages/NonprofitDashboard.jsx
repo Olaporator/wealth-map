@@ -143,9 +143,58 @@ export default function NonprofitDashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Tax-exempt entity for land stewardship, community development, and education. Investment gains are 100% tax-free. Partners with QOZ fund for on-the-ground work. Nigeria Ops Hub handles admin at 30% of hub costs.
+          Tax-exempt entity for land stewardship, community development, and education. Investment gains are 100% tax-free. Partners with QOZ fund for on-the-ground work. Nigeria Ops Hub handles admin at 30% of hub costs. <span className="text-emerald-300">Owns 2 acres of program land carved from the personal homestead parcel (donated at age 32 — charitable deduction at FMV, capped at 30% of AGI, property-tax exempt once filed for charitable-use exemption).</span>
         </p>
       </div>
+
+      {/* NP Program Land Card */}
+      {(() => {
+        const donationYear = data?.years?.find(y => (y.npLandDonationFmv || 0) > 0);
+        const currentYear = data?.years?.find(y => y.age === assumptions.currentAge) || data?.years?.[0];
+        const latestWithNp = [...(data?.years || [])].reverse().find(y => (y.npLandValue || 0) > 0);
+        if (!donationYear && !latestWithNp) return null;
+        return (
+          <div className="mb-8 bg-gradient-to-r from-emerald-900/20 to-green-900/10 border border-emerald-700/40 rounded-lg p-5">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🌱</span>
+              <div className="flex-1">
+                <h3 className="text-emerald-300 font-semibold text-sm">Program Land (Donated from Personal Homestead)</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-xs">
+                  <div>
+                    <p className="text-gray-500">Acres</p>
+                    <p className="text-emerald-400 text-xl font-bold">{latestWithNp?.npAcres?.toFixed(1) || '0'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">FMV at donation</p>
+                    <p className="text-white text-lg font-semibold">
+                      ${donationYear ? ((donationYear.npLandDonationFmv || 0) / 1000).toFixed(0) + 'K' : '—'}
+                    </p>
+                    <p className="text-gray-600 text-[10px]">Age {donationYear?.age || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Tax savings (year 1)</p>
+                    <p className="text-emerald-400 text-lg font-semibold">
+                      ${donationYear ? ((donationYear.npLandDonationTaxSavings || 0) / 1000).toFixed(1) + 'K' : '—'}
+                    </p>
+                    <p className="text-gray-600 text-[10px]">Credited to RH</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500">Value @ latest</p>
+                    <p className="text-emerald-300 text-lg font-semibold">
+                      ${latestWithNp ? ((latestWithNp.npLandValue || 0) / 1000).toFixed(0) + 'K' : '—'}
+                    </p>
+                    <p className="text-gray-600 text-[10px]">Appreciates w/ land</p>
+                  </div>
+                </div>
+                <p className="text-gray-500 text-[11px] mt-3 italic">
+                  Parcel carved out debt-free for permaculture demonstration, education fellowships, and community programming.
+                  Appreciated-real-property gift to public charity: FMV deduction, 30% AGI cap, 5-year carryforward (§170(b)(1)(C)).
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

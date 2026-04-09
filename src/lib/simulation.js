@@ -88,6 +88,16 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   nonprofitStartAge: 31,        // launch nonprofit at 31
   nonprofitRhPullPct: 5,        // 5% of RH gains → nonprofit seed funding
+
+  // 501(c)(3) program land: donate 2 acres from the personal homestead parcel
+  // to the nonprofit for use as permaculture demo / fellowship / community
+  // programming site. Tax-clean: FMV deduction on appreciated real property
+  // donated to a public charity (capped at 30% AGI — IRC §170(b)(1)(C)).
+  // Property-tax exempt in most states once filed for exempt use.
+  npLandDonationAge: 32,        // donate 1 year after land purchase (clean basis)
+  npLandDonationAcres: 2,       // 2 acres carved out for NP program use
+  npLandDonationAgiCapPct: 30,  // IRS 30% AGI cap for appreciated-property gifts
+  npLandDonationMarginalRate: 24, // approx marginal federal rate → deduction savings
   nonprofitInvestReturn: 12,    // tax-free investment return on reserves (10-15% avg)
   nonprofitOpsLossPct: 8,       // 8% annual ops cost (overhead beyond staff — funded via credit)
   // Nonprofit Staffing: Mom as volunteer ED → hired ED transition
@@ -162,11 +172,12 @@ export const DEFAULT_ASSUMPTIONS = {
   nigeriaAppreciation: 5,         // annual appreciation
 
   // ═══════════════════════════════════════════════════════════════
-  // CITY RENTAL PROPERTIES (age 40 — 2-3 units totaling $3M, V2-owned, Airbnb/rental @ 90%)
+  // CITY RENTAL PROPERTIES (age 40 — 2-3 units totaling $2.5M)
+  // OWNED BY V2 AGRO via a dedicated rental LLC (NOT by V1 NimbusTech S-Corp).
   // ═══════════════════════════════════════════════════════════════
   rentalPurchaseAge: 40,
   rentalPurchasePrice: 2500000,    // 2-3 properties totaling $2.5M
-  rentalDownPayment: 625000,       // $625K from V2 balance (25% down)
+  rentalDownPayment: 625000,       // $625K down (25%) — sourced from V2 reserves + V1 loan shortfall
   rentalMortgageRate: 7.0,
   rentalMortgageTerm: 30,
   rentalPropertyAppreciation: 4,   // annual property appreciation
@@ -393,6 +404,8 @@ export function runSimulation(assumptions) {
   let npMomCost = 0;
   let npEDCost = 0;
   let nonprofit = 0;          // Nonprofit reserves (invested)
+  let npAcres = 0;            // Nonprofit-owned program land (acres, separate from personal)
+  let npLandValue = 0;        // Nonprofit-owned land FMV (appreciates at same rate as personal)
   let nonprofitLoc = 0;       // Nonprofit LOC balance
   let nonprofitDonations = 0; // Annual donation/grant income (grows over time)
   let offshoreEquity = 0;    // Belize/Costa Rica land equity
@@ -587,7 +600,8 @@ export function runSimulation(assumptions) {
       ventures -= nigeriaMaint; // V2 agro covers Nigeria land maintenance
     }
 
-    // City rental properties: owned by Venture 2 — income flows into V2, not personal
+    // City rental properties: OWNED BY V2 AGRO (rental LLC owned by V2).
+    // Net income flows into V2 Agro balance (`ventures` sim var), not V1 or personal.
     let rentalNetIncome = 0;
     let rentalMortgagePayment = 0;
     if (age >= assumptions.rentalPurchaseAge && (rentalEquity > 0 || rentalMortgage > 0)) {
@@ -1105,6 +1119,45 @@ export function runSimulation(assumptions) {
       acres += assumptions.landPurchase1Acres;
     }
 
+    // 501(c)(3) land donation: carve 2 acres from personal homestead to NP for
+    // charitable program use. Tax-clean FMV deduction on appreciated property,
+    // capped at 30% AGI (§170(b)(1)(C)). Remaining deduction carries forward
+    // but we model just year-1 benefit for simplicity.
+    let npLandDonationFmv = 0;
+    let npLandDonationTaxSavings = 0;
+    if (age === assumptions.npLandDonationAge && acres > 0 && npAcres === 0) {
+      const donateAcres = Math.min(assumptions.npLandDonationAcres, acres);
+      const totalLandFmv = landEquity + landMortgage;
+      const donatedShare = donateAcres / acres;
+      npLandDonationFmv = totalLandFmv * donatedShare;
+
+      // Move the acreage + equity share to the nonprofit (no mortgage encumbrance —
+      // the donated parcel is carved out free-and-clear; any attached debt stays
+      // with the personal parcel, as is standard practice).
+      acres -= donateAcres;
+      landEquity = Math.max(0, landEquity - npLandDonationFmv);
+      npAcres += donateAcres;
+      npLandValue += npLandDonationFmv;
+
+      // Charitable deduction benefit: FMV * marginal rate, capped at 30% AGI.
+      // Approximate AGI as W2 + net distributions + farm + rental.
+      const approxAgi = Math.max(
+        40000, // floor to avoid zero-AGI edge case
+        w2Gross + netDistributions + farmIncomeForTax + Math.max(0, ayoolaRentalShare)
+      );
+      const deductibleThisYear = Math.min(
+        npLandDonationFmv,
+        approxAgi * (assumptions.npLandDonationAgiCapPct / 100)
+      );
+      npLandDonationTaxSavings = deductibleThisYear * (assumptions.npLandDonationMarginalRate / 100);
+      // Tax savings arrive as a refund → credited to personal Robinhood
+      robinhood += npLandDonationTaxSavings;
+    }
+    // NP land appreciates alongside personal land
+    if (npLandValue > 0) {
+      npLandValue = npLandValue * (1 + assumptions.landAppreciation / 100);
+    }
+
     // Offshore (Belize/Costa Rica): cash purchase at 33 — split between V1 Webull (primary) and RH
     if (age === assumptions.offshorePurchaseAge) {
       // V1 Webull funds up to what it can afford; RH covers the rest
@@ -1132,18 +1185,28 @@ export function runSimulation(assumptions) {
       nigeriaEquity = nigeriaEquity * (1 + assumptions.nigeriaAppreciation / 100);
     }
 
-    // City rental property: owned by V1 NimbusTech — down payment from V1 Webull at 40
-    // Uses up to 60% of V1 balance; shortfall added to rental mortgage
+    // City rental property: OWNED BY V2 AGRO (moved out of V1 NimbusTech S-Corp
+    // — S-Corps are a poor vehicle for rental real estate: no tax-free property
+    // distributions, passive loss trapping, and liability co-mingling with the
+    // operating S-Corp). Down payment sourced from V2 reserves first; any
+    // shortfall is lent by V1 Webull at an arm's-length rate (modeled as a
+    // transfer, with V2 servicing the note through rental cash flow).
     if (age === assumptions.rentalPurchaseAge) {
-      const v1AvailForRental = Math.max(0, venture2 * 0.6);
-      const actualDown = Math.min(v1AvailForRental, assumptions.rentalDownPayment);
-      venture2 -= actualDown;
+      const v2AvailForRental = Math.max(0, ventures * 0.6);
+      const downFromV2 = Math.min(v2AvailForRental, assumptions.rentalDownPayment);
+      const shortfall = assumptions.rentalDownPayment - downFromV2;
+      const v1CanLend = Math.max(0, venture2 * 0.3); // V1 can lend up to 30% of its balance
+      const loanFromV1 = Math.min(v1CanLend, shortfall);
+      ventures -= downFromV2;
+      venture2 -= loanFromV1;
+      ventures += loanFromV1; // V1 → V2 note, V2 now holds cash for down payment
+      const actualDown = downFromV2 + loanFromV1;
       rentalEquity += actualDown;
       rentalMortgage += assumptions.rentalPurchasePrice - actualDown;
     }
-    // Rental net income flows into Venture 2 (not personal)
+    // Rental net income flows into V2 Agro (rental LLC owned by V2)
     if (rentalNetIncome !== 0 && age >= assumptions.rentalPurchaseAge) {
-      venture2 += rentalNetIncome;
+      ventures += rentalNetIncome;
     }
     if (rentalEquity > 0 || rentalMortgage > 0) {
       const rTotal = rentalEquity + rentalMortgage;
@@ -1167,7 +1230,7 @@ export function runSimulation(assumptions) {
     // ═══════════════════════════════════════════════════════════
     // landEquity already = net equity (down payment + appreciation + principal paid)
     // landEquity + landMortgage = total property value, so don't subtract mortgage again
-    const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) + venture3 + (nonprofit - nonprofitLoc) + hardAssets - ccDebt;
+    const netWorth = k401 + ira + robinhood + (seattleEquity * 0.5) + landEquity + offshoreEquity + nigeriaEquity + rentalEquity + qozFund + (ventures - venturesLocDebt) + (venture2 - venture2Loc) + venture3 + (nonprofit - nonprofitLoc) + npLandValue + hardAssets - ccDebt;
 
     const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
     const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
@@ -1202,6 +1265,10 @@ export function runSimulation(assumptions) {
       nonprofit: Math.round(nonprofit),
       nonprofitLoc: Math.round(nonprofitLoc),
       nonprofitNet: Math.round(nonprofit - nonprofitLoc),
+      npAcres: Math.round(npAcres * 10) / 10,
+      npLandValue: Math.round(npLandValue),
+      npLandDonationFmv: Math.round(npLandDonationFmv),
+      npLandDonationTaxSavings: Math.round(npLandDonationTaxSavings),
       venture3: Math.round(venture3),
       v1Employees,
       v2Employees,

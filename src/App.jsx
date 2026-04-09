@@ -10,17 +10,17 @@ import Venture3Dashboard from './pages/Venture3Dashboard';
 import NigeriaDashboard from './pages/NigeriaDashboard';
 import OffshoreDashboard from './pages/OffshoreDashboard';
 import HardAssetsDashboard from './pages/HardAssetsDashboard';
-// V1 Sub-ventures
-import LandscapeConsulting from './pages/venture1/LandscapeConsulting';
-import GardenApp from './pages/venture1/GardenApp';
-import AgroEquipment from './pages/venture1/AgroEquipment';
-import PropertyManagement from './pages/venture1/PropertyManagement';
-// V2 Sub-ventures
-import WebullPortfolio from './pages/venture2/WebullPortfolio';
-import NigeriaOpsHub from './pages/venture2/NigeriaOpsHub';
+// V1 NimbusTech Sub-ventures
+import WebullPortfolio from './pages/venture1/WebullPortfolio';
+import NigeriaOpsHub from './pages/venture1/NigeriaOpsHub';
+import ContentMedia from './pages/venture1/ContentMedia';
+import InternalTools from './pages/venture1/InternalTools';
+// V2 Agro Sub-ventures
+import LandscapeConsulting from './pages/venture2/LandscapeConsulting';
+import GardenApp from './pages/venture2/GardenApp';
+import AgroEquipment from './pages/venture2/AgroEquipment';
+import PropertyManagement from './pages/venture2/PropertyManagement';
 import CityRentals from './pages/venture2/CityRentals';
-import ContentMedia from './pages/venture2/ContentMedia';
-import InternalTools from './pages/venture2/InternalTools';
 // Nonprofit Sub-programs
 import PermacultureDev from './pages/nonprofit/PermacultureDev';
 import CommunityOrganizing from './pages/nonprofit/CommunityOrganizing';
@@ -132,24 +132,24 @@ export default function App() {
           <Route path="/accounts" element={<AccountsDashboard />} />
           <Route path="/plan" element={<PlanDashboard />} />
           <Route path="/homestead" element={<HomesteadDashboard />} />
-          <Route path="/venture1" element={<Venture2Dashboard />} />
-          <Route path="/venture2" element={<Venture1Dashboard />} />
+          <Route path="/venture1" element={<Venture1Dashboard />} />
+          <Route path="/venture2" element={<Venture2Dashboard />} />
           <Route path="/nonprofit" element={<NonprofitDashboard />} />
           <Route path="/venture3" element={<Venture3Dashboard />} />
           <Route path="/nigeria" element={<NigeriaDashboard />} />
           <Route path="/offshore" element={<OffshoreDashboard />} />
           <Route path="/hard-assets" element={<HardAssetsDashboard />} />
-          {/* V1 Sub-ventures (NimbusTech — tech/AI/investments) */}
+          {/* V1 NimbusTech Sub-ventures (tech/AI/investments) */}
           <Route path="/venture1/webull-portfolio" element={<WebullPortfolio />} />
           <Route path="/venture1/ops-hub" element={<NigeriaOpsHub />} />
-          <Route path="/venture1/city-rentals" element={<CityRentals />} />
           <Route path="/venture1/content-media" element={<ContentMedia />} />
           <Route path="/venture1/internal-tools" element={<InternalTools />} />
-          {/* V2 Sub-ventures (New entity — agro/land/property) */}
+          {/* V2 Agro Sub-ventures (agro/land/property — now owns city rentals) */}
           <Route path="/venture2/landscape-consulting" element={<LandscapeConsulting />} />
           <Route path="/venture2/garden-app" element={<GardenApp />} />
           <Route path="/venture2/agro-equipment" element={<AgroEquipment />} />
           <Route path="/venture2/property-management" element={<PropertyManagement />} />
+          <Route path="/venture2/city-rentals" element={<CityRentals />} />
           {/* Nonprofit Sub-programs */}
           <Route path="/nonprofit/permaculture" element={<PermacultureDev />} />
           <Route path="/nonprofit/community" element={<CommunityOrganizing />} />

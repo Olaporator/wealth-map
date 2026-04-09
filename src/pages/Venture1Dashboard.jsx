@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 import { Link } from 'react-router-dom';
 import { useWealthData } from '../hooks/useWealthData';
 import CollapsibleYearByYear from '../components/CollapsibleYearByYear';
@@ -19,97 +19,92 @@ const formatCurrency = (value) => {
   return '$' + value.toFixed(0);
 };
 
-export default function Venture1Dashboard() {
-  const { data, assumptions } = useWealthData();
+export default function Venture2Dashboard() {
+  const { data, assumptions, toggleNtBoost } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
 
-  // Filter and compute venture 1 data from years
+  // Filter and compute venture 2 data from years
   const yearsData = useMemo(() => {
     if (!data || !data.years) return [];
 
     return data.years.map((year) => {
       const age = year.age;
-      const ventureBalance = year.ventures || 0;
+      const v2Balance = year.venture2 || 0;
+      const v2LocDebt = year.venture2Loc || 0;
+      const v2SelfIncome = year.venture2SelfIncome || 0;
+      const rhPullV2 = year.rhPullVenture2 || 0;
+      const rentalNetIncome = year.rentalNetIncome || 0;
+      const investGain = v2Balance > 0 ? v2Balance * (assumptions.venture2InvestReturn / 100) : 0;
+      const netEquity = v2Balance - v2LocDebt;
 
-      // LOC Debt: $150K at age 32, minus paydowns
-      // 50% of net gain pays down LOC
-      let locDebt = 0;
-      if (age >= assumptions.venturesLocAge) {
-        locDebt = assumptions.venturesLocAmount;
-
-        // Calculate paydowns from net gains (12% return - 10% loss = 2% net)
-        for (let a = assumptions.venturesLocAge; a < age; a++) {
-          const prevYear = data.years.find(y => y.age === a);
-          if (prevYear) {
-            const balance = prevYear.ventures || 0;
-            const investmentGain = balance * (12 / 100); // 12% investment return
-            const opsLoss = balance * (10 / 100); // 10% ops loss
-            const netGain = investmentGain - opsLoss; // 2% net
-            const paydown = netGain * 0.5; // 50% of net gain pays down LOC
-            locDebt = Math.max(0, locDebt - paydown);
-          }
-        }
-      }
-
-      const netEquity = ventureBalance - locDebt;
-
-      // Annual gains and losses for this year
-      let investmentGain = 0;
-      let opsLoss = 0;
-      let netGain = 0;
-      let locPaydown = 0;
-
-      if (age >= assumptions.venturesLocAge && ventureBalance > 0) {
-        investmentGain = ventureBalance * (12 / 100); // 12% investment return
-        opsLoss = ventureBalance * (10 / 100); // 10% ops loss
-        netGain = investmentGain - opsLoss; // 2% net spread
-        locPaydown = netGain * 0.5; // 50% of net gain pays down LOC
-      }
+      // LOC Paydown: 50% of (investment gains + self income)
+      const locPaydown = ((investGain + v2SelfIncome) * 0.5);
 
       // Employees from simulation data
-      const employees = year.v1Employees || 0;
+      const employees = year.v2Employees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
+      const opsHubCost = year.opsHubCost || 0;
       const opsHubBillV1 = year.opsHubBillV1 || 0;
-      const usHire1Cost = year.usHire1Cost || 0;
-      const usHire2Cost = year.usHire2Cost || 0;
-      const usHire3Cost = year.usHire3Cost || 0;
+      const opsHubBillV2 = year.opsHubBillV2 || 0;
+      const opsHubBillNp = year.opsHubBillNp || 0;
 
       return {
         age,
         year: year.year,
-        ventureBalance,
-        locDebt,
+        v2Balance,
+        v2LocDebt,
         netEquity,
-        investmentGain: Math.round(investmentGain),
-        opsLoss: Math.round(opsLoss),
-        netGain: Math.round(netGain),
+        rhPullV2: Math.round(rhPullV2),
+        v2SelfIncome: Math.round(v2SelfIncome),
+        investGain: Math.round(investGain),
         locPaydown: Math.round(locPaydown),
+        rentalNetIncome: Math.round(rentalNetIncome),
         employees,
         opsHubEmployees,
+        opsHubCost,
         opsHubBillV1,
-        usHire1Cost,
-        usHire2Cost,
-        usHire3Cost,
+        opsHubBillV2,
+        opsHubBillNp,
       };
     });
   }, [data, assumptions]);
 
   const selectedYear = yearsData.find(y => y.age === targetAge) || yearsData[0];
 
-  const v2Contractors = useMemo(() => getContractorsForEntity(ENTITIES.V2), []);
-
-  // Summary cards
+  // Summary cards — current age
   const currentYear = yearsData.find(y => y.age === assumptions.currentAge) || yearsData[0];
+
+  const v1Contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1), []);
+
+  // Rental property details
+  const rentalPurchaseAge = assumptions.rentalPurchaseAge;
+  const rentalPurchasePrice = assumptions.rentalPurchasePrice;
+  const rentalDownPayment = assumptions.rentalDownPayment;
+  const rentalMortgagePrincipal = rentalPurchasePrice - rentalDownPayment;
+  const rentalGrossRent = assumptions.rentalGrossRentYear1;
+  const occupancyRate = assumptions.rentalOccupancy / 100;
+  const rentalExpenseRate = assumptions.rentalExpenseRate / 100;
+  const rentalMortgageRate = assumptions.rentalMortgageRate / 100;
+  const rentalMortgageTerm = assumptions.rentalMortgageTerm;
+
+  const monthlyRate = rentalMortgageRate / 12;
+  const nMonths = rentalMortgageTerm * 12;
+  const monthlyPayment = rentalMortgagePrincipal * (monthlyRate * Math.pow(1 + monthlyRate, nMonths)) / (Math.pow(1 + monthlyRate, nMonths) - 1);
+  const rentalMortgagePayment = monthlyPayment * 12;
+
+  const effectiveRent = rentalGrossRent * occupancyRate;
+  const operatingExpenses = rentalGrossRent * rentalExpenseRate;
+  const rentalNetIncomeCalc = effectiveRent - operatingExpenses - rentalMortgagePayment;
 
   const summaryCards = [
     {
       label: 'Venture Balance',
-      value: formatCurrency(selectedYear?.ventureBalance || 0),
-      icon: '⚡',
+      value: formatCurrency(selectedYear?.v2Balance || 0),
+      icon: '🚀',
     },
     {
       label: 'LOC Debt',
-      value: formatCurrency(selectedYear?.locDebt || 0),
+      value: formatCurrency(selectedYear?.v2LocDebt || 0),
       icon: '💳',
     },
     {
@@ -118,24 +113,29 @@ export default function Venture1Dashboard() {
       icon: '💎',
     },
     {
-      label: 'Investment Return (12%)',
-      value: formatCurrency(selectedYear?.investmentGain || 0),
+      label: 'Rental Properties',
+      value: '2x $1M',
+      icon: '🏢',
+    },
+    {
+      label: 'Rental Net Income (Annual)',
+      value: formatCurrency(rentalNetIncomeCalc),
+      icon: '💰',
+    },
+    {
+      label: 'Self-Generated Income',
+      value: formatCurrency(selectedYear?.v2SelfIncome || 0),
       icon: '📈',
     },
     {
-      label: 'Ops Loss (10%)',
-      value: formatCurrency(selectedYear?.opsLoss || 0),
-      icon: '📉',
-    },
-    {
-      label: 'Net Annual Gain (2%)',
-      value: formatCurrency(selectedYear?.netGain || 0),
-      icon: '✓',
+      label: 'Employees',
+      value: selectedYear?.employees || 0,
+      icon: '👥',
     },
   ];
 
   // Chart data
-  const chartData = yearsData.filter(y => y.age >= assumptions.venturesLocAge && y.age <= 60);
+  const chartData = yearsData.filter(y => y.age >= assumptions.venture2StartAge && y.age <= 60);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
@@ -148,15 +148,45 @@ export default function Venture1Dashboard() {
 
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-5xl">⚡</span>
+          <span className="text-5xl">🚀</span>
           <div>
-            <h1 className="text-4xl font-bold">Venture 2</h1>
-            <p className="text-lg text-blue-400 font-semibold">New Entity (TBD)</p>
+            <h1 className="text-4xl font-bold">Venture 1</h1>
+            <p className="text-lg text-purple-400 font-semibold">AAYO Tech LLC DBA NimbusTech Consulting</p>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Agro, land, and property operations funded by 15% of after-tax distributions. Farm income flows to V2 ($50K/yr from age 35, 3% growth). V2 sub-venture income starts at 36 ($25K base, 12% growth). Construction interest split 50/50 V2/personal. Offshore/Nigeria maintenance paid by V2. V2 pays 40% of ops hub costs. Houses Landscape Consulting, Garden App, Agro Equipment Leasing, and Property Management. Invested at 12% returns with $150K LOC revolving facility.
+          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Webull funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Webull account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 50% of ops hub costs. Houses Nigeria Ops Hub subsidiary, content/media, and internal tools. <span className="text-amber-300">City rental properties moved out of V1 → now owned by V2 Agro's rental LLC (S-Corps are a poor vehicle for rentals).</span>
         </p>
+      </div>
+
+      {/* TEMPORARY: $150K pre-tax revenue boost toggle (halfway 31 → halfway 32) */}
+      <div className="mb-6 bg-gradient-to-r from-amber-900/30 to-orange-900/20 border border-amber-700/40 rounded-lg p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">⚡</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-amber-300">Temp Toggle: +$150K NT revenue bump</p>
+              <span className="text-[10px] uppercase tracking-wider text-amber-400/70 bg-amber-500/10 px-2 py-0.5 rounded">What-if</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              One-time $150K pre-tax NimbusTech revenue, split 50/50 across age 31 (H2) and age 32 (H1).
+              Flows through normal S-Corp taxes → residual fully allocated to investment apportionments (V1 Webull). No personal income update.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={toggleNtBoost}
+          className={`relative inline-flex items-center h-7 rounded-full w-14 transition-colors flex-shrink-0 ml-4 ${
+            assumptions.ntBoostEnabled ? 'bg-emerald-500' : 'bg-gray-700'
+          }`}
+          aria-label="Toggle $150K revenue boost"
+        >
+          <span
+            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform ${
+              assumptions.ntBoostEnabled ? 'translate-x-8' : 'translate-x-1'
+            }`}
+          />
+        </button>
       </div>
 
       {/* Age Slider */}
@@ -165,7 +195,7 @@ export default function Venture1Dashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {summaryCards.map((card, idx) => (
           <div
             key={idx}
@@ -182,6 +212,41 @@ export default function Venture1Dashboard() {
         ))}
       </div>
 
+      {/* Rental/Airbnb Detail Section — HISTORICAL REFERENCE ONLY, now owned by V2 Agro */}
+      <div className="bg-gray-900 border border-amber-700/50 rounded-lg p-6 mb-8">
+        <div className="mb-4 p-3 bg-amber-900/30 border border-amber-700/40 rounded">
+          <p className="text-amber-300 text-sm font-semibold">⚠️ Moved to V2 Agro</p>
+          <p className="text-gray-400 text-xs mt-1">
+            City rentals are no longer owned by V1 NimbusTech. They've been re-homed under V2 Agro's dedicated rental LLC.
+            Rental P&amp;L now flows into V2 in the simulation. Details below are kept as reference for the asset class —
+            see the V2 Agro dashboard and <Link to="/venture2/city-rentals" className="text-emerald-400 underline">City Rentals sub-page</Link> for live numbers.
+          </p>
+        </div>
+        <h2 className="text-xl font-bold mb-4">🏠 Rental/Airbnb Properties (reference)</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">Property Overview</p>
+            <div className="space-y-2 text-sm">
+              <p><span className="text-gray-300">Total Value:</span> <span className="text-emerald-400 font-semibold">{formatCurrency(rentalPurchasePrice)}</span></p>
+              <p><span className="text-gray-300">Down Payment (25%):</span> <span className="text-emerald-400 font-semibold">{formatCurrency(rentalDownPayment)}</span></p>
+              <p><span className="text-gray-300">Mortgage Principal:</span> <span className="text-red-400 font-semibold">{formatCurrency(rentalMortgagePrincipal)}</span></p>
+              <p><span className="text-gray-300">Mortgage Rate:</span> <span className="font-semibold">{rentalMortgageRate * 100}% / {rentalMortgageTerm} yrs</span></p>
+              <p><span className="text-gray-300">Occupancy Rate:</span> <span className="text-blue-400 font-semibold">{(occupancyRate * 100).toFixed(0)}%</span></p>
+            </div>
+          </div>
+          <div className="bg-gray-800 rounded p-4">
+            <p className="text-gray-400 text-sm mb-2">Annual Economics</p>
+            <div className="space-y-2 text-sm">
+              <p><span className="text-gray-300">Gross Rent:</span> <span className="text-emerald-400 font-semibold">{formatCurrency(rentalGrossRent)}</span></p>
+              <p><span className="text-gray-300">Effective Rent (90%):</span> <span className="text-emerald-400 font-semibold">{formatCurrency(effectiveRent)}</span></p>
+              <p><span className="text-gray-300">Operating Expenses (30%):</span> <span className="text-orange-400 font-semibold">({formatCurrency(operatingExpenses)})</span></p>
+              <p><span className="text-gray-300">Mortgage P&I:</span> <span className="text-red-400 font-semibold">({formatCurrency(rentalMortgagePayment)})</span></p>
+              <p className="pt-2 border-t border-gray-700"><span className="text-gray-300">Net Rental Income:</span> <span className="text-lime-400 font-semibold">{formatCurrency(rentalNetIncomeCalc)}</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Year-by-Year Table */}
       <CollapsibleYearByYear title="Year-by-Year Projection">
         <table className="w-full text-sm">
@@ -189,25 +254,27 @@ export default function Venture1Dashboard() {
             <tr className="border-b border-gray-700">
               <th className="text-left px-4 py-3 text-gray-300">Age</th>
               <th className="text-right px-4 py-3 text-gray-300">Venture Balance</th>
-              <th className="text-right px-4 py-3 text-gray-300">LOC Debt</th>
+              <th className="text-right px-4 py-3 text-gray-300">LOC</th>
               <th className="text-right px-4 py-3 text-gray-300">Net Equity</th>
+              <th className="text-right px-4 py-3 text-gray-300">Distro Alloc In</th>
+              <th className="text-right px-4 py-3 text-gray-300">Self Income</th>
               <th className="text-right px-4 py-3 text-gray-300">Invest Gains (12%)</th>
-              <th className="text-right px-4 py-3 text-gray-300">Ops Loss (10%)</th>
-              <th className="text-right px-4 py-3 text-gray-300">Net Gain</th>
-              <th className="text-right px-4 py-3 text-gray-300">LOC Paydown (50%)</th>
+              <th className="text-right px-4 py-3 text-gray-300">Rental Net Income</th>
+              <th className="text-right px-4 py-3 text-gray-300">LOC Paydown</th>
               <th className="text-right px-4 py-3 text-gray-300">Staff</th>
             </tr>
           </thead>
           <tbody>
-            {yearsData.filter(y => y.age >= assumptions.venturesLocAge).map((row, idx) => (
+            {yearsData.filter(y => y.age >= assumptions.venture2StartAge).map((row, idx) => (
               <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
                 <td className={`px-4 py-3 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
-                <td className="text-right px-4 py-3 text-blue-400">{formatCurrency(row.ventureBalance)}</td>
-                <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.locDebt)}</td>
+                <td className="text-right px-4 py-3 text-blue-400">{formatCurrency(row.v2Balance)}</td>
+                <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.v2LocDebt)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.netEquity)}</td>
-                <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.investmentGain)}</td>
-                <td className="text-right px-4 py-3 text-orange-400">({formatCurrency(row.opsLoss)})</td>
-                <td className="text-right px-4 py-3 text-lime-400">{formatCurrency(row.netGain)}</td>
+                <td className="text-right px-4 py-3 text-purple-400">{formatCurrency(row.rhPullV2)}</td>
+                <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.v2SelfIncome)}</td>
+                <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.investGain)}</td>
+                <td className="text-right px-4 py-3 text-cyan-400">{formatCurrency(row.rentalNetIncome)}</td>
                 <td className="text-right px-4 py-3 text-yellow-400">{formatCurrency(row.locPaydown)}</td>
                 <td className="text-right px-4 py-3 text-gray-300">{row.employees}</td>
               </tr>
@@ -216,11 +283,11 @@ export default function Venture1Dashboard() {
         </table>
       </CollapsibleYearByYear>
 
-      {/* Chart: Venture Balance vs LOC Debt */}
+      {/* Chart: V2 Balance + Rental Net Income */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Venture Balance vs LOC Debt</h2>
+        <h2 className="text-xl font-bold mb-4">Venture Balance & Rental Income Growth</h2>
         <ResponsiveContainer width="100%" height={400}>
-          <AreaChart data={chartData}>
+          <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
             <XAxis dataKey="age" stroke="#9CA3AF" />
             <YAxis stroke="#9CA3AF" />
@@ -232,118 +299,236 @@ export default function Venture1Dashboard() {
             <Legend />
             <Area
               type="monotone"
-              dataKey="ventureBalance"
+              dataKey="v2Balance"
               fill="#3B82F6"
               stroke="#3B82F6"
               fillOpacity={0.3}
               name="Venture Balance"
+              yAxisId="left"
             />
-            <Area
+            <Line
               type="monotone"
-              dataKey="locDebt"
-              fill="#EF4444"
-              stroke="#EF4444"
-              fillOpacity={0.3}
-              name="LOC Debt"
+              dataKey="rentalNetIncome"
+              stroke="#06B6D4"
+              strokeWidth={2}
+              name="Rental Net Income"
+              yAxisId="right"
+              dot={false}
             />
-          </AreaChart>
+            <YAxis yAxisId="left" stroke="#9CA3AF" />
+            <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Staffing Section */}
+      {/* Employees Section */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          3 phased US hires for farm/homestead operations. Back-office handled by Nigeria Ops Hub. V2 pays 20% of hub costs via inter-company billing (tax-free).
+          No dedicated US staff — NimbusTech is a lean S-Corp. All admin, accounting, and HR handled by the Nigeria Ops Hub. US hires are on the V2 Agro/homestead side.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-gray-800 rounded p-4">
             <p className="text-gray-400 text-sm mb-2">🇳🇬 Ops Hub Staff</p>
             <p className="text-3xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">Hub Bill (20%)</p>
+            <p className="text-gray-400 text-sm mb-2">V1 Hub Bill (50%)</p>
             <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
-            <p className="text-gray-500 text-xs mt-1">20% of hub cost (tax-free)</p>
-          </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">🌾 Groundskeeper</p>
-            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire1Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Part-time from age 35, $15K + 5%/yr</p>
-          </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">🏡 House Manager</p>
-            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire2Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Part-time from age 38, $15K + 5%/yr</p>
-          </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">📋 Ops Coordinator</p>
-            <p className="text-3xl font-bold text-blue-400">{formatCurrency(selectedYear?.usHire3Cost || 0)}</p>
-            <p className="text-gray-500 text-xs mt-1">Full-time from age 42, $30K + 5%/yr</p>
-          </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">👥 Total US Staff (FTE)</p>
-            <p className="text-3xl font-bold text-yellow-400">{selectedYear?.employees || 0}</p>
-            <p className="text-gray-500 text-xs mt-1">0.5 = part-time, 1.0 = full-time</p>
+            <p className="text-gray-500 text-xs mt-1">50% of hub cost (tax-free)</p>
           </div>
         </div>
       </div>
 
       {/* Business Model Section */}
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">🏢 Business Model</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-lg font-semibold mb-2">Equipment Leasing</p>
-            <p className="text-gray-400 text-sm">Rental & maintenance of tools and equipment</p>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4">📋 Business Model & Funding</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="font-semibold text-emerald-400 mb-3">Funding Mechanism</h3>
+            <ul className="text-gray-300 space-y-2 text-sm">
+              <li>✓ <span className="text-gray-400">15% of after-tax distributions allocated</span></li>
+              <li>✓ <span className="text-gray-400">Matching self-generated income (1:1 ratio)</span></li>
+              <li>✓ <span className="text-gray-400">Revolving LOC at 9%, 7-year term</span></li>
+              <li>✓ <span className="text-gray-400">Distribution allocation covers all debt service (P&I)</span></li>
+              <li>✓ <span className="text-gray-400">50% of net gains → LOC paydown</span></li>
+            </ul>
           </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-lg font-semibold mb-2">Rental Services</p>
-            <p className="text-gray-400 text-sm">Property management and short-term rentals</p>
-          </div>
-          <div className="bg-gray-800 rounded p-4">
-            <p className="text-lg font-semibold mb-2">Airbnb Management</p>
-            <p className="text-gray-400 text-sm">Co-management of vacation rental properties</p>
+          <div>
+            <h3 className="font-semibold text-cyan-400 mb-3">Rental Strategy</h3>
+            <ul className="text-gray-300 space-y-2 text-sm">
+              <li>✓ <span className="text-gray-400">Purchase 2x $1M properties at age 40</span></li>
+              <li>✓ <span className="text-gray-400">25% down payment ($500K) from venture balance</span></li>
+              <li>✓ <span className="text-gray-400">90% occupancy (Airbnb + long-term mix)</span></li>
+              <li>✓ <span className="text-gray-400">30% operating expense ratio</span></li>
+              <li>✓ <span className="text-gray-400">7% mortgage rate, 30-year amortization</span></li>
+            </ul>
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-4 italic">
-          Nigeria Ops Hub handles HR, accounting, taxes, logistics, and DevOps — V2 pays 20% of hub costs via inter-company billing (tax-free).
+          Shared staff with Venture 2 and Homestead — leverages economies of scale. Goal: build operating business with rental real estate as collateral and cash flow stabilizer.
         </p>
+      </div>
+
+      {/* Nigeria Ops Hub — V2 Subsidiary */}
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">🇳🇬</span>
+          <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V1 Subsidiary)</span></h2>
+        </div>
+        <p className="text-gray-300 text-sm mb-4">
+          Centralized back-office managing all entities from Nigeria at $5K/yr starting + 7% annual raises per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
+        </p>
+
+        {/* Ops Hub Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Current Staff</p>
+            <p className="text-2xl font-bold text-green-400">{selectedYear?.opsHubEmployees || 0}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Total Hub Cost</p>
+            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(selectedYear?.opsHubCost || 0)}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Cost per Employee</p>
+            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(assumptions.opsHubEmployeeCostBase)}</p>
+          </div>
+          <div className="bg-gray-800 rounded-lg p-4">
+            <p className="text-gray-400 text-xs mb-1">Starts</p>
+            <p className="text-2xl font-bold">Age {assumptions.opsHubStartAge}</p>
+          </div>
+        </div>
+
+        {/* Inter-Company Billing Breakdown */}
+        <div className="bg-gray-800/50 border border-blue-900/30 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-400 text-sm mb-3">Inter-Company Billing (Tax-Free)</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">V1 ({assumptions.opsHubBillV1Pct}%)</p>
+              <p className="text-lg font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">V2 ({assumptions.opsHubBillV2Pct}%)</p>
+              <p className="text-lg font-bold text-pink-400">{formatCurrency(selectedYear?.opsHubBillV2 || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+            <div className="text-center">
+              <p className="text-gray-400 text-xs mb-1">Nonprofit ({assumptions.opsHubBillNpPct}%)</p>
+              <p className="text-lg font-bold text-purple-400">{formatCurrency(selectedYear?.opsHubBillNp || 0)}<span className="text-xs text-gray-500">/yr</span></p>
+            </div>
+          </div>
+          <p className="text-gray-500 text-[10px] mt-2 text-center">Transfers between related entities — no tax implications</p>
+        </div>
+
+        {/* Departments */}
+        <h3 className="font-semibold text-gray-300 mb-3">Departments Covered</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">👥</span>
+            <p className="text-xs text-gray-300 font-medium">HR</p>
+            <p className="text-[10px] text-gray-500">All orgs hiring, onboarding, compliance</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">📊</span>
+            <p className="text-xs text-gray-300 font-medium">Accounting</p>
+            <p className="text-[10px] text-gray-500">Books, payroll, reconciliation across entities</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">🏛️</span>
+            <p className="text-xs text-gray-300 font-medium">Taxes</p>
+            <p className="text-[10px] text-gray-500">AI-assisted prep, US CPA officializes</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">🚛</span>
+            <p className="text-xs text-gray-300 font-medium">Logistics</p>
+            <p className="text-[10px] text-gray-500">Supply chain, procurement, shipping</p>
+          </div>
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-center">
+            <span className="text-xl block mb-1">⚙️</span>
+            <p className="text-xs text-gray-300 font-medium">DevOps</p>
+            <p className="text-[10px] text-gray-500">IT infra, automation, AI tooling</p>
+          </div>
+        </div>
+
+        {/* Ops Hub Growth Table */}
+        {chartData.length > 0 && (
+          <div className="overflow-x-auto">
+            <h3 className="font-semibold text-gray-300 mb-3">Hub Growth Projection</h3>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left px-3 py-2 text-gray-400">Age</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Hub Staff</th>
+                  <th className="text-right px-3 py-2 text-gray-400">Total Cost</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ V1</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ V2</th>
+                  <th className="text-right px-3 py-2 text-gray-400">→ NP</th>
+                  <th className="text-right px-3 py-2 text-gray-400">US Staff</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.filter(r => r.opsHubEmployees > 0).map((row, idx) => (
+                  <tr key={idx} onClick={() => setTargetAge(row.age)} className={`border-b border-gray-800/50 cursor-pointer transition-colors ${row.age === targetAge ? 'bg-emerald-900/30 ring-1 ring-emerald-600/50' : 'hover:bg-gray-800'}`}>
+                    <td className={`text-left px-3 py-2 font-semibold ${row.age === targetAge ? 'text-emerald-400' : ''}`}>{row.age}</td>
+                    <td className="text-right px-3 py-2 text-green-400">{row.opsHubEmployees}</td>
+                    <td className="text-right px-3 py-2 text-yellow-400">{formatCurrency(row.opsHubCost)}</td>
+                    <td className="text-right px-3 py-2 text-orange-400">{formatCurrency(row.opsHubBillV1)}</td>
+                    <td className="text-right px-3 py-2 text-pink-400">{formatCurrency(row.opsHubBillV2)}</td>
+                    <td className="text-right px-3 py-2 text-purple-400">{formatCurrency(row.opsHubBillNp)}</td>
+                    <td className="text-right px-3 py-2 text-white">{row.employees}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <p className="text-gray-500 text-xs mt-4 italic">
+          Ops hub bills each entity for services via inter-company invoicing (tax-free between related entities). V1 retains {assumptions.opsHubBillV1Pct}%, V2 pays {assumptions.opsHubBillV2Pct}%, nonprofit pays {assumptions.opsHubBillNpPct}%. Reduces overhead from 3% to 1% and nonprofit program overhead by 50%. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
+        </p>
+
+        {/* Future Expansion Note */}
+        <div className="mt-4 bg-emerald-950/30 border border-emerald-800/40 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-emerald-400 mb-2">Future: Family Cooperative Fund</h4>
+          <p className="text-gray-400 text-xs leading-relaxed">
+            The ops hub is designed to expand into a family cooperative structure. Family members can contribute capital to employ additional Nigerians for work that directly benefits them — then participate in the same fund and reap the same benefits (investment returns, tax advantages, operational leverage). Each contributor gets access to the full infrastructure: back-office, AI tooling, and the venture portfolio. Effectively a generational wealth on-ramp run through the V1 subsidiary.
+          </p>
+        </div>
       </div>
 
       {/* Sub-Ventures */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
         <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
-        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 2.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link to="/venture2/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
-            <span className="text-2xl block mb-2">🌿</span>
-            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Landscape Consulting</h3>
-            <p className="text-gray-500 text-xs mt-1">Consulting services for landscaping projects</p>
+        <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 1.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Link to="/venture1/webull-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">📊</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Webull Portfolio</h3>
+            <p className="text-gray-500 text-xs mt-1">$100K entity investment account (S-Corp)</p>
           </Link>
-          <Link to="/venture2/garden-app" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
-            <span className="text-2xl block mb-2">📱</span>
-            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Garden App</h3>
-            <p className="text-gray-500 text-xs mt-1">Digital platform for garden planning & management</p>
+          <Link to="/venture1/ops-hub" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🇳🇬</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Nigeria Ops Hub</h3>
+            <p className="text-gray-500 text-xs mt-1">Centralized back-office for all entities</p>
           </Link>
-          <Link to="/venture2/agro-equipment" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
-            <span className="text-2xl block mb-2">🚜</span>
-            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Agro Equipment</h3>
-            <p className="text-gray-500 text-xs mt-1">Equipment rental & leasing for agriculture</p>
+          <Link to="/venture1/content-media" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🎬</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Content & Media</h3>
+            <p className="text-gray-500 text-xs mt-1">Centralized content creation across ventures</p>
           </Link>
-          <Link to="/venture2/property-management" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
-            <span className="text-2xl block mb-2">🏘️</span>
-            <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">Property Management</h3>
-            <p className="text-gray-500 text-xs mt-1">Full-service property & vacation rental mgmt</p>
+          <Link to="/venture1/internal-tools" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+            <span className="text-2xl block mb-2">🔧</span>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Internal Tools</h3>
+            <p className="text-gray-500 text-xs mt-1">Internal-only business management tools</p>
           </Link>
         </div>
       </div>
 
       <ContractorWidget
-        contractors={v2Contractors}
-        title="V2 Agro Contractors & Services"
-        entityLabel="Farm / Land Entity"
+        contractors={v1Contractors}
+        title="V1 NimbusTech Contractors & Services"
+        entityLabel="S-Corp Consulting"
       />
     </div>
   );

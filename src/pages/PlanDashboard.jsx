@@ -95,9 +95,9 @@ export default function PlanDashboard() {
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
       { name: 'Land', value: ageData.totalLandEquity, desc: 'All property equity: US primary + offshore (Belize/CR) + Nigeria + city rentals' },
-      { name: 'Venture 2', value: ageData.venture2, desc: 'RH-funded operating business — 10% of RH gains + matching self-income, revolving LOC' },
+      { name: 'V1 NimbusTech', value: ageData.venture2, desc: 'S-Corp consulting/tech/AI — primary operating business, Webull investment account, ops hub parent' },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
-      { name: 'Ventures', value: ageData.ventures, desc: 'Venture fund — redirected 401k contributions ($1K/mo from age 32)' },
+      { name: 'V2 Agro', value: ageData.ventures, desc: 'Agro/land/real-estate entity — farm income, offshore + Nigeria land, city rental LLC, property mgmt' },
     ].filter(d => d.value > 0);
   };
 
@@ -193,8 +193,8 @@ export default function PlanDashboard() {
               <Area type="monotone" dataKey="homeBuild" stackId="1" stroke="#10B981" fill="#10B981" name="Home Build" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
               <Area type="monotone" dataKey="qozFund" stackId="1" stroke="#06B6D4" fill="#06B6D4" name="QOZ Fund" />
-              <Area type="monotone" dataKey="ventures" stackId="1" stroke="#84CC16" fill="#84CC16" name="Ventures" />
-              <Area type="monotone" dataKey="venture2" stackId="1" stroke="#EC4899" fill="#EC4899" name="Venture 2" />
+              <Area type="monotone" dataKey="venture2" stackId="1" stroke="#A855F7" fill="#A855F7" name="V1 NimbusTech" />
+              <Area type="monotone" dataKey="ventures" stackId="1" stroke="#84CC16" fill="#84CC16" name="V2 Agro" />
             </AreaChart>
           </ResponsiveContainer>
         );
@@ -381,8 +381,11 @@ export default function PlanDashboard() {
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
       { label: 'Home Build', value: d.homeBuild, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
+      { label: 'NP Program Land', value: d.npLandValue, color: 'text-emerald-300' },
       { label: 'QOZ Fund', value: d.qozFund, color: 'text-cyan-400' },
-      { label: 'Ventures', value: d.ventures, color: 'text-lime-400' },
+      { label: 'V1 NimbusTech', value: d.venture2, color: 'text-purple-400' },
+      { label: 'V2 Agro', value: d.ventures, color: 'text-lime-400' },
+      { label: 'Nonprofit Reserves', value: d.nonprofit, color: 'text-emerald-400' },
     ].filter(item => item.value !== 0);
   };
 
@@ -620,8 +623,8 @@ export default function PlanDashboard() {
               <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" link="/homestead" />
-              <TableHeader id="ventures" label="Ventures" color="text-lime-400" link="/venture1" />
-              <TableHeader id="venture2" label="Venture 2" color="text-pink-400" link="/venture2" />
+              <TableHeader id="venture1" label="V1 NimbusTech" color="text-purple-400" link="/venture1" />
+              <TableHeader id="venture2" label="V2 Agro" color="text-lime-400" link="/venture2" />
               <TableHeader id="hardAssets" label="Hard Assets" color="text-yellow-400" link="/hard-assets" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" link="/nonprofit" />
               <th className="p-2 text-right text-indigo-400">Emp</th>
@@ -644,8 +647,8 @@ export default function PlanDashboard() {
                 <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.totalLandEquity)}</td>
+                <td className="p-2 text-right text-purple-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
-                <td className="p-2 text-right text-pink-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-yellow-400">{formatCurrency(row.hardAssets)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className="p-2 text-right text-indigo-400 relative group/emp">

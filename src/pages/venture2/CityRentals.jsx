@@ -35,7 +35,7 @@ export default function CityRentals() {
         <div className="bg-gray-900 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-3">Overview</h2>
           <p className="text-gray-300 leading-relaxed">
-            A portfolio of 2-3 premium rental and Airbnb properties in major cities.
+            A focused portfolio of 2 premium rental/Airbnb properties in major cities (scaled down from an earlier 2-3 unit plan to keep V2 Agro's mid-40s debt service manageable).
             Owned by V2 Agro (moved out of V1 NimbusTech — S-Corps are a poor
             vehicle for rental real estate: no tax-free property distributions,
             passive loss trapping, and liability mixing with the operating S-Corp).
@@ -76,19 +76,19 @@ export default function CityRentals() {
           <div className="space-y-3">
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Number of Properties</span>
-              <span className="font-semibold">2-3 units</span>
+              <span className="font-semibold">2 units</span>
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Total Portfolio Value</span>
-              <span className="font-semibold text-amber-400 text-lg">$2,500,000</span>
+              <span className="font-semibold text-amber-400 text-lg">$1,600,000</span>
             </div>
             <div className="flex justify-between items-center pb-3 border-b border-gray-700">
               <span className="text-gray-300">Down Payment (25%)</span>
-              <span className="font-semibold">$625,000</span>
+              <span className="font-semibold">$400,000</span>
             </div>
             <div className="flex justify-between items-center pt-3">
               <span className="text-gray-200 font-semibold">Financing (75%)</span>
-              <span className="font-semibold text-amber-300">$1,875,000</span>
+              <span className="font-semibold text-amber-300">$1,200,000</span>
             </div>
           </div>
         </div>

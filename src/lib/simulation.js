@@ -172,16 +172,17 @@ export const DEFAULT_ASSUMPTIONS = {
   nigeriaAppreciation: 5,         // annual appreciation
 
   // ═══════════════════════════════════════════════════════════════
-  // CITY RENTAL PROPERTIES (age 40 — 2-3 units totaling $2.5M)
+  // CITY RENTAL PROPERTIES (age 40 — 2 units totaling $1.6M, scoped down from 2-3)
   // OWNED BY V2 AGRO via a dedicated rental LLC (NOT by V1 NimbusTech S-Corp).
+  // Scaled back so V2 doesn't get squeezed during the mid-40s debt-service window.
   // ═══════════════════════════════════════════════════════════════
   rentalPurchaseAge: 40,
-  rentalPurchasePrice: 2500000,    // 2-3 properties totaling $2.5M
-  rentalDownPayment: 625000,       // $625K down (25%) — sourced from V2 reserves + V1 loan shortfall
+  rentalPurchasePrice: 1600000,    // 2 properties at ~$800K each
+  rentalDownPayment: 400000,       // $400K down (25%) — sourced from V2 reserves + V1 loan shortfall
   rentalMortgageRate: 7.0,
   rentalMortgageTerm: 30,
   rentalPropertyAppreciation: 4,   // annual property appreciation
-  rentalGrossRentYear1: 150000,    // ~$5K/mo avg per unit × 2-3 = $12.5K/mo ($150K/yr gross)
+  rentalGrossRentYear1: 96000,     // ~$4K/mo per unit × 2 = $8K/mo ($96K/yr gross)
   rentalOccupancy: 90,             // 90% occupancy (Airbnb + long-term mix)
   rentalExpenseRate: 30,           // 30% of gross for mgmt, maintenance, insurance, taxes
   rentalRentGrowth: 3,             // annual rent growth

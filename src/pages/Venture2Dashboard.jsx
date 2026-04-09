@@ -320,7 +320,7 @@ export default function Venture1Dashboard() {
           <Link to="/venture2/city-rentals" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🏢</span>
             <h3 className="font-semibold text-white group-hover:text-emerald-400 transition-colors">City Rentals</h3>
-            <p className="text-gray-500 text-xs mt-1">2-3 rental/Airbnb properties at age 40 (moved from V1)</p>
+            <p className="text-gray-500 text-xs mt-1">2 rental/Airbnb properties ($1.6M) at age 40 — owned by V2 rental LLC</p>
           </Link>
           <Link to="/venture2/landscape-consulting" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-emerald-600 transition-colors group">
             <span className="text-2xl block mb-2">🌿</span>

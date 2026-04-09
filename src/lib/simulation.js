@@ -317,6 +317,13 @@ export const DEFAULT_ASSUMPTIONS = {
   // Phase 1 (31-35): NT at full capacity + additional work ($207K + $80K)
   phase1NTRevenue: 287000,
 
+  // TEMPORARY TOGGLE: one-time $150K pre-tax NimbusTech revenue boost,
+  // spanning halfway through age 31 → halfway through age 32 (1 calendar year).
+  // Flows through the normal S-Corp pipeline so the residual is fully
+  // apportioned to V1 Webull / investment allocations. No personal income bump.
+  ntBoostEnabled: false,
+  ntBoostAmount: 150000,
+
   // Phase 2 (36-37): Transition — NT winds down + additional work ($150K + $80K)
   phase2NTRevenue: 230000,
 
@@ -422,6 +429,17 @@ export function runSimulation(assumptions) {
     const firstYearFraction = 8.7 / 12; // Apr 8 to Dec 31 ≈ 8.7 months
     if (age === assumptions.currentAge) {
       ntRevenue = ntRevenue * firstYearFraction;
+    }
+
+    // TEMPORARY BOOST: one-time $150K pre-tax revenue, split across the
+    // halfway-31 → halfway-32 window. Applied AFTER the first-year proration
+    // so the boost itself isn't cut to 8.7/12. Flows through normal S-Corp
+    // taxes → distributions → V1 Webull residual (investment apportionments).
+    let ntBoost = 0;
+    if (assumptions.ntBoostEnabled) {
+      if (age === 31) ntBoost = assumptions.ntBoostAmount * 0.5;
+      if (age === 32) ntBoost = assumptions.ntBoostAmount * 0.5;
+      ntRevenue += ntBoost;
     }
 
     // ═══════════════════════════════════════════════════════════

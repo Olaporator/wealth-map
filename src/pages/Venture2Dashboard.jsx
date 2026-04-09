@@ -94,12 +94,12 @@ export default function Venture2Dashboard() {
 
   const summaryCards = [
     {
-      label: 'V2 Balance',
+      label: 'Venture Balance',
       value: formatCurrency(selectedYear?.v2Balance || 0),
       icon: '🚀',
     },
     {
-      label: 'V2 LOC Debt',
+      label: 'LOC Debt',
       value: formatCurrency(selectedYear?.v2LocDebt || 0),
       icon: '💳',
     },
@@ -211,8 +211,8 @@ export default function Venture2Dashboard() {
           <thead>
             <tr className="border-b border-gray-700">
               <th className="text-left px-4 py-3 text-gray-300">Age</th>
-              <th className="text-right px-4 py-3 text-gray-300">V2 Balance</th>
-              <th className="text-right px-4 py-3 text-gray-300">V2 LOC</th>
+              <th className="text-right px-4 py-3 text-gray-300">Venture Balance</th>
+              <th className="text-right px-4 py-3 text-gray-300">LOC</th>
               <th className="text-right px-4 py-3 text-gray-300">Net Equity</th>
               <th className="text-right px-4 py-3 text-gray-300">Distro Alloc In</th>
               <th className="text-right px-4 py-3 text-gray-300">Self Income</th>
@@ -243,7 +243,7 @@ export default function Venture2Dashboard() {
 
       {/* Chart: V2 Balance + Rental Net Income */}
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">V2 Balance & Rental Income Growth</h2>
+        <h2 className="text-xl font-bold mb-4">Venture Balance & Rental Income Growth</h2>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -261,7 +261,7 @@ export default function Venture2Dashboard() {
               fill="#3B82F6"
               stroke="#3B82F6"
               fillOpacity={0.3}
-              name="V2 Balance"
+              name="Venture Balance"
               yAxisId="left"
             />
             <Line
@@ -304,7 +304,7 @@ export default function Venture2Dashboard() {
           <div>
             <h3 className="font-semibold text-emerald-400 mb-3">Funding Mechanism</h3>
             <ul className="text-gray-300 space-y-2 text-sm">
-              <li>✓ <span className="text-gray-400">15% of after-tax distributions allocated → V2</span></li>
+              <li>✓ <span className="text-gray-400">15% of after-tax distributions allocated</span></li>
               <li>✓ <span className="text-gray-400">Matching self-generated income (1:1 ratio)</span></li>
               <li>✓ <span className="text-gray-400">Revolving LOC at 9%, 7-year term</span></li>
               <li>✓ <span className="text-gray-400">Distribution allocation covers all debt service (P&I)</span></li>
@@ -315,7 +315,7 @@ export default function Venture2Dashboard() {
             <h3 className="font-semibold text-cyan-400 mb-3">Rental Strategy</h3>
             <ul className="text-gray-300 space-y-2 text-sm">
               <li>✓ <span className="text-gray-400">Purchase 2x $1M properties at age 40</span></li>
-              <li>✓ <span className="text-gray-400">25% down payment ($500K) from V2 balance</span></li>
+              <li>✓ <span className="text-gray-400">25% down payment ($500K) from venture balance</span></li>
               <li>✓ <span className="text-gray-400">90% occupancy (Airbnb + long-term mix)</span></li>
               <li>✓ <span className="text-gray-400">30% operating expense ratio</span></li>
               <li>✓ <span className="text-gray-400">7% mortgage rate, 30-year amortization</span></li>
@@ -323,7 +323,7 @@ export default function Venture2Dashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-4 italic">
-          Shared staff with Venture 1 and Homestead — leverages economies of scale. Goal: build operating business with rental real estate as collateral and cash flow stabilizer.
+          Shared staff with Venture 2 and Homestead — leverages economies of scale. Goal: build operating business with rental real estate as collateral and cash flow stabilizer.
         </p>
       </div>
 
@@ -331,7 +331,7 @@ export default function Venture2Dashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mt-8">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">🇳🇬</span>
-          <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V2 Subsidiary)</span></h2>
+          <h2 className="text-xl font-bold">Nigeria Operations Hub <span className="text-sm font-normal text-gray-400">(V1 Subsidiary)</span></h2>
         </div>
         <p className="text-gray-300 text-sm mb-4">
           Centralized back-office managing all entities from Nigeria at $5K/yr starting + 10% annual raises per employee. AI-assisted operations with minimal US CPA fee (${formatCurrency(assumptions.opsHubCpaFee)}/yr) to officialize filings.
@@ -420,7 +420,7 @@ export default function Venture2Dashboard() {
                   <th className="text-right px-3 py-2 text-gray-400">→ V1</th>
                   <th className="text-right px-3 py-2 text-gray-400">→ V2</th>
                   <th className="text-right px-3 py-2 text-gray-400">→ NP</th>
-                  <th className="text-right px-3 py-2 text-gray-400">V2 US Staff</th>
+                  <th className="text-right px-3 py-2 text-gray-400">US Staff</th>
                 </tr>
               </thead>
               <tbody>
@@ -441,14 +441,14 @@ export default function Venture2Dashboard() {
         )}
 
         <p className="text-gray-500 text-xs mt-4 italic">
-          Ops hub bills each entity for services via inter-company invoicing (tax-free between related entities). V1 pays {assumptions.opsHubBillV1Pct}%, V2 retains {assumptions.opsHubBillV2Pct}%, nonprofit pays {assumptions.opsHubBillNpPct}%. Also reduces V1 overhead from 3% to 1% and nonprofit program overhead by 50%. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
+          Ops hub bills each entity for services via inter-company invoicing (tax-free between related entities). V1 retains {assumptions.opsHubBillV1Pct}%, V2 pays {assumptions.opsHubBillV2Pct}%, nonprofit pays {assumptions.opsHubBillNpPct}%. Reduces overhead from 3% to 1% and nonprofit program overhead by 50%. Staff and AI handle day-to-day; US CPA reviews and signs off on filings.
         </p>
 
         {/* Future Expansion Note */}
         <div className="mt-4 bg-emerald-950/30 border border-emerald-800/40 rounded-lg p-4">
           <h4 className="text-sm font-semibold text-emerald-400 mb-2">Future: Family Cooperative Fund</h4>
           <p className="text-gray-400 text-xs leading-relaxed">
-            The ops hub is designed to expand into a family cooperative structure. Family members can contribute capital to employ additional Nigerians for work that directly benefits them — then participate in the same fund and reap the same benefits (investment returns, tax advantages, operational leverage). Each contributor gets access to the full infrastructure: back-office, AI tooling, and the venture portfolio. Effectively a generational wealth on-ramp run through the V2 subsidiary.
+            The ops hub is designed to expand into a family cooperative structure. Family members can contribute capital to employ additional Nigerians for work that directly benefits them — then participate in the same fund and reap the same benefits (investment returns, tax advantages, operational leverage). Each contributor gets access to the full infrastructure: back-office, AI tooling, and the venture portfolio. Effectively a generational wealth on-ramp run through the V1 subsidiary.
           </p>
         </div>
       </div>

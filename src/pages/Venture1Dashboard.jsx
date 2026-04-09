@@ -244,7 +244,7 @@ export default function Venture1Dashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">👥 Staffing</h2>
         <p className="text-gray-300 mb-4">
-          Day-to-day operations handled by the Nigeria Ops Hub (V2 subsidiary) at $5K/yr starting + 10% annual raises per employee. US hires only at $1M+ balance.
+          Day-to-day operations handled by the Nigeria Ops Hub (V1 subsidiary) at $5K/yr starting + 10% annual raises per employee. US hires only at $1M+ balance.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 rounded p-4">
@@ -253,7 +253,7 @@ export default function Venture1Dashboard() {
             <p className="text-gray-500 text-xs mt-1">Shared across all entities</p>
           </div>
           <div className="bg-gray-800 rounded p-4">
-            <p className="text-gray-400 text-sm mb-2">V1 Hub Bill</p>
+            <p className="text-gray-400 text-sm mb-2">Hub Bill</p>
             <p className="text-3xl font-bold text-orange-400">{formatCurrency(selectedYear?.opsHubBillV1 || 0)}<span className="text-sm text-gray-500">/yr</span></p>
             <p className="text-gray-500 text-xs mt-1">30% of hub cost (tax-free)</p>
           </div>
@@ -283,7 +283,7 @@ export default function Venture1Dashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-4 italic">
-          Nigeria Ops Hub handles HR, accounting, taxes, logistics, and DevOps — V1 pays 30% of hub costs via inter-company billing (tax-free).
+          Nigeria Ops Hub handles HR, accounting, taxes, logistics, and DevOps — V2 pays 40% of hub costs via inter-company billing (tax-free).
         </p>
       </div>
 

@@ -144,6 +144,7 @@ export default function PlanDashboard() {
     { age: 32, label: '15+ Acres + Build', icon: '🌱', link: '/homestead' },
     { age: 33, label: 'Offshore Land', icon: '🌴', link: '/offshore' },
     { age: 35, label: 'Nigeria Land', icon: '🌍', link: '/nigeria' },
+    { age: 35, label: 'Nonprofit / QOZ', icon: '💚', link: '/nonprofit' },
     { age: 40, label: 'City Rentals', icon: '🏘️', link: '/venture2' },
     { age: 45, label: 'Coast', icon: '⛵' },
     { age: 60, label: 'Retire + Legacy', icon: '👑', link: '/venture3' },
@@ -556,7 +557,7 @@ export default function PlanDashboard() {
               <TableHeader id="ventures" label="Ventures" color="text-lime-400" link="/venture1" />
               <TableHeader id="venture2" label="Venture 2" color="text-pink-400" link="/venture2" />
               <TableHeader id="hardAssets" label="Hard Assets" color="text-yellow-400" link="/hard-assets" />
-              <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" />
+              <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" link="/nonprofit" />
               <th className="p-2 text-right text-red-400">Tax</th>
               <TableHeader id="netWorth" label="Net Worth" color="text-white font-bold" />
             </tr>

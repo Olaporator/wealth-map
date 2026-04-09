@@ -35,6 +35,7 @@ function NavBar() {
   const navItems = [
     { to: '/accounts', label: 'Accounts & Budget', icon: '🏦', desc: 'Real-time balances, transactions, budgets' },
     { to: '/plan', label: 'Wealth Plan', icon: '🗺️', desc: 'Long-term projections & milestones' },
+    { to: '/nonprofit', label: 'Nonprofit', icon: '💚', desc: '501(c)(3) foundation & QOZ fund' },
   ];
 
   return (

@@ -40,7 +40,7 @@ export default function CityRentals() {
             vehicle for rental real estate: no tax-free property distributions,
             passive loss trapping, and liability mixing with the operating S-Corp).
             Purchased at age 40 with 25% down payment sourced from V2 reserves
-            (with V1 Webull lending the shortfall at an arm's-length rate).
+            (with V1 Alpaca lending the shortfall at an arm's-length rate).
             $1.5M property with strong occupancy and stable cash flow.
           </p>
         </div>

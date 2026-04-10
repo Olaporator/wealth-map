@@ -113,8 +113,8 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitInitialDonations: 5000, // modest initial donations year 1
 
   // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
-  // Personal RH capped at $100K — once reached, new inflows redirect to V1 Webull
-  robinhoodCap: 100000,     // max personal RH balance before overflow → V1 Webull
+  // Personal RH capped at $100K — once reached, new inflows redirect to V1 Alpaca
+  robinhoodCap: 100000,     // max personal RH balance before overflow → V1 Alpaca
   rhPullStartAge: 33,       // start pulling from Robinhood growth
   rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal ($1K/mo expenses need minimal pull)
   rhPullQozPct: 20,         // 20% of Robinhood gains → QOZ fund (ongoing contributions)
@@ -190,12 +190,12 @@ export const DEFAULT_ASSUMPTIONS = {
   rentalRentGrowth: 3,             // annual rent growth
 
   // ═══════════════════════════════════════════════════════════════
-  // V1 WEBULL (S-Corp entity brokerage) — funded via LOC bridge strategy
+  // V1 ALPACA (S-Corp entity brokerage) — funded via LOC bridge strategy
   // $14K/mo retained + $25K May bonus = $39K cash. Draw $61K from LOC at 25% APR.
-  // Fund $100K Webull immediately. LOC repaid in 5 months from $14K/mo retention.
-  // Total LOC interest: ~$3,646. Webull earns ~$6,000 in same period. Net +$2,354.
+  // Fund $100K Alpaca immediately. LOC repaid in 5 months from $14K/mo retention.
+  // Total LOC interest: ~$3,646. Alpaca earns ~$6,000 in same period. Net +$2,354.
   // ═══════════════════════════════════════════════════════════════
-  v1WebullMinimum: 100000,         // $100K Webull entity account minimum
+  v1WebullMinimum: 100000,         // $100K Alpaca entity account minimum
   v1WebullReturn: 25,              // Same trading engine as personal RH — 25% blended return
                                    // (includes 35% margin leverage net of interest, already baked in)
   v1RetainedPerMonth: 14000,       // $14K/mo retained above S-Corp operating expenses
@@ -215,7 +215,7 @@ export const DEFAULT_ASSUMPTIONS = {
   venture2LocTerm: 7,             // revolving LOC term (years) — reborrow continuously
   venture2GrowthRate: 8,          // venture 2 own income grows 8%/yr after first year
   venture2InvestReturn: 12,       // venture 2 invested cash return (10-15% avg)
-  // V2 Seed: $100K Webull entity account at age 32
+  // V2 Seed: $100K Alpaca entity account at age 32
   // $30K diverted from V1 business income (capital contribution)
   // $10K gift from family (under $19K annual exclusion)
   // $10K interest-free loan from family (under $10K, no imputed interest)
@@ -225,7 +225,7 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLoan: 10000,              // family loan (interest-free, <$10K rule)
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
-  v2SeedTotal: 100000,            // total Webull deposit (meets $100K minimum)
+  v2SeedTotal: 100000,            // total Alpaca deposit (meets $100K minimum)
   // V2 Staffing: 3 phased US hires — halved pay (leaner US footprint, Nigeria ops hub absorbs more)
   // Hire 1: Groundskeeper — starts age 35, $7.5K/yr stipend (part-time, 0.5 FTE), 5%/yr raises
   usHire1StartAge: 35,
@@ -255,7 +255,7 @@ export const DEFAULT_ASSUMPTIONS = {
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
   // Inter-company billing: ops hub bills each entity for services (tax-free between related entities)
   // V1 NimbusTech carries bulk (highest revenue, most complex compliance)
-  opsHubBillV1Pct: 50,            // 50% of ops hub cost billed to V1 (S-Corp, consulting, Webull)
+  opsHubBillV1Pct: 50,            // 50% of ops hub cost billed to V1 (S-Corp, consulting, Alpaca)
   opsHubBillV2Pct: 20,            // 20% of ops hub cost stays with V2 (farm ops, simpler books)
   opsHubBillNpPct: 30,            // 30% of ops hub cost billed to nonprofit
   // FUTURE EXPANSION: Family members can contribute capital to the ops hub to
@@ -380,7 +380,7 @@ export function runSimulation(assumptions) {
   let qozFund = 0;
   let ventures = 0;
   let venturesLocDebt = 0;   // Outstanding ventures LOC principal (liability)
-  let venture2 = 0;          // V1 NimbusTech Webull — only earns returns AFTER $100K funded
+  let venture2 = 0;          // V1 NimbusTech Alpaca — only earns returns AFTER $100K funded
   let v1WebullAccum = 0;     // Cash sitting in S-Corp checking, earning 0%, waiting for $100K
   let v1WebullActive = false; // Flips true once accumulation hits $100K minimum
   let venture2Loc = 0;       // Venture 2 outstanding LOC balance
@@ -445,7 +445,7 @@ export function runSimulation(assumptions) {
     // ═══════════════════════════════════════════════════════════
     // STEP 2: SPLIT NT REVENUE → W2 + EMPLOYER COSTS + DEDUCTIONS + DISTRIBUTIONS
     // Revenue → W2 + payroll → S-Corp deductible expenses → taxable distributions
-    // Deductions reduce the taxable base; remainder invested in S-Corp Webull
+    // Deductions reduce the taxable base; remainder invested in S-Corp Alpaca
     // ═══════════════════════════════════════════════════════════
     const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40 (last year 39)
     const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
@@ -470,7 +470,7 @@ export function runSimulation(assumptions) {
 
     const grossDistributions = Math.max(0, ntRevenue - ntOverhead - scorpDeductions - solo401kEmployerContrib);
     const distributionTax = grossDistributions * (assumptions.distributionTaxRate / 100);
-    const netDistributions = grossDistributions - distributionTax; // after-tax → mostly to S-Corp Webull, minimal to personal RH
+    const netDistributions = grossDistributions - distributionTax; // after-tax → mostly to S-Corp Alpaca, minimal to personal RH
 
     // ═══════════════════════════════════════════════════════════
     // STEP 3: W2 → 401k + TAXES + TAKE-HOME (closed loop)
@@ -617,7 +617,7 @@ export function runSimulation(assumptions) {
 
     // ═══════════════════════════════════════════════════════════
     // AFTER-TAX DISTRIBUTION ALLOCATIONS
-    // Net distributions split: S-Corp Webull (primary), then smaller %s to other vehicles
+    // Net distributions split: S-Corp Alpaca (primary), then smaller %s to other vehicles
     // Personal Robinhood gets minimal new money — it compounds on its own
     // ═══════════════════════════════════════════════════════════
     let distroToPersonal = 0;    // → personal expenses / RH
@@ -625,7 +625,7 @@ export function runSimulation(assumptions) {
     let distroToV2 = 0;          // → V2 (agro/land entity) — was venture2RhPullPct
     let distroToNonprofit = 0;   // → nonprofit (tax-deductible donation)
     let distroToHardAssets = 0;  // → hard assets
-    let distroToV1Webull = 0;    // → S-Corp Webull (V1 NimbusTech) — the PRIMARY vehicle
+    let distroToV1Webull = 0;    // → S-Corp Alpaca (V1 NimbusTech) — the PRIMARY vehicle
     let rhPullFreeCash = 0;      // legacy: covers personal shortfalls post-40
 
     if (netDistributions > 0) {
@@ -644,25 +644,25 @@ export function runSimulation(assumptions) {
       if (age >= assumptions.hardAssetsStartAge) {
         distroToHardAssets = netDistributions * (assumptions.hardAssetsRhPullPct / 100);
       }
-      // Everything NOT allocated above → retained in S-Corp for V1 Webull
+      // Everything NOT allocated above → retained in S-Corp for V1 Alpaca
       const totalAllocated = distroToPersonal + distroToQoz + distroToV2 + distroToNonprofit + distroToHardAssets;
       const residual = Math.max(0, netDistributions - totalAllocated);
 
       if (v1WebullActive) {
-        // Webull funded — residual goes straight to V1 Webull (earns returns)
+        // Alpaca funded — residual goes straight to V1 Alpaca (earns returns)
         distroToV1Webull = residual;
       } else {
-        // LOC BRIDGE STRATEGY: Fund V1 Webull immediately using $39K cash + $61K LOC
+        // LOC BRIDGE STRATEGY: Fund V1 Alpaca immediately using $39K cash + $61K LOC
         // $14K/mo retained + $25K bonus = $39K. LOC bridges the remaining $61K.
-        // LOC repaid in 5 months from $14K/mo. Interest cost ~$3,646 (< Webull returns of $6K)
+        // LOC repaid in 5 months from $14K/mo. Interest cost ~$3,646 (< Alpaca returns of $6K)
         v1WebullActive = true;
         const cashOnHand = assumptions.v1RetainedPerMonth + assumptions.v1BonusMonth1; // $39K
         const locBridge = assumptions.v1LocBridge; // $61K
-        distroToV1Webull = cashOnHand + locBridge; // $100K → Webull funded day 1
-        // LOC interest cost absorbed in first year (net of Webull returns = +$2,354)
+        distroToV1Webull = cashOnHand + locBridge; // $100K → Alpaca funded day 1
+        // LOC interest cost absorbed in first year (net of Alpaca returns = +$2,354)
         const locInterestCost = Math.round(locBridge * (assumptions.v1LocBridgeRate / 100) * (assumptions.v1LocRepayMonths / 12));
         distroToV1Webull -= locInterestCost; // net of LOC interest
-        // Remaining residual from distributions also flows to V1 Webull
+        // Remaining residual from distributions also flows to V1 Alpaca
         distroToV1Webull += residual;
       }
     }
@@ -780,8 +780,8 @@ export function runSimulation(assumptions) {
     const totalInvested = rhBase + marginBalance; // equity + borrowed
     const grossGrowth = totalInvested * (rhReturn / 100);
     // Robinhood: personal brokerage grows on its own, gets minimal new inflows
-    // Distributions now go to S-Corp Webull (V1), not personal RH
-    // CAP: once RH hits $100K, new inflows redirect to V1 Webull
+    // Distributions now go to S-Corp Alpaca (V1), not personal RH
+    // CAP: once RH hits $100K, new inflows redirect to V1 Alpaca
     let rhNewInflows = freeCashToRobinhood + distroToPersonal;
     let rhOverflowToV1 = 0;
     const rhBeforeInflows = robinhood + grossGrowth - marginInterest - rhPullFreeCash;
@@ -797,8 +797,8 @@ export function runSimulation(assumptions) {
     }
     robinhood = rhBeforeInflows + rhNewInflows;
 
-    // V1 Webull: add distribution residual + any RH overflow to V1 NimbusTech account
-    // This runs OUTSIDE the venture2StartAge gate — V1 Webull funds from age 31 via LOC bridge
+    // V1 Alpaca: add distribution residual + any RH overflow to V1 NimbusTech account
+    // This runs OUTSIDE the venture2StartAge gate — V1 Alpaca funds from age 31 via LOC bridge
     venture2 += distroToV1Webull + rhOverflowToV1;
 
     // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
@@ -853,7 +853,7 @@ export function runSimulation(assumptions) {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // VENTURE 2: Webull entity account seeded at 32
+    // VENTURE 2: Alpaca entity account seeded at 32
     // $100K: $30K diverted + $10K gift + $10K loan + $50K V1 LOC
     // LOC portion repaid in 6 months, family loan repaid over time
     // Then: RH pull (15%) → fund growth + LOC debt service
@@ -862,7 +862,7 @@ export function runSimulation(assumptions) {
     let v2DebtService = 0;
     let v2SelfIncome = 0;
     if (age >= assumptions.venture2StartAge) {
-      // V2 SEED at age 32: $100K into Webull entity account
+      // V2 SEED at age 32: $100K into Alpaca entity account
       if (age === assumptions.venture2StartAge) {
         venture2 += assumptions.v2SeedTotal; // $100K deposited
         // $50K LOC portion: borrowed from V1 LOC at 9%, repaid in 6 months
@@ -925,12 +925,12 @@ export function runSimulation(assumptions) {
       opsHubBillV2 = opsHubCost * (assumptions.opsHubBillV2Pct / 100);
       opsHubBillNp = opsHubCost * (assumptions.opsHubBillNpPct / 100);
 
-      // V1 Webull invested cash returns: same trading engine as personal RH
+      // V1 Alpaca invested cash returns: same trading engine as personal RH
       // 25% blended return (includes 35% margin leverage net of interest, already baked in)
       const v1Equity = Math.max(0, venture2);
       const v2InvestGain = v1Equity * (assumptions.v1WebullReturn / 100);
 
-      // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Webull + gains - costs
+      // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Alpaca + gains - costs
       // V1 pays its own ops hub bill (30%), not V2's bill
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
       // distroToV1Webull already added above (outside venture2StartAge gate)
@@ -1012,7 +1012,7 @@ export function runSimulation(assumptions) {
         landEquity += constructionPayoff;
       }
     }
-    // Ventures LOC payoff: split between V1 Webull and RH based on available balances
+    // Ventures LOC payoff: split between V1 Alpaca and RH based on available balances
     if (age === assumptions.venturesLocAge + 20) {
       if (venturesLocDebt > 0) {
         const v1SharePayoff = Math.min(Math.max(0, venture2 * 0.5), venturesLocDebt);
@@ -1116,7 +1116,7 @@ export function runSimulation(assumptions) {
       const fromSeattle = Math.min(seattleProceeds, downPayment);
       const fromRobinhood = Math.max(0, downPayment - fromSeattle);
       robinhood -= fromRobinhood;
-      // Leftover Seattle proceeds: fill RH to cap, overflow → V1 Webull
+      // Leftover Seattle proceeds: fill RH to cap, overflow → V1 Alpaca
       const seattleLeftover = Math.max(0, seattleProceeds - fromSeattle);
       const rhRoom = Math.max(0, assumptions.robinhoodCap - robinhood);
       robinhood += Math.min(seattleLeftover, rhRoom);
@@ -1157,7 +1157,7 @@ export function runSimulation(assumptions) {
         approxAgi * (assumptions.npLandDonationAgiCapPct / 100)
       );
       npLandDonationTaxSavings = deductibleThisYear * (assumptions.npLandDonationMarginalRate / 100);
-      // Tax savings arrive as a refund → credited to RH if under cap, else V1 Webull
+      // Tax savings arrive as a refund → credited to RH if under cap, else V1 Alpaca
       if (robinhood < assumptions.robinhoodCap) {
         const room = assumptions.robinhoodCap - robinhood;
         const toRh = Math.min(npLandDonationTaxSavings, room);
@@ -1172,9 +1172,9 @@ export function runSimulation(assumptions) {
       npLandValue = npLandValue * (1 + assumptions.landAppreciation / 100);
     }
 
-    // Offshore (Belize/Costa Rica): cash purchase at 33 — split between V1 Webull (primary) and RH
+    // Offshore (Belize/Costa Rica): cash purchase at 33 — split between V1 Alpaca (primary) and RH
     if (age === assumptions.offshorePurchaseAge) {
-      // V1 Webull funds up to what it can afford; RH covers the rest
+      // V1 Alpaca funds up to what it can afford; RH covers the rest
       const v1CanAfford = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
       const fromV1 = Math.min(v1CanAfford, assumptions.offshorePurchasePrice);
       const fromRH = assumptions.offshorePurchasePrice - fromV1;
@@ -1186,7 +1186,7 @@ export function runSimulation(assumptions) {
       offshoreEquity = offshoreEquity * (1 + assumptions.offshoreAppreciation / 100);
     }
 
-    // Nigeria: cash purchase at 36 — split between V1 Webull (primary) and RH
+    // Nigeria: cash purchase at 36 — split between V1 Alpaca (primary) and RH
     if (age === assumptions.nigeriaPurchaseAge) {
       const v1CanAffordNg = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
       const fromV1Ng = Math.min(v1CanAffordNg, assumptions.nigeriaPurchasePrice);
@@ -1203,7 +1203,7 @@ export function runSimulation(assumptions) {
     // — S-Corps are a poor vehicle for rental real estate: no tax-free property
     // distributions, passive loss trapping, and liability co-mingling with the
     // operating S-Corp). Down payment sourced from V2 reserves first; any
-    // shortfall is lent by V1 Webull at an arm's-length rate (modeled as a
+    // shortfall is lent by V1 Alpaca at an arm's-length rate (modeled as a
     // transfer, with V2 servicing the note through rental cash flow).
     if (age === assumptions.rentalPurchaseAge) {
       const v2AvailForRental = Math.max(0, ventures * 0.6);

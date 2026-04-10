@@ -155,7 +155,7 @@ export default function Venture2Dashboard() {
           </div>
         </div>
         <p className="text-gray-400 text-sm mt-2 max-w-2xl">
-          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Webull funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Webull account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 50% of ops hub costs. Houses Nigeria Ops Hub subsidiary, content/media, and internal tools. <span className="text-amber-300">City rental properties moved out of V1 → now owned by V2 Agro's rental LLC (S-Corps are a poor vehicle for rentals).</span>
+          Existing S-Corp — tech, AI, consulting, and investment operations. Connected to Nigeria via EOR. Alpaca funded via LOC bridge ($39K cash + $61K LOC at 25% APR), with $14K/mo retained and LOC repaid in 5 months. 12% investment returns on Alpaca account. S-Corp deductions ~$40.4K/yr reduce taxable distributions. Solo 401(k) at 33: $23K employee + $20K employer = $43K/yr. $150K LOC revolving facility. V1 pays 50% of ops hub costs. Houses Nigeria Ops Hub subsidiary, content/media, and internal tools. <span className="text-amber-300">City rental properties moved out of V1 → now owned by V2 Agro's rental LLC (S-Corps are a poor vehicle for rentals).</span>
         </p>
       </div>
 
@@ -472,9 +472,9 @@ export default function Venture2Dashboard() {
         <h2 className="text-xl font-bold mb-4">📂 Sub-Ventures</h2>
         <p className="text-gray-400 text-sm mb-4">Manage individual business lines within Venture 1.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link to="/venture1/webull-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
+          <Link to="/venture1/alpaca-portfolio" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">
             <span className="text-2xl block mb-2">📊</span>
-            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Webull Portfolio</h3>
+            <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">Alpaca Portfolio</h3>
             <p className="text-gray-500 text-xs mt-1">$100K entity investment account (S-Corp)</p>
           </Link>
           <Link to="/venture1/ops-hub" className="bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-blue-600 transition-colors group">

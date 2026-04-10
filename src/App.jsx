@@ -11,7 +11,7 @@ import NigeriaDashboard from './pages/NigeriaDashboard';
 import OffshoreDashboard from './pages/OffshoreDashboard';
 import HardAssetsDashboard from './pages/HardAssetsDashboard';
 // V1 NimbusTech Sub-ventures
-import WebullPortfolio from './pages/venture1/WebullPortfolio';
+import AlpacaPortfolio from './pages/venture1/AlpacaPortfolio';
 import NigeriaOpsHub from './pages/venture1/NigeriaOpsHub';
 import ContentMedia from './pages/venture1/ContentMedia';
 import InternalTools from './pages/venture1/InternalTools';
@@ -140,7 +140,7 @@ export default function App() {
           <Route path="/offshore" element={<OffshoreDashboard />} />
           <Route path="/hard-assets" element={<HardAssetsDashboard />} />
           {/* V1 NimbusTech Sub-ventures (tech/AI/investments) */}
-          <Route path="/venture1/webull-portfolio" element={<WebullPortfolio />} />
+          <Route path="/venture1/alpaca-portfolio" element={<AlpacaPortfolio />} />
           <Route path="/venture1/ops-hub" element={<NigeriaOpsHub />} />
           <Route path="/venture1/content-media" element={<ContentMedia />} />
           <Route path="/venture1/internal-tools" element={<InternalTools />} />

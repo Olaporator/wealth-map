@@ -121,7 +121,7 @@ export default function ContentMedia() {
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-800 rounded">
               <div className="w-3 h-3 bg-pink-400 rounded-full"></div>
-              <span className="text-gray-300">Webull Portfolio - Investment Updates</span>
+              <span className="text-gray-300">Alpaca Portfolio - Investment Updates</span>
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-800 rounded">
               <div className="w-3 h-3 bg-pink-400 rounded-full"></div>

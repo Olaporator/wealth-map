@@ -6,11 +6,11 @@ import AgeSlider from '../../components/AgeSlider';
 import ContractorWidget from '../../components/ContractorWidget';
 import { getContractorsForEntity, ENTITIES } from '../../lib/contractors';
 
-export default function WebullPortfolio() {
+export default function AlpacaPortfolio() {
   const { data } = useWealthData();
   const [targetAge, setTargetAge] = useState(31);
   const selectedYear = data?.years?.find(y => y.age === targetAge) || data?.years?.[0];
-  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1, 'webull-portfolio'), []);
+  const contractors = useMemo(() => getContractorsForEntity(ENTITIES.V1, 'alpaca-portfolio'), []);
   return (
     <div className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-4xl mx-auto">
@@ -26,7 +26,7 @@ export default function WebullPortfolio() {
             <span className="text-3xl">📈</span>
           </div>
           <div>
-            <h1 className="text-4xl font-bold">Webull Portfolio</h1>
+            <h1 className="text-4xl font-bold">Alpaca Portfolio</h1>
             <p className="text-gray-400 mt-1">S-Corp Investment Account</p>
           </div>
         </div>
@@ -35,7 +35,7 @@ export default function WebullPortfolio() {
         <div className="bg-gray-900 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-3">Overview</h2>
           <p className="text-gray-300 leading-relaxed">
-            A $100K Webull investment entity account managed by NimbusTech S-Corp.
+            A $100K Alpaca investment entity account managed by NimbusTech S-Corp.
             Seeded at age 32 with $30K diverted + $10K family gift + $10K family loan + $50K from V1 LOC (repaid in 6 months).
             Actively invested with 12% annual returns target.
           </p>
@@ -158,7 +158,7 @@ export default function WebullPortfolio() {
           </CollapsibleYearByYear>
         )}
 
-        <ContractorWidget contractors={contractors} title="Webull Portfolio Services" entityLabel="V1 Investment" />
+        <ContractorWidget contractors={contractors} title="Alpaca Portfolio Services" entityLabel="V1 Investment" />
       </div>
     </div>
   );

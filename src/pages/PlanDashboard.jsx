@@ -95,7 +95,7 @@ export default function PlanDashboard() {
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
       { name: 'Land', value: ageData.totalLandEquity, desc: 'All property equity: US primary + offshore (Belize/CR) + Nigeria + city rentals' },
-      { name: 'V1 NimbusTech', value: ageData.venture2, desc: 'S-Corp consulting/tech/AI — primary operating business, Webull investment account, ops hub parent' },
+      { name: 'V1 NimbusTech', value: ageData.venture2, desc: 'S-Corp consulting/tech/AI — primary operating business, Alpaca investment account, ops hub parent' },
       { name: 'QOZ Fund', value: ageData.qozFund, desc: DESCRIPTIONS.qoz },
       { name: 'V2 Agro', value: ageData.ventures, desc: 'Agro/land/real-estate entity — farm income, offshore + Nigeria land, city rental LLC, property mgmt' },
     ].filter(d => d.value > 0);

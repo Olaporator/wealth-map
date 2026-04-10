@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState } from 'react';
 import { DEFAULT_ASSUMPTIONS, runSimulation } from '../lib/simulation';
 
 export function useWealthData() {
@@ -6,11 +6,7 @@ export function useWealthData() {
   const years = useMemo(() => runSimulation(assumptions), [assumptions]);
   const data = useMemo(() => ({ years }), [years]);
 
-  const toggleNtBoost = useCallback(() => {
-    setAssumptions((a) => ({ ...a, ntBoostEnabled: !a.ntBoostEnabled }));
-  }, []);
-
-  return { data, assumptions, setAssumptions, toggleNtBoost };
+  return { data, assumptions, setAssumptions };
 }
 
 export { DEFAULT_ASSUMPTIONS };

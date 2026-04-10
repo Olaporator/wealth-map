@@ -444,36 +444,6 @@ export default function PlanDashboard() {
         <p className="text-gray-400 text-sm mt-1">Ages 31 → 85</p>
       </div>
 
-      {/* TEMPORARY: $150K pre-tax NT revenue boost toggle (halfway 31 → halfway 32) */}
-      <div className="mb-4 bg-gradient-to-r from-amber-900/30 to-orange-900/20 border border-amber-700/40 rounded-lg p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">⚡</span>
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-amber-300">Temp Toggle: +$150K NT revenue bump</p>
-              <span className="text-[10px] uppercase tracking-wider text-amber-400/70 bg-amber-500/10 px-2 py-0.5 rounded">What-if</span>
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              One-time $150K pre-tax NimbusTech revenue, split 50/50 across age 31 (H2) and age 32 (H1).
-              Flows through normal S-Corp taxes → residual fully allocated to V1 Webull. No personal income update.
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => setAssumptions((a) => ({ ...a, ntBoostEnabled: !a.ntBoostEnabled }))}
-          className={`relative inline-flex items-center h-7 rounded-full w-14 transition-colors flex-shrink-0 ml-4 ${
-            assumptions.ntBoostEnabled ? 'bg-emerald-500' : 'bg-gray-700'
-          }`}
-          aria-label="Toggle $150K revenue boost"
-        >
-          <span
-            className={`inline-block w-5 h-5 transform bg-white rounded-full transition-transform ${
-              assumptions.ntBoostEnabled ? 'translate-x-8' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </div>
-
       {/* Age Selector */}
       <div className="bg-gray-900 rounded-xl p-4 border border-gray-800 mb-6">
         <div className="flex flex-wrap gap-6 items-center justify-center">

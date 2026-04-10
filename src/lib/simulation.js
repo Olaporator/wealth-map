@@ -113,6 +113,8 @@ export const DEFAULT_ASSUMPTIONS = {
   nonprofitInitialDonations: 5000, // modest initial donations year 1
 
   // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
+  // Personal RH capped at $100K — once reached, new inflows redirect to V1 Webull
+  robinhoodCap: 100000,     // max personal RH balance before overflow → V1 Webull
   rhPullStartAge: 33,       // start pulling from Robinhood growth
   rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal ($1K/mo expenses need minimal pull)
   rhPullQozPct: 20,         // 20% of Robinhood gains → QOZ fund (ongoing contributions)
@@ -194,6 +196,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // Total LOC interest: ~$3,646. Webull earns ~$6,000 in same period. Net +$2,354.
   // ═══════════════════════════════════════════════════════════════
   v1WebullMinimum: 100000,         // $100K Webull entity account minimum
+  v1WebullReturn: 25,              // Same trading engine as personal RH — 25% blended return
+                                   // (includes 35% margin leverage net of interest, already baked in)
   v1RetainedPerMonth: 14000,       // $14K/mo retained above S-Corp operating expenses
   v1BonusMonth1: 25000,            // $25K one-time payment in May 2026
   v1LocBridge: 61000,              // $61K LOC draw to bridge to $100K immediately
@@ -777,11 +781,25 @@ export function runSimulation(assumptions) {
     const grossGrowth = totalInvested * (rhReturn / 100);
     // Robinhood: personal brokerage grows on its own, gets minimal new inflows
     // Distributions now go to S-Corp Webull (V1), not personal RH
-    robinhood = robinhood + grossGrowth - marginInterest - rhPullFreeCash + freeCashToRobinhood + distroToPersonal;
+    // CAP: once RH hits $100K, new inflows redirect to V1 Webull
+    let rhNewInflows = freeCashToRobinhood + distroToPersonal;
+    let rhOverflowToV1 = 0;
+    const rhBeforeInflows = robinhood + grossGrowth - marginInterest - rhPullFreeCash;
+    if (rhBeforeInflows >= assumptions.robinhoodCap && rhNewInflows > 0) {
+      // Already at/above cap — redirect ALL new inflows to V1
+      rhOverflowToV1 = rhNewInflows;
+      rhNewInflows = 0;
+    } else if (rhBeforeInflows + rhNewInflows > assumptions.robinhoodCap && rhNewInflows > 0) {
+      // Inflows would push past cap — take only what's needed to reach cap
+      const room = Math.max(0, assumptions.robinhoodCap - rhBeforeInflows);
+      rhOverflowToV1 = rhNewInflows - room;
+      rhNewInflows = room;
+    }
+    robinhood = rhBeforeInflows + rhNewInflows;
 
-    // V1 Webull: add distribution residual to V1 NimbusTech account
+    // V1 Webull: add distribution residual + any RH overflow to V1 NimbusTech account
     // This runs OUTSIDE the venture2StartAge gate — V1 Webull funds from age 31 via LOC bridge
-    venture2 += distroToV1Webull;
+    venture2 += distroToV1Webull + rhOverflowToV1;
 
     // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
     let landDevCost = 0;
@@ -907,8 +925,10 @@ export function runSimulation(assumptions) {
       opsHubBillV2 = opsHubCost * (assumptions.opsHubBillV2Pct / 100);
       opsHubBillNp = opsHubCost * (assumptions.opsHubBillNpPct / 100);
 
-      // Venture 2 invested cash returns (12% on equity, same strategy as RH)
-      const v2InvestGain = Math.max(0, venture2) * (assumptions.venture2InvestReturn / 100);
+      // V1 Webull invested cash returns: same trading engine as personal RH
+      // 25% blended return (includes 35% margin leverage net of interest, already baked in)
+      const v1Equity = Math.max(0, venture2);
+      const v2InvestGain = v1Equity * (assumptions.v1WebullReturn / 100);
 
       // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Webull + gains - costs
       // V1 pays its own ops hub bill (30%), not V2's bill
@@ -1096,7 +1116,11 @@ export function runSimulation(assumptions) {
       const fromSeattle = Math.min(seattleProceeds, downPayment);
       const fromRobinhood = Math.max(0, downPayment - fromSeattle);
       robinhood -= fromRobinhood;
-      robinhood += Math.max(0, seattleProceeds - fromSeattle); // leftover proceeds → Robinhood
+      // Leftover Seattle proceeds: fill RH to cap, overflow → V1 Webull
+      const seattleLeftover = Math.max(0, seattleProceeds - fromSeattle);
+      const rhRoom = Math.max(0, assumptions.robinhoodCap - robinhood);
+      robinhood += Math.min(seattleLeftover, rhRoom);
+      venture2 += Math.max(0, seattleLeftover - rhRoom);
       landEquity += downPayment;
       landMortgage += purchasePrice - downPayment;
       acres += assumptions.landPurchase1Acres;
@@ -1133,8 +1157,15 @@ export function runSimulation(assumptions) {
         approxAgi * (assumptions.npLandDonationAgiCapPct / 100)
       );
       npLandDonationTaxSavings = deductibleThisYear * (assumptions.npLandDonationMarginalRate / 100);
-      // Tax savings arrive as a refund → credited to personal Robinhood
-      robinhood += npLandDonationTaxSavings;
+      // Tax savings arrive as a refund → credited to RH if under cap, else V1 Webull
+      if (robinhood < assumptions.robinhoodCap) {
+        const room = assumptions.robinhoodCap - robinhood;
+        const toRh = Math.min(npLandDonationTaxSavings, room);
+        robinhood += toRh;
+        venture2 += npLandDonationTaxSavings - toRh;
+      } else {
+        venture2 += npLandDonationTaxSavings;
+      }
     }
     // NP land appreciates alongside personal land
     if (npLandValue > 0) {
@@ -1289,6 +1320,8 @@ export function runSimulation(assumptions) {
       rhPullQoz: Math.round(rhPullQoz),
       rhPullNonprofit: Math.round(rhPullNonprofit),
       freeCashToQoz: Math.round(freeCashToQoz),
+      freeCashToRH: Math.round(freeCashToRobinhood),
+      rhOverflowToV1: Math.round(rhOverflowToV1),
       totalTax: Math.round(totalTax),
       effectiveTaxRate: Math.round(effectiveTaxRate * 10) / 10,
       taxBreakdown: {
@@ -1334,6 +1367,7 @@ export function runSimulation(assumptions) {
         hardAssetsMaint: -(hardAssetsCosts || 0),
         freeCashToQoz: -freeCashToQoz,
         freeCashToRH: freeCashToRobinhood,
+        rhOverflowToV1: rhOverflowToV1,
         businessIncome,
         expenses: -expenses,
         staffExpenses: -staffExpenses,

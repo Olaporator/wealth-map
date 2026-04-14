@@ -114,12 +114,12 @@ export const DEFAULT_ASSUMPTIONS = {
 
   // Robinhood growth pulls (tax-strategic LTCG harvesting from age 33)
   // Personal RH capped at $100K — once reached, new inflows redirect to V1 Alpaca
-  robinhoodCap: 100000,     // max personal RH balance before overflow → V1 Alpaca
-  rhPullStartAge: 33,       // start pulling from Robinhood growth
-  rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal ($1K/mo expenses need minimal pull)
-  rhPullQozPct: 20,         // 20% of Robinhood gains → QOZ fund (ongoing contributions)
-  rhPullQozStartAge: 31,    // QOZ contributions start at 31
-  freeCashToQozPct: 66,     // 66% of positive free cash → QOZ fund
+  robinhoodCap: 250000,     // keep RH liquid up to $250K before overflow → V1 Alpaca
+  rhPullStartAge: 36,       // delay pulls until 36 — keep liquid through build + STR ramp
+  rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal
+  rhPullQozPct: 15,         // 15% of Robinhood gains → QOZ (down from 20% — prioritize liquidity)
+  rhPullQozStartAge: 36,    // QOZ contributions start at 36 (not 31 — keep liquid early)
+  freeCashToQozPct: 40,     // 40% of positive free cash → QOZ (down from 66% — rest stays liquid)
   homeAppreciation: 6,      // Seattle home appreciation
   landAppreciation: 4,      // rural land appreciation
 
@@ -233,19 +233,19 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Alpaca deposit (meets $100K minimum)
-  // V2 Staffing: 3 phased US hires — real pay, earlier starts (plenty of NW headroom)
-  // Hire 1: Groundskeeper — starts age 34 (during build), $12K/yr (part-time), 5%/yr raises
-  usHire1StartAge: 34,
-  usHire1StartPay: 12000,
-  usHire1Raise: 5,
-  // Hire 2: House Manager — starts age 36 (runs STR guest ops + turnover), $12K/yr, 5%/yr raises
-  usHire2StartAge: 36,
-  usHire2StartPay: 12000,
-  usHire2Raise: 5,
-  // Hire 3: Ops Coordinator — starts age 40, $18K/yr (part-time), 5%/yr raises
-  usHire3StartAge: 40,
-  usHire3StartPay: 18000,
-  usHire3Raise: 5,
+  // V2 Staffing: 3 phased US hires — real pay, early starts (NW headroom is massive)
+  // Hire 1: Groundskeeper — starts age 33 (construction year), $15K/yr (part-time), 7%/yr raises
+  usHire1StartAge: 33,
+  usHire1StartPay: 15000,
+  usHire1Raise: 7,
+  // Hire 2: House Manager — starts age 35 (STR launch year, runs guest ops), $15K/yr, 7%/yr raises
+  usHire2StartAge: 35,
+  usHire2StartPay: 15000,
+  usHire2Raise: 7,
+  // Hire 3: Ops Coordinator — starts age 38, $20K/yr (part-time), 7%/yr raises
+  usHire3StartAge: 38,
+  usHire3StartPay: 20000,
+  usHire3Raise: 7,
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
@@ -254,9 +254,9 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   opsHubStartAge: 32,            // ops hub launches at 32 (year 1 on land — admin from day 1)
   opsHubInitialStaff: 3,         // 3 employees from day 1 (admin, bookkeeping, social/marketing)
-  opsHubGrowthInterval: 2,       // add 1 employee every 2 years (measured growth)
+  opsHubGrowthInterval: 1,       // add 1 employee every year (faster ramp — plenty of headroom)
   opsHubMaxStaff: 10,            // cap hub at 10 (expanded scope across all entities)
-  opsHubEmployeeCostBase: 5500,   // $5.5K/yr starting salary per Nigerian employee
+  opsHubEmployeeCostBase: 6000,   // $6K/yr starting salary per Nigerian employee
   opsHubEmployeeRaise: 7,         // 7% annual raise per employee (competitive for Nigeria)
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit
@@ -276,7 +276,7 @@ export const DEFAULT_ASSUMPTIONS = {
   // antiques, premium building materials). Funded by RH pulls starting at 33.
   // "In storage" — not officially generating income (wink wink)
   // ═══════════════════════════════════════════════════════════════
-  hardAssetsStartAge: 33,
+  hardAssetsStartAge: 36,        // delay hard assets until 36 — prioritize liquidity early
   hardAssetsRhPullPct: 5,           // 5% of RH gains → hard asset purchases
   hardAssetsAppreciation: 7,        // 7% avg (gold ~8%, silver ~7%, antiques ~6%, materials ~5%)
   hardAssetsInsurancePct: 1,        // 1% of value/yr for storage + insurance

@@ -31,14 +31,14 @@ export default function HomesteadDashboard() {
       const landEquity = year.landEquity || 0;
       const landMortgage = year.landMortgage || 0;
 
-      // STR rental NOI: $14K/yr stabilized starting at 33, growing 3%/yr
+      // STR rental NOI: $14K/yr stabilized starting at 35, growing 3%/yr
       let strNOI = 0;
       if (age >= assumptions.farmIncomeStartAge) {
         const yearsOfRental = age - assumptions.farmIncomeStartAge;
         strNOI = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, yearsOfRental);
       }
 
-      // Construction interest: $350K × 7.5% from age 32 to 52
+      // Construction interest: $350K × 7.5% from age 33 to 53
       let constructionInterest = year.constructionInterest || 0;
 
       // Mortgage P&I: amortized on original $300K land loan at 7%/20yr
@@ -234,20 +234,20 @@ export default function HomesteadDashboard() {
             <div className="text-2xl">🏗️</div>
             <div>
               <p className="font-semibold">Construction Loan at Age {assumptions.constructionLoanAge}</p>
-              <p className="text-gray-400">$350K construction-to-perm at 7.5% for primary + ADU</p>
+              <p className="text-gray-400">$350K construction-to-perm at 7.5% for primary + ADU (after 1yr on land)</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="text-2xl">🌾</div>
             <div>
               <p className="font-semibold">STR Rental Income at Age {assumptions.farmIncomeStartAge}</p>
-              <p className="text-gray-400">ADU farmstay/Airbnb — $14K/yr stabilized NOI, growing 3%/yr</p>
+              <p className="text-gray-400">ADU farmstay/Airbnb — $14K/yr stabilized NOI, growing 3%/yr (1yr after build)</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="text-2xl">✓</div>
             <div>
-              <p className="font-semibold">Construction Loan Paid Off at Age 52</p>
+              <p className="font-semibold">Construction Loan Paid Off at Age 53</p>
               <p className="text-gray-400">20-year payoff from Robinhood (interest-only → lump sum)</p>
             </div>
           </div>

@@ -126,8 +126,9 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   // GA HOMESTEAD (25 acres middle GA — primary + ADU farmstay/Airbnb)
   // $300K land (20% down) + $350K build (20% down on construction-to-perm)
-  // Property value → $650K at completion (age 33), then 4%/yr appreciation
-  // ADU STR rental income starts at 33: $10K NOI yr1 → $14K stabilized, 3%/yr
+  // Year 1 on land (age 31-32): getting to know the property, minimal spend
+  // Construction at 33, build done at 34, property value → $650K, then 4%/yr
+  // ADU STR rental income starts at 35: $14K stabilized NOI, 3%/yr growth
   // ═══════════════════════════════════════════════════════════════
   landPurchasePrice: 300000, // GA land purchase price (25 acres)
   landDownPaymentPct: 20,
@@ -138,14 +139,14 @@ export const DEFAULT_ASSUMPTIONS = {
   landHousingCost: 12000,   // ~$1K/mo basic living costs on land
   landDevStartAge: 31,      // start developing home/infrastructure on land
   constructionLoanAmount: 350000, // primary + ADU natural-built ($300-400K range)
-  constructionLoanAge: 32,        // construction loan drawn at 32
+  constructionLoanAge: 33,        // construction loan drawn at 33 (1yr getting to know land first)
   constructionLoanRate: 7.5,      // construction-to-perm rate
-  gaPropertyValueAtCompletion: 650000, // appraised value post-build (age 33)
-  gaBuildCompleteAge: 33,         // build done at 33
+  gaPropertyValueAtCompletion: 650000, // appraised value post-build (age 34)
+  gaBuildCompleteAge: 34,         // build done at 34
   gaAppreciation: 4,              // 4%/yr after completion
   landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value
   // STR rental income (ADU farmstay/Airbnb) replaces old farm income
-  farmIncomeStartAge: 33,         // ADU rented from age 33
+  farmIncomeStartAge: 35,         // ADU rented from age 35 (1yr after build to get STR running)
   farmIncomeAnnual: 14120,        // stabilized STR NOI (~$14K/yr)
   farmIncomeGrowth: 3,            // 3% annual NOI growth
   strNOIYear1: 10090,             // yr 1 NOI (40% occupancy ramp)

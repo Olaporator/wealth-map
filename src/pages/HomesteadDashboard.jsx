@@ -214,8 +214,8 @@ export default function HomesteadDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">🤝 Staffing Model</h2>
         <p className="text-gray-300 leading-relaxed">
-          Self/family labor keeps operational costs near zero while building infrastructure.
-          ADU farmstay/Airbnb STR generates rental NOI starting at age 33, growing 3%/yr.
+          Groundskeeper from age 34, house manager from 36 runs STR guest ops.
+          Nigeria ops hub (3→10 staff) handles admin/bookkeeping across all entities from age 32.
         </p>
       </div>
 
@@ -241,7 +241,7 @@ export default function HomesteadDashboard() {
             <div className="text-2xl">🌾</div>
             <div>
               <p className="font-semibold">STR Rental Income at Age {assumptions.farmIncomeStartAge}</p>
-              <p className="text-gray-400">ADU farmstay/Airbnb — $14K/yr stabilized NOI, growing 3%/yr (1yr after build)</p>
+              <p className="text-gray-400">ADU farmstay/Airbnb — $22K/yr stabilized NOI, growing 5%/yr (dedicated house mgr)</p>
             </div>
           </div>
           <div className="flex gap-4">

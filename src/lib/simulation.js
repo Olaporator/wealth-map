@@ -147,9 +147,9 @@ export const DEFAULT_ASSUMPTIONS = {
   landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value
   // STR rental income (ADU farmstay/Airbnb) replaces old farm income
   farmIncomeStartAge: 35,         // ADU rented from age 35 (1yr after build to get STR running)
-  farmIncomeAnnual: 14120,        // stabilized STR NOI (~$14K/yr)
-  farmIncomeGrowth: 3,            // 3% annual NOI growth
-  strNOIYear1: 10090,             // yr 1 NOI (40% occupancy ramp)
+  farmIncomeAnnual: 22000,        // stabilized STR NOI (~$22K/yr — dedicated house mgr drives occupancy)
+  farmIncomeGrowth: 5,            // 5% annual NOI growth (better reviews → pricing power)
+  strNOIYear1: 16000,             // yr 1 NOI (~$16K — ramp-up with house mgr handling guest ops)
   // V2 Agro sub-venture income (equipment leasing, property mgmt, landscape consulting)
   v2AgroIncomeStartAge: 36,      // sub-ventures start generating at 36
   v2AgroIncomeBase: 25000,       // $25K/yr initial (modest — equipment rental, consulting gigs)
@@ -233,18 +233,18 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Alpaca deposit (meets $100K minimum)
-  // V2 Staffing: 3 phased US hires — halved pay (leaner US footprint, Nigeria ops hub absorbs more)
-  // Hire 1: Groundskeeper — starts age 35, $7.5K/yr stipend (part-time, 0.5 FTE), 5%/yr raises
-  usHire1StartAge: 35,
-  usHire1StartPay: 7500,
+  // V2 Staffing: 3 phased US hires — real pay, earlier starts (plenty of NW headroom)
+  // Hire 1: Groundskeeper — starts age 34 (during build), $12K/yr (part-time), 5%/yr raises
+  usHire1StartAge: 34,
+  usHire1StartPay: 12000,
   usHire1Raise: 5,
-  // Hire 2: House Manager — starts age 38, $7.5K/yr stipend (part-time, 0.5 FTE), 5%/yr raises
-  usHire2StartAge: 38,
-  usHire2StartPay: 7500,
+  // Hire 2: House Manager — starts age 36 (runs STR guest ops + turnover), $12K/yr, 5%/yr raises
+  usHire2StartAge: 36,
+  usHire2StartPay: 12000,
   usHire2Raise: 5,
-  // Hire 3: Ops Coordinator — starts age 42, $15K/yr (part-time, 0.5 FTE), 5%/yr raises
-  usHire3StartAge: 42,
-  usHire3StartPay: 15000,
+  // Hire 3: Ops Coordinator — starts age 40, $18K/yr (part-time), 5%/yr raises
+  usHire3StartAge: 40,
+  usHire3StartPay: 18000,
   usHire3Raise: 5,
 
   // ═══════════════════════════════════════════════════════════════
@@ -252,11 +252,11 @@ export const DEFAULT_ASSUMPTIONS = {
   // Handles: HR, Accounting, Taxes, Logistics, DevOps across all orgs
   // AI-assisted operations + minimal US CPA fee to officialize
   // ═══════════════════════════════════════════════════════════════
-  opsHubStartAge: 33,            // ops hub launches at 33
-  opsHubInitialStaff: 2,         // 2 employees from day 1
+  opsHubStartAge: 32,            // ops hub launches at 32 (year 1 on land — admin from day 1)
+  opsHubInitialStaff: 3,         // 3 employees from day 1 (admin, bookkeeping, social/marketing)
   opsHubGrowthInterval: 2,       // add 1 employee every 2 years (measured growth)
-  opsHubMaxStaff: 8,             // cap hub at 8 (lean team + AI handles the rest)
-  opsHubEmployeeCostBase: 5000,   // $5K/yr starting salary per Nigerian employee
+  opsHubMaxStaff: 10,            // cap hub at 10 (expanded scope across all entities)
+  opsHubEmployeeCostBase: 5500,   // $5.5K/yr starting salary per Nigerian employee
   opsHubEmployeeRaise: 7,         // 7% annual raise per employee (competitive for Nigeria)
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
   opsHubOverheadReduction: true,  // centralizing ops reduces overhead on V1 and nonprofit

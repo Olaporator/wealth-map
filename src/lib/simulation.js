@@ -124,25 +124,31 @@ export const DEFAULT_ASSUMPTIONS = {
   landAppreciation: 4,      // rural land appreciation
 
   // ═══════════════════════════════════════════════════════════════
-  // LAND (15+ acre homestead — Ayoola lives here, farms it)
-  // Ventures staff + self/family/volunteer labor keep farm costs near zero
-  // Farm income from selling produce/livestock starting at 35
+  // GA HOMESTEAD (25 acres middle GA — primary + ADU farmstay/Airbnb)
+  // $300K land (20% down) + $350K build (20% down on construction-to-perm)
+  // Property value → $650K at completion (age 33), then 4%/yr appreciation
+  // ADU STR rental income starts at 33: $10K NOI yr1 → $14K stabilized, 3%/yr
   // ═══════════════════════════════════════════════════════════════
-  landPurchasePrice: 750000, // total land purchase price (bigger foundation)
+  landPurchasePrice: 300000, // GA land purchase price (25 acres)
   landDownPaymentPct: 20,
-  landMortgageRate: 7.5,
-  landMortgageTerm: 30,
-  landPurchase1Age: 31,     // buy land after Seattle sale proceeds
-  landPurchase1Acres: 15,   // at least 15 acres
+  landMortgageRate: 7.0,    // land loan rate
+  landMortgageTerm: 20,     // 20yr land loan
+  landPurchase1Age: 31,     // buy land at age 31
+  landPurchase1Acres: 25,   // 25 acres in middle GA
   landHousingCost: 12000,   // ~$1K/mo basic living costs on land
   landDevStartAge: 31,      // start developing home/infrastructure on land
-  constructionLoanAmount: 500000, // single construction loan for home/infrastructure (bigger build)
-  constructionLoanAge: 32,        // taken at age 32
-  constructionLoanRate: 8.5,      // construction loan rate
+  constructionLoanAmount: 350000, // primary + ADU natural-built ($300-400K range)
+  constructionLoanAge: 32,        // construction loan drawn at 32
+  constructionLoanRate: 7.5,      // construction-to-perm rate
+  gaPropertyValueAtCompletion: 650000, // appraised value post-build (age 33)
+  gaBuildCompleteAge: 33,         // build done at 33
+  gaAppreciation: 4,              // 4%/yr after completion
   landDevValueMultiplier: 1.5,    // $1 spent on home dev adds ~$1.50 in property value
-  farmIncomeStartAge: 35,         // farm produces sellable income by 35
-  farmIncomeAnnual: 50000,        // $50K/yr from produce/livestock sales
-  farmIncomeGrowth: 3,            // 3% annual growth in farm income
+  // STR rental income (ADU farmstay/Airbnb) replaces old farm income
+  farmIncomeStartAge: 33,         // ADU rented from age 33
+  farmIncomeAnnual: 14120,        // stabilized STR NOI (~$14K/yr)
+  farmIncomeGrowth: 3,            // 3% annual NOI growth
+  strNOIYear1: 10090,             // yr 1 NOI (40% occupancy ramp)
   // V2 Agro sub-venture income (equipment leasing, property mgmt, landscape consulting)
   v2AgroIncomeStartAge: 36,      // sub-ventures start generating at 36
   v2AgroIncomeBase: 25000,       // $25K/yr initial (modest — equipment rental, consulting gigs)
@@ -562,7 +568,7 @@ export function runSimulation(assumptions) {
     // Interest-only payments on credit lines
     const venturesDebtBal = Math.abs(Math.min(0, ventures));
     const venturesInterestPayment = venturesDebtBal * (assumptions.venturesCreditRate / 100);
-    // Construction loan interest — $500K interest-only til payoff at 20yr
+    // Construction loan interest — $350K interest-only til payoff at 20yr
     // Split 50/50: V2 agro (farm business use) + personal (homestead residence)
     const hasConstructionDebt = age >= assumptions.constructionLoanAge && age < assumptions.constructionLoanAge + 20;
     const constructionDebt = hasConstructionDebt ? assumptions.constructionLoanAmount : 0;
@@ -801,7 +807,7 @@ export function runSimulation(assumptions) {
     // This runs OUTSIDE the venture2StartAge gate — V1 Alpaca funds from age 31 via LOC bridge
     venture2 += distroToV1Webull + rhOverflowToV1;
 
-    // Construction loan: $500K single draw at age 32, builds 1.5x equity on land
+    // Construction loan: $350K single draw at age 32 (construction-to-perm)
     let landDevCost = 0;
     if (age === assumptions.constructionLoanAge && acres > 0) {
       landDevCost = assumptions.constructionLoanAmount;
@@ -1002,10 +1008,10 @@ export function runSimulation(assumptions) {
       }
     }
 
-    // Debt payoff at 52 (20yr from 32) — construction loan is personal homestead debt → paid from RH
-    // Construction is interest-only, so payoff = original draw amount ($500K)
+    // Debt payoff at 52 (20yr from 32) — construction loan is personal homestead debt → paid from RH ($350K)
+    // Construction is interest-only, so payoff = original draw amount ($350K)
     if (age === assumptions.constructionLoanAge + 20) {
-      const constructionPayoff = assumptions.constructionLoanAmount; // $500K — interest-only, no amortization
+      const constructionPayoff = assumptions.constructionLoanAmount; // $350K — interest-only, no amortization
       if (constructionPayoff > 0 && landMortgage >= constructionPayoff) {
         robinhood -= constructionPayoff * 1.08; // principal + ~8% LTCG tax (personal account)
         landMortgage -= constructionPayoff;
@@ -1096,12 +1102,29 @@ export function runSimulation(assumptions) {
       seattleEquity = 0; // property sold
     }
 
-    // Land: appreciation + principal paydown + development adds equity
+    // Land: At build completion (age 33), property value snaps to $650K appraised value.
+    // Before completion: appreciation on purchase price + dev multiplier.
+    // After completion: 4%/yr appreciation on total property value.
     if (landMortgage > 0 || landEquity > 0) {
-      const totalLandValue = landEquity + landMortgage;
-      const appreciatedValue = totalLandValue * (1 + assumptions.landAppreciation / 100);
-      const appreciationGain = appreciatedValue - totalLandValue;
-      landEquity += appreciationGain + landDevCost * (assumptions.landDevValueMultiplier - 1); // dev adds 0.5x NET value (1.5x gross - 1x debt on mortgage)
+      let totalLandValue = landEquity + landMortgage;
+
+      if (age === assumptions.gaBuildCompleteAge) {
+        // Build complete — property appraised at $650K. Snap total value to appraisal.
+        const appraisedValue = assumptions.gaPropertyValueAtCompletion;
+        const valueJump = appraisedValue - totalLandValue;
+        if (valueJump > 0) {
+          landEquity += valueJump; // all new value goes to equity
+        }
+        totalLandValue = appraisedValue;
+      } else if (age > assumptions.gaBuildCompleteAge) {
+        // Post-completion: appreciate at gaAppreciation rate (4%/yr)
+        const appreciationGain = totalLandValue * (assumptions.gaAppreciation / 100);
+        landEquity += appreciationGain;
+      } else {
+        // Pre-completion: modest appreciation on raw land + dev multiplier
+        const appreciationGain = totalLandValue * (assumptions.landAppreciation / 100);
+        landEquity += appreciationGain + landDevCost * (assumptions.landDevValueMultiplier - 1);
+      }
 
       if (landMortgage > 0) {
         landMortgage -= landPrincipalPaid;

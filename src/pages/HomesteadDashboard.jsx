@@ -31,17 +31,17 @@ export default function HomesteadDashboard() {
       const landEquity = year.landEquity || 0;
       const landMortgage = year.landMortgage || 0;
 
-      // Farm income: $50K/yr starting at 35, growing 3%/yr
-      let farmIncome = 0;
+      // STR rental NOI: $14K/yr stabilized starting at 33, growing 3%/yr
+      let strNOI = 0;
       if (age >= assumptions.farmIncomeStartAge) {
-        const yearsOfFarming = age - assumptions.farmIncomeStartAge;
-        farmIncome = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, yearsOfFarming);
+        const yearsOfRental = age - assumptions.farmIncomeStartAge;
+        strNOI = assumptions.farmIncomeAnnual * Math.pow(1 + assumptions.farmIncomeGrowth / 100, yearsOfRental);
       }
 
-      // Construction interest: $400K × 8.5% from age 32 to 52
+      // Construction interest: $350K × 7.5% from age 32 to 52
       let constructionInterest = year.constructionInterest || 0;
 
-      // Mortgage P&I: amortized on original $400K at 7.5%/30yr
+      // Mortgage P&I: amortized on original $300K land loan at 7%/20yr
       let mortgagePI = 0;
       if (landMortgage > 0) {
         const rate = assumptions.landMortgageRate / 100 / 12;
@@ -52,7 +52,7 @@ export default function HomesteadDashboard() {
         mortgagePI = Math.min(monthlyPayment * 12, interestPortion + Math.min(landMortgage, monthlyPayment * 12 - interestPortion));
       }
 
-      const netAnnualCost = constructionInterest + mortgagePI - farmIncome;
+      const netAnnualCost = constructionInterest + mortgagePI - strNOI;
 
       return {
         age,
@@ -61,7 +61,7 @@ export default function HomesteadDashboard() {
         landEquity,
         landMortgage,
         acres: year.acres || 0,
-        farmIncome: Math.round(farmIncome),
+        strNOI: Math.round(strNOI),
         constructionInterest: Math.round(constructionInterest),
         mortgagePI: Math.round(mortgagePI),
         netAnnualCost: Math.round(netAnnualCost),
@@ -91,9 +91,9 @@ export default function HomesteadDashboard() {
       icon: '🏦',
     },
     {
-      label: 'Farm Income (Current)',
-      value: formatCurrency(selectedYear?.farmIncome || 0),
-      icon: '🌾',
+      label: 'STR Rental NOI',
+      value: formatCurrency(selectedYear?.strNOI || 0),
+      icon: '🏡',
     },
     {
       label: 'Construction Loan Status',
@@ -121,7 +121,7 @@ export default function HomesteadDashboard() {
 
       <div className="flex items-center gap-3 mb-8">
         <span className="text-5xl">🌱</span>
-        <h1 className="text-4xl font-bold">US Homestead</h1>
+        <h1 className="text-4xl font-bold">GA Homestead</h1>
       </div>
 
       <AgeSlider age={targetAge} onChange={setTargetAge} />
@@ -153,7 +153,7 @@ export default function HomesteadDashboard() {
               <th className="text-right px-4 py-3 text-gray-300">Land Value</th>
               <th className="text-right px-4 py-3 text-gray-300">Land Equity</th>
               <th className="text-right px-4 py-3 text-gray-300">Mortgage</th>
-              <th className="text-right px-4 py-3 text-gray-300">Farm Income</th>
+              <th className="text-right px-4 py-3 text-gray-300">STR NOI</th>
               <th className="text-right px-4 py-3 text-gray-300">Construction Int</th>
               <th className="text-right px-4 py-3 text-gray-300">Mortgage P&I</th>
               <th className="text-right px-4 py-3 text-gray-300">Net Cost</th>
@@ -166,7 +166,7 @@ export default function HomesteadDashboard() {
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.landValue)}</td>
                 <td className="text-right px-4 py-3 text-green-400">{formatCurrency(row.landEquity)}</td>
                 <td className="text-right px-4 py-3 text-red-400">{formatCurrency(row.landMortgage)}</td>
-                <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.farmIncome)}</td>
+                <td className="text-right px-4 py-3 text-emerald-400">{formatCurrency(row.strNOI)}</td>
                 <td className="text-right px-4 py-3 text-orange-400">{formatCurrency(row.constructionInterest)}</td>
                 <td className="text-right px-4 py-3 text-orange-400">{formatCurrency(row.mortgagePI)}</td>
                 <td className="text-right px-4 py-3 text-gray-300">{formatCurrency(row.netAnnualCost)}</td>
@@ -214,8 +214,8 @@ export default function HomesteadDashboard() {
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">🤝 Staffing Model</h2>
         <p className="text-gray-300 leading-relaxed">
-          Ventures staff support homestead farming — no separate payroll. Self/family/volunteer labor keeps
-          operational costs near zero while building infrastructure. Farm income grows at 3%/yr starting at age 35.
+          Self/family labor keeps operational costs near zero while building infrastructure.
+          ADU farmstay/Airbnb STR generates rental NOI starting at age 33, growing 3%/yr.
         </p>
       </div>
 
@@ -227,28 +227,28 @@ export default function HomesteadDashboard() {
             <div className="text-2xl">🏡</div>
             <div>
               <p className="font-semibold">Land Purchase at Age {assumptions.landPurchase1Age}</p>
-              <p className="text-gray-400">15+ acre property; $500K financed 80/20</p>
+              <p className="text-gray-400">25 acres middle GA; $300K financed 80/20</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="text-2xl">🏗️</div>
             <div>
               <p className="font-semibold">Construction Loan at Age {assumptions.constructionLoanAge}</p>
-              <p className="text-gray-400">$400K construction loan at 8.5% for home/infrastructure</p>
+              <p className="text-gray-400">$350K construction-to-perm at 7.5% for primary + ADU</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="text-2xl">🌾</div>
             <div>
-              <p className="font-semibold">Farm Income Starts at Age {assumptions.farmIncomeStartAge}</p>
-              <p className="text-gray-400">$50K/yr from produce/livestock sales, growing 3%/yr</p>
+              <p className="font-semibold">STR Rental Income at Age {assumptions.farmIncomeStartAge}</p>
+              <p className="text-gray-400">ADU farmstay/Airbnb — $14K/yr stabilized NOI, growing 3%/yr</p>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="text-2xl">✓</div>
             <div>
               <p className="font-semibold">Construction Loan Paid Off at Age 52</p>
-              <p className="text-gray-400">30-year mortgage amortization complete</p>
+              <p className="text-gray-400">20-year payoff from Robinhood (interest-only → lump sum)</p>
             </div>
           </div>
         </div>

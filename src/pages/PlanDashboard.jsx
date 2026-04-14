@@ -141,7 +141,7 @@ export default function PlanDashboard() {
 
   const milestones = [
     { age: 31, label: 'Divorce / Reset', icon: '🔄' },
-    { age: 32, label: '15+ Acres + Build', icon: '🌱', link: '/homestead' },
+    { age: 32, label: '25 Acres + Build', icon: '🌱', link: '/homestead' },
     { age: 33, label: 'Offshore Land', icon: '🌴', link: '/offshore' },
     { age: 35, label: 'Nigeria Land', icon: '🌍', link: '/nigeria' },
     { age: 35, label: 'Nonprofit / QOZ', icon: '💚', link: '/nonprofit' },

@@ -68,7 +68,7 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   k401Return: 8,            // 401k in standard index funds
   robinhoodReturn: 25,      // individual brokerage — aggressive fund strategy (ages 31-34)
-  robinhoodReturnPost35: 25, // same strategy continues (no shift)
+  robinhoodReturnPost35: 15, // 15% avg after 35 (diversified, less hands-on)
   marginPct: 0,             // 0% — 25% return already accounts for leveraged strategy
   marginRateLow: 5,         // margin interest rate below $500K
   marginRateHigh: 4.5,      // margin interest rate at $500K+
@@ -203,7 +203,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // Total LOC interest: ~$3,646. Alpaca earns ~$6,000 in same period. Net +$2,354.
   // ═══════════════════════════════════════════════════════════════
   v1WebullMinimum: 100000,         // $100K Alpaca entity account minimum
-  v1WebullReturn: 25,              // Same trading engine as personal RH — 25% blended return
+  v1WebullReturn: 20,              // V1 Alpaca return til 33 (aggressive early)
+  v1WebullReturnPost33: 15,        // 15% avg after 33 (scaling down as balance grows)
                                    // (includes 35% margin leverage net of interest, already baked in)
   v1RetainedPerMonth: 14000,       // $14K/mo retained above S-Corp operating expenses
   v1BonusMonth1: 25000,            // $25K one-time payment in May 2026
@@ -859,6 +860,16 @@ export function runSimulation(assumptions) {
       venturesLocDebt -= locPaydown;
     }
 
+    // V2 CAPITAL BACKSTOP: if V2 dips below $10K, inject from V1 NimbusTech (inter-company
+    // transfer — tax-free between related entities). Keeps V2 solvent so investment gains
+    // continue working. V1 is the most tax-effective source (no taxable event on transfer).
+    const v2Floor = 10000;
+    if (ventures < v2Floor && venture2 > v2Floor) {
+      const v2Injection = Math.min(venture2 * 0.05, Math.max(0, v2Floor - ventures) * 2); // inject up to 5% of V1, sized to 2x the shortfall
+      venture2 -= v2Injection;
+      ventures += v2Injection;
+    }
+
     // ═══════════════════════════════════════════════════════════
     // VENTURE 2: Alpaca entity account seeded at 32
     // $100K: $30K diverted + $10K gift + $10K loan + $50K V1 LOC
@@ -932,10 +943,10 @@ export function runSimulation(assumptions) {
       opsHubBillV2 = opsHubCost * (assumptions.opsHubBillV2Pct / 100);
       opsHubBillNp = opsHubCost * (assumptions.opsHubBillNpPct / 100);
 
-      // V1 Alpaca invested cash returns: same trading engine as personal RH
-      // 25% blended return (includes 35% margin leverage net of interest, already baked in)
+      // V1 Alpaca invested cash returns: 20% til 33, 15% avg thereafter
       const v1Equity = Math.max(0, venture2);
-      const v2InvestGain = v1Equity * (assumptions.v1WebullReturn / 100);
+      const v1ReturnRate = age <= 33 ? assumptions.v1WebullReturn : assumptions.v1WebullReturnPost33;
+      const v2InvestGain = v1Equity * (v1ReturnRate / 100);
 
       // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Alpaca + gains - costs
       // V1 pays its own ops hub bill (30%), not V2's bill

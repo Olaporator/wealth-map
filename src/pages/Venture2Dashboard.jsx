@@ -67,7 +67,7 @@ export default function Venture1Dashboard() {
       }
 
       // Employees from simulation data
-      const employees = year.v1Employees || 0;
+      const employees = year.v2Employees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
       const opsHubBillV1 = year.opsHubBillV1 || 0;
       const usHire1Cost = year.usHire1Cost || 0;

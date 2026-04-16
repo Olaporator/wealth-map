@@ -395,8 +395,8 @@ export function runSimulation(assumptions) {
   let venture2OwnIncome = 0; // Venture 2 self-generated income (grows over time)
   let venture3 = 0;           // Venture 3 reserves
   let venture3Employees = 0;  // Estimated employees affordable
-  let v1Employees = 0;        // Venture 1 headcount
-  let v2Employees = 0;        // Venture 2 headcount
+  let v2AgroUSHires = 0;      // V2 Agro US headcount (groundskeeper, house mgr, ops coord)
+  let v1NtUSHires = 0;        // V1 NimbusTech US headcount (always 0 — ops hub handles admin)
   let npEmployees = 0;        // Nonprofit headcount
   let opsHubEmployees = 0;    // Nigeria ops hub headcount
   let opsHubCost = 0;         // Annual ops hub cost
@@ -827,21 +827,21 @@ export function runSimulation(assumptions) {
     // Investment gains offset staff/ops costs; profits pay down LOC
     // V1 (sim: ventures = V2 Agro on display) Staffing: 3 phased US hires
     usHire1Cost = 0; usHire2Cost = 0; usHire3Cost = 0;
-    v1Employees = 0;
+    v2AgroUSHires = 0;
     if (age >= assumptions.usHire1StartAge) {
       const h1Years = age - assumptions.usHire1StartAge;
       usHire1Cost = assumptions.usHire1StartPay * Math.pow(1 + assumptions.usHire1Raise / 100, h1Years);
-      v1Employees += 0.5; // part-time
+      v2AgroUSHires += 0.5; // part-time
     }
     if (age >= assumptions.usHire2StartAge) {
       const h2Years = age - assumptions.usHire2StartAge;
       usHire2Cost = assumptions.usHire2StartPay * Math.pow(1 + assumptions.usHire2Raise / 100, h2Years);
-      v1Employees += 0.5; // part-time
+      v2AgroUSHires += 0.5; // part-time
     }
     if (age >= assumptions.usHire3StartAge) {
       const h3Years = age - assumptions.usHire3StartAge;
       usHire3Cost = assumptions.usHire3StartPay * Math.pow(1 + assumptions.usHire3Raise / 100, h3Years);
-      v1Employees += 0.5; // part-time (halved footprint)
+      v2AgroUSHires += 0.5; // part-time (halved footprint)
     }
     const v1StaffCost = usHire1Cost + usHire2Cost + usHire3Cost;
     // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)
@@ -917,7 +917,7 @@ export function runSimulation(assumptions) {
       v2SelfIncome = venture2OwnIncome;
 
       // V2 (sim: venture2 = V1 NimbusTech on display) Staffing: no dedicated US staff — ops hub handles admin
-      v2Employees = 0;
+      v1NtUSHires = 0;
       const v2StaffCost = 0;
 
       // Nigeria Ops Hub (V2 subsidiary): centralized back-office for all entities
@@ -1319,8 +1319,8 @@ export function runSimulation(assumptions) {
       npLandDonationFmv: Math.round(npLandDonationFmv),
       npLandDonationTaxSavings: Math.round(npLandDonationTaxSavings),
       venture3: Math.round(venture3),
-      v1Employees,
-      v2Employees,
+      v1Employees: v1NtUSHires,     // V1 NimbusTech US headcount (always 0)
+      v2Employees: v2AgroUSHires,   // V2 Agro US headcount (groundskeeper, house mgr, ops coord)
       npEmployees,
       opsHubEmployees,
       usHire1Cost: Math.round(usHire1Cost),

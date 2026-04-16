@@ -41,7 +41,7 @@ export default function Venture2Dashboard() {
       const locPaydown = ((investGain + v2SelfIncome) * 0.5);
 
       // Employees from simulation data
-      const employees = year.v2Employees || 0;
+      const employees = year.v1Employees || 0;
       const opsHubEmployees = year.opsHubEmployees || 0;
       const opsHubCost = year.opsHubCost || 0;
       const opsHubBillV1 = year.opsHubBillV1 || 0;

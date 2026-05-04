@@ -335,24 +335,23 @@ export const DEFAULT_ASSUMPTIONS = {
 
   // ═══════════════════════════════════════════════════════════════
   // INCOME PHASES (NT S-Corp → W2 salary + distributions)
-  // Phase 1-2: NT consulting at capacity
-  // Phase 3+: transitioning to land business
+  // Consulting ends at 35 — fully off W2 after that
   // ═══════════════════════════════════════════════════════════════
-  // Phase 1 (31-35): NT at full capacity + additional work ($207K + $80K)
+  // Phase 1 (31, first half of 32): NT base + $80K additional ($207K + $80K)
   phase1NTRevenue: 287000,
 
-  // Phase 2 (36-37): Transition — NT winds down + additional work ($150K + $80K)
-  phase2NTRevenue: 230000,
+  // Phase 2 (end of 32 through 35): NT base + $80K + $70K new project ($207K + $80K + $70K)
+  phase2NTRevenue: 357000,
 
-  // Phase 3 (38-39): Winding down NT + additional work ($80K + $80K)
-  phase3NTRevenue: 160000,
+  // Phase 3: N/A — consulting done at 35
+  phase3NTRevenue: 0,
 
-  // Phase 4 (39-45): Building phase — land business growing
-  phase4NTRevenue: 80000,
+  // Phase 4 (36-45): Off consulting — land business growing
+  phase4NTRevenue: 0,
   phase4BusinessIncome: 0,       // starts at 0, grows $15K/yr
 
   // Phase 5 (46+): Coast mode — land business mature
-  phase5NTRevenue: 80000,
+  phase5NTRevenue: 0,
   phase5BusinessIncome: 150000,
   phase5BusinessGrowth: 5000,
 
@@ -428,19 +427,17 @@ export function runSimulation(assumptions) {
     let businessIncome = 0;
     let staffExpenses = 0;
 
-    if (age <= 35) {
-      ntRevenue = assumptions.phase1NTRevenue;
-    } else if (age <= 37) {
-      ntRevenue = assumptions.phase2NTRevenue;
-    } else if (age <= 39) {
-      ntRevenue = assumptions.phase3NTRevenue; // $80K — last year of work is 39
+    if (age <= 31) {
+      ntRevenue = assumptions.phase1NTRevenue; // $287K (base $207K + $80K additional)
+    } else if (age <= 35) {
+      ntRevenue = assumptions.phase2NTRevenue; // $357K (+ $70K new project from end of 32)
     } else {
-      // Age 40+: fully off consulting — RH funds make up the difference
+      // Age 36+: fully off consulting
       ntRevenue = 0;
       businessIncome = age <= 45
-        ? Math.max(0, (age - 39) * 15000) + assumptions.phase4BusinessIncome
+        ? Math.max(0, (age - 35) * 15000) + assumptions.phase4BusinessIncome
         : assumptions.phase5BusinessIncome + (age - 46) * assumptions.phase5BusinessGrowth;
-      staffExpenses = age <= 40 ? 35000 : Math.min(35000 + (age - 40) * 10000, assumptions.staffExpensesMax);
+      staffExpenses = age <= 36 ? 35000 : Math.min(35000 + (age - 36) * 10000, assumptions.staffExpensesMax);
     }
 
     // First year proration: starting Apr 8, 2026 — ~8.7 months remaining
@@ -455,7 +452,7 @@ export function runSimulation(assumptions) {
     // Revenue → W2 + payroll → S-Corp deductible expenses → taxable distributions
     // Deductions reduce the taxable base; remainder invested in S-Corp Alpaca
     // ═══════════════════════════════════════════════════════════
-    const w2Gross = age >= 40 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 40 (last year 39)
+    const w2Gross = age >= 36 ? 0 : Math.min(assumptions.w2Gross, ntRevenue); // W2 stops at 36 (last year 35)
     const employerPayrollTax = w2Gross * (assumptions.employerPayrollTaxRate / 100);
     const ntOverhead = w2Gross + employerPayrollTax;
 

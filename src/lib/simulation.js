@@ -234,19 +234,32 @@ export const DEFAULT_ASSUMPTIONS = {
   v2SeedLocAmount: 50000,         // from V1 LOC at 9%
   v2SeedLocRepayMonths: 6,        // pay back LOC portion in 6 months
   v2SeedTotal: 100000,            // total Alpaca deposit (meets $100K minimum)
-  // V2 Staffing: 3 phased US hires — real pay, early starts (NW headroom is massive)
-  // Hire 1: Groundskeeper — starts age 33 (construction year), $15K/yr (part-time), 7%/yr raises
+  // V2 Staffing: 2 part-time US hires (10hrs/wk each = 0.25 FTE per person)
+  // 3:2:1 ratio — Nigeria:V2 Agro:Nonprofit
+  // Hire 1: Groundskeeper/Caretaker — starts age 33 (construction year), 10hrs/wk
   usHire1StartAge: 33,
-  usHire1StartPay: 15000,
-  usHire1Raise: 7,
-  // Hire 2: House Manager — starts age 35 (STR launch year, runs guest ops), $15K/yr, 7%/yr raises
+  usHire1StartPay: 8000,     // ~$15/hr × 10hrs × 52wks
+  usHire1Raise: 5,
+  // Hire 2: House Manager/STR Ops — starts age 35 (STR launch), 10hrs/wk
   usHire2StartAge: 35,
-  usHire2StartPay: 15000,
-  usHire2Raise: 7,
-  // Hire 3: Ops Coordinator — starts age 38, $20K/yr (part-time), 7%/yr raises
-  usHire3StartAge: 38,
-  usHire3StartPay: 20000,
-  usHire3Raise: 7,
+  usHire2StartPay: 8000,     // ~$15/hr × 10hrs × 52wks
+  usHire2Raise: 5,
+  // Hire 3: N/A — removed (lean 10:2:1 ratio pre-40)
+  usHire3StartAge: 999,      // effectively disabled
+  usHire3StartPay: 0,
+  usHire3Raise: 0,
+  // POST-40 STAFFING GROWTH PHASE (10:2:1 ratio maintained)
+  // Funded by V1→V2 and V1→NP inter-company transfers
+  staffGrowthPhase2Age: 40,       // when scaling ramps up
+  opsHubGrowthRatePhase2: 2,      // +2 Nigeria staff/yr after 40
+  opsHubMaxStaffPhase2: 50,       // uncapped growth through 60 (up to 50)
+  v2AgroHirePayBase: 8000,        // new PT hires after 40 start at same $8K (10hrs/wk)
+  v2AgroHireRaise: 5,             // 5% annual raise
+  npHirePayBase: 6000,            // NP hires (Nigeria-based, same cost structure)
+  npHireRaise: 7,                 // 7% annual raise (matches ops hub)
+  // V1→V2/NP transfer: fund expanded staff costs from V1 NimbusTech
+  v1TransferToV2Pct: 3,           // up to 3% of V1 balance → V2 for staff
+  v1TransferToNpPct: 1.5,         // up to 1.5% of V1 balance → NP for staff
 
   // ═══════════════════════════════════════════════════════════════
   // NIGERIA OPS HUB — V2 subsidiary, centralized back-office for ALL entities
@@ -255,8 +268,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // ═══════════════════════════════════════════════════════════════
   opsHubStartAge: 32,            // ops hub launches at 32 (year 1 on land — admin from day 1)
   opsHubInitialStaff: 3,         // 3 employees from day 1 (admin, bookkeeping, social/marketing)
-  opsHubGrowthInterval: 1,       // add 1 employee every year (faster ramp — plenty of headroom)
-  opsHubMaxStaff: 10,            // cap hub at 10 (expanded scope across all entities)
+  opsHubGrowthInterval: 1,       // add 1 employee every year
+  opsHubMaxStaff: 10,            // cap hub at 10 (10:2:1 ratio with V2 Agro + Nonprofit)
   opsHubEmployeeCostBase: 6000,   // $6K/yr starting salary per Nigerian employee
   opsHubEmployeeRaise: 7,         // 7% annual raise per employee (competitive for Nigeria)
   opsHubCpaFee: 5000,            // $5K/yr minimal US CPA fee to officialize filings
@@ -822,25 +835,49 @@ export function runSimulation(assumptions) {
     }
     // Ventures: staff costs + overhead funded via LOC, cash stays invested
     // Investment gains offset staff/ops costs; profits pay down LOC
-    // V1 (sim: ventures = V2 Agro on display) Staffing: 3 phased US hires
+    // V2 Agro Staffing: 2 base PT US hires + dynamic scaling after 40 (10:2:1 ratio)
     usHire1Cost = 0; usHire2Cost = 0; usHire3Cost = 0;
     v2AgroUSHires = 0;
+    let v2AgroPhase2Cost = 0; // cost of additional hires after 40
     if (age >= assumptions.usHire1StartAge) {
       const h1Years = age - assumptions.usHire1StartAge;
       usHire1Cost = assumptions.usHire1StartPay * Math.pow(1 + assumptions.usHire1Raise / 100, h1Years);
-      v2AgroUSHires += 0.5; // part-time
+      v2AgroUSHires += 1; // 1 person, 10hrs/wk (0.25 FTE)
     }
     if (age >= assumptions.usHire2StartAge) {
       const h2Years = age - assumptions.usHire2StartAge;
       usHire2Cost = assumptions.usHire2StartPay * Math.pow(1 + assumptions.usHire2Raise / 100, h2Years);
-      v2AgroUSHires += 0.5; // part-time
+      v2AgroUSHires += 1; // 1 person, 10hrs/wk (0.25 FTE)
     }
     if (age >= assumptions.usHire3StartAge) {
       const h3Years = age - assumptions.usHire3StartAge;
       usHire3Cost = assumptions.usHire3StartPay * Math.pow(1 + assumptions.usHire3Raise / 100, h3Years);
-      v2AgroUSHires += 0.5; // part-time (halved footprint)
+      v2AgroUSHires += 1; // disabled (age 999)
     }
-    const v1StaffCost = usHire1Cost + usHire2Cost + usHire3Cost;
+    // Phase 2 scaling: 10:2:1 ratio → for every 10 Nigeria, 2 V2 Agro PT US hires
+    // Base ratio has 2 hires at 10 Nigeria. After 40, add 2 more per 10 new Nigeria staff
+    if (age >= assumptions.staffGrowthPhase2Age) {
+      const phase2Years = age - assumptions.staffGrowthPhase2Age;
+      const totalNigeria = Math.min(
+        assumptions.opsHubMaxStaffPhase2,
+        assumptions.opsHubMaxStaff + phase2Years * assumptions.opsHubGrowthRatePhase2
+      );
+      // V2 Agro target = totalNigeria / 5 (10:2 ratio = 5:1)
+      const v2AgroTarget = Math.floor(totalNigeria / 5);
+      const extraV2Hires = Math.max(0, v2AgroTarget - 2); // subtract the 2 base hires
+      // Cost for extra hires: each starts at $8K with 5% raises from their hire year
+      for (let i = 0; i < extraV2Hires; i++) {
+        // Stagger: hire i started (i * 2.5) years after phase 2 began (every 5 Nigeria = 1 new V2)
+        const hireAge = assumptions.staffGrowthPhase2Age + Math.floor((i + 1) * 5 / assumptions.opsHubGrowthRatePhase2);
+        if (age >= hireAge) {
+          const yearsActive = age - hireAge;
+          v2AgroPhase2Cost += assumptions.v2AgroHirePayBase * Math.pow(1 + assumptions.v2AgroHireRaise / 100, yearsActive);
+          // Only count headcount for hires that have actually started
+          if (i >= 0) v2AgroUSHires += 1;
+        }
+      }
+    }
+    const v1StaffCost = usHire1Cost + usHire2Cost + usHire3Cost + v2AgroPhase2Cost;
     // Overhead reduced once ops hub is running (handles admin/accounting/HR centrally)
     const v1OverheadRate = age >= assumptions.opsHubStartAge ? 0.01 : 0.03; // 3% → 1% with ops hub
     const venturesOpsOverhead = Math.max(0, ventures) * v1OverheadRate;
@@ -865,6 +902,19 @@ export function runSimulation(assumptions) {
       const v2Injection = Math.min(venture2 * 0.05, Math.max(0, v2Floor - ventures) * 2); // inject up to 5% of V1, sized to 2x the shortfall
       venture2 -= v2Injection;
       ventures += v2Injection;
+    }
+
+    // POST-40 INTER-COMPANY TRANSFERS: V1 funds V2 Agro + Nonprofit staff expansion
+    // Tax-free between related entities. Sized to cover phase 2 staff costs.
+    let v1ToV2Transfer = 0;
+    let v1ToNpTransfer = 0;
+    if (age >= assumptions.staffGrowthPhase2Age && venture2 > 50000) {
+      // V1→V2: cover phase 2 V2 Agro staff costs (capped at % of V1 balance)
+      if (v2AgroPhase2Cost > 0) {
+        v1ToV2Transfer = Math.min(v2AgroPhase2Cost * 1.2, venture2 * (assumptions.v1TransferToV2Pct / 100));
+        venture2 -= v1ToV2Transfer;
+        ventures += v1ToV2Transfer;
+      }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -922,10 +972,21 @@ export function runSimulation(assumptions) {
       // Costs split via inter-company billing (tax-free between related entities)
       if (age >= assumptions.opsHubStartAge) {
         const hubYears = age - assumptions.opsHubStartAge;
-        opsHubEmployees = Math.min(
+        // Phase 1: grow from 3 → 10 (1/yr) until staffGrowthPhase2Age
+        const phase1Staff = Math.min(
           assumptions.opsHubMaxStaff,
           assumptions.opsHubInitialStaff + Math.floor(hubYears / assumptions.opsHubGrowthInterval)
         );
+        // Phase 2: after 40, accelerate growth at +2/yr from 10
+        if (age >= assumptions.staffGrowthPhase2Age) {
+          const phase2Years = age - assumptions.staffGrowthPhase2Age;
+          opsHubEmployees = Math.min(
+            assumptions.opsHubMaxStaffPhase2,
+            assumptions.opsHubMaxStaff + phase2Years * assumptions.opsHubGrowthRatePhase2
+          );
+        } else {
+          opsHubEmployees = phase1Staff;
+        }
       } else {
         opsHubEmployees = 0;
       }
@@ -979,8 +1040,11 @@ export function runSimulation(assumptions) {
       const npInvestGain = Math.max(0, nonprofit) * (assumptions.nonprofitInvestReturn / 100);
 
       // Nonprofit Staffing: Mom as volunteer ED (age 35-44) → Hired ED (age 45+)
+      // + Phase 2 scaling after 40 (10:2:1 ratio → 1 NP hire per 10 Nigeria)
       npMomCost = 0;
       npEDCost = 0;
+      let npPhase2Cost = 0;
+      let npPhase2Hires = 0;
       if (age >= assumptions.npMomStartAge && age < assumptions.npHiredEDStartAge) {
         // Mom phase: $5K stipend + 20%/yr growth
         const momYears = age - assumptions.npMomStartAge;
@@ -994,7 +1058,33 @@ export function runSimulation(assumptions) {
       } else {
         npEmployees = 0;
       }
-      const npStaffCost = npMomCost + npEDCost;
+      // Phase 2 NP scaling: 10:2:1 ratio → 1 NP hire per 10 Nigeria staff
+      if (age >= assumptions.staffGrowthPhase2Age) {
+        const phase2Years = age - assumptions.staffGrowthPhase2Age;
+        const totalNigeria = Math.min(
+          assumptions.opsHubMaxStaffPhase2,
+          assumptions.opsHubMaxStaff + phase2Years * assumptions.opsHubGrowthRatePhase2
+        );
+        const npTarget = Math.floor(totalNigeria / 10);
+        const extraNpHires = Math.max(0, npTarget - 1); // subtract the 1 base NP (mom/ED)
+        for (let i = 0; i < extraNpHires; i++) {
+          const hireAge = assumptions.staffGrowthPhase2Age + Math.floor((i + 1) * 10 / assumptions.opsHubGrowthRatePhase2);
+          if (age >= hireAge) {
+            const yearsActive = age - hireAge;
+            npPhase2Cost += assumptions.npHirePayBase * Math.pow(1 + assumptions.npHireRaise / 100, yearsActive);
+            npPhase2Hires += 1;
+          }
+        }
+        npEmployees += npPhase2Hires;
+      }
+      const npStaffCost = npMomCost + npEDCost + npPhase2Cost;
+
+      // V1→NP TRANSFER: fund phase 2 NP staff expansion from V1 NimbusTech
+      if (age >= assumptions.staffGrowthPhase2Age && npPhase2Cost > 0 && venture2 > 50000) {
+        v1ToNpTransfer = Math.min(npPhase2Cost * 1.2, venture2 * (assumptions.v1TransferToNpPct / 100));
+        venture2 -= v1ToNpTransfer;
+        nonprofit += v1ToNpTransfer;
+      }
 
       // Ops costs: staff + overhead funded via LOC (programs, admin)
       // Overhead reduced once ops hub handles admin/accounting centrally
@@ -1325,6 +1415,8 @@ export function runSimulation(assumptions) {
       usHire3Cost: Math.round(usHire3Cost),
       npMomCost: Math.round(npMomCost),
       npEDCost: Math.round(npEDCost),
+      v1ToV2Transfer: Math.round(v1ToV2Transfer),
+      v1ToNpTransfer: Math.round(v1ToNpTransfer),
       opsHubCost: Math.round(opsHubCost),
       opsHubCostPerEmployee: opsHubEmployees > 0 ? Math.round((opsHubCost - assumptions.opsHubCpaFee) / opsHubEmployees) : 0,
       opsHubBillV1: Math.round(opsHubBillV1),

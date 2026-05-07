@@ -67,8 +67,9 @@ export const DEFAULT_ASSUMPTIONS = {
   // RETURNS & APPRECIATION
   // ═══════════════════════════════════════════════════════════════
   k401Return: 8,            // 401k in standard index funds
-  robinhoodReturn: 25,      // individual brokerage — aggressive fund strategy (ages 31-34)
+  robinhoodReturn: 44,      // individual brokerage — aggressive fund strategy (ages 31-34)
   robinhoodReturnPost35: 15, // 15% avg after 35 (diversified, less hands-on)
+  rhConsolidateToV1Age: 31, // port RH funds → V1 Alpaca at end of May 2026 (age 31)
   marginPct: 0,             // 0% — 25% return already accounts for leveraged strategy
   marginRateLow: 5,         // margin interest rate below $500K
   marginRateHigh: 4.5,      // margin interest rate at $500K+
@@ -203,8 +204,8 @@ export const DEFAULT_ASSUMPTIONS = {
   // Total LOC interest: ~$3,646. Alpaca earns ~$6,000 in same period. Net +$2,354.
   // ═══════════════════════════════════════════════════════════════
   v1WebullMinimum: 100000,         // $100K Alpaca entity account minimum
-  v1WebullReturn: 20,              // V1 Alpaca return til 33 (aggressive early)
-  v1WebullReturnPost33: 15,        // 15% avg after 33 (scaling down as balance grows)
+  v1WebullReturn: 44,              // V1 Alpaca return til 33 (aggressive early — Bayesian/momentum regime)
+  v1WebullReturnPost33: 15,        // 15% avg after 34 (scaling down as balance grows)
                                    // (includes 35% margin leverage net of interest, already baked in)
   v1RetainedPerMonth: 14000,       // $14K/mo retained above S-Corp operating expenses
   v1BonusMonth1: 25000,            // $25K one-time payment in May 2026
@@ -799,17 +800,19 @@ export function runSimulation(assumptions) {
     const grossGrowth = totalInvested * (rhReturn / 100);
     // Robinhood: personal brokerage grows on its own, gets minimal new inflows
     // Distributions now go to S-Corp Alpaca (V1), not personal RH
-    // CAP: once RH hits $100K, new inflows redirect to V1 Alpaca
+    // CAP: once RH hits cap (or after consolidation to V1), new inflows redirect to V1 Alpaca
+    // After RH→V1 consolidation, all inflows go straight to V1 (effective cap = 0)
+    const effectiveRhCap = age > assumptions.rhConsolidateToV1Age ? 0 : assumptions.robinhoodCap;
     let rhNewInflows = freeCashToRobinhood + distroToPersonal;
     let rhOverflowToV1 = 0;
     const rhBeforeInflows = robinhood + grossGrowth - marginInterest - rhPullFreeCash;
-    if (rhBeforeInflows >= assumptions.robinhoodCap && rhNewInflows > 0) {
+    if (rhBeforeInflows >= effectiveRhCap && rhNewInflows > 0) {
       // Already at/above cap — redirect ALL new inflows to V1
       rhOverflowToV1 = rhNewInflows;
       rhNewInflows = 0;
-    } else if (rhBeforeInflows + rhNewInflows > assumptions.robinhoodCap && rhNewInflows > 0) {
+    } else if (rhBeforeInflows + rhNewInflows > effectiveRhCap && rhNewInflows > 0) {
       // Inflows would push past cap — take only what's needed to reach cap
-      const room = Math.max(0, assumptions.robinhoodCap - rhBeforeInflows);
+      const room = Math.max(0, effectiveRhCap - rhBeforeInflows);
       rhOverflowToV1 = rhNewInflows - room;
       rhNewInflows = room;
     }
@@ -1001,9 +1004,9 @@ export function runSimulation(assumptions) {
       opsHubBillV2 = opsHubCost * (assumptions.opsHubBillV2Pct / 100);
       opsHubBillNp = opsHubCost * (assumptions.opsHubBillNpPct / 100);
 
-      // V1 Alpaca invested cash returns: 20% til 33, 15% avg thereafter
+      // V1 Alpaca invested cash returns: 44% til 34, 15% avg thereafter
       const v1Equity = Math.max(0, venture2);
-      const v1ReturnRate = age <= 33 ? assumptions.v1WebullReturn : assumptions.v1WebullReturnPost33;
+      const v1ReturnRate = age <= 34 ? assumptions.v1WebullReturn : assumptions.v1WebullReturnPost33;
       const v2InvestGain = v1Equity * (v1ReturnRate / 100);
 
       // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Alpaca + gains - costs
@@ -1107,23 +1110,27 @@ export function runSimulation(assumptions) {
       }
     }
 
-    // Debt payoff at 52 (20yr from 32) — construction loan is personal homestead debt → paid from RH ($350K)
+    // Debt payoff at 52 (20yr from 32) — construction loan is personal homestead debt
     // Construction is interest-only, so payoff = original draw amount ($350K)
+    // After RH→V1 consolidation, payoff comes from V1 Alpaca (entity account, LTCG still applies)
     if (age === assumptions.constructionLoanAge + 20) {
       const constructionPayoff = assumptions.constructionLoanAmount; // $350K — interest-only, no amortization
       if (constructionPayoff > 0 && landMortgage >= constructionPayoff) {
-        robinhood -= constructionPayoff * 1.08; // principal + ~8% LTCG tax (personal account)
+        const payoffWithTax = constructionPayoff * 1.08; // principal + ~8% LTCG tax
+        if (robinhood >= payoffWithTax) {
+          robinhood -= payoffWithTax;
+        } else {
+          // RH consolidated → pull from V1 Alpaca
+          venture2 -= payoffWithTax;
+        }
         landMortgage -= constructionPayoff;
         landEquity += constructionPayoff;
       }
     }
-    // Ventures LOC payoff: split between V1 Alpaca and RH based on available balances
+    // Ventures LOC payoff: from V1 Alpaca (RH consolidated into V1)
     if (age === assumptions.venturesLocAge + 20) {
       if (venturesLocDebt > 0) {
-        const v1SharePayoff = Math.min(Math.max(0, venture2 * 0.5), venturesLocDebt);
-        const rhSharePayoff = venturesLocDebt - v1SharePayoff;
-        venture2 -= v1SharePayoff;
-        robinhood -= rhSharePayoff * 1.08; // LTCG on personal portion
+        venture2 -= venturesLocDebt * 1.08; // full payoff from V1 + LTCG
         venturesLocDebt = 0;
       }
     }
@@ -1279,42 +1286,27 @@ export function runSimulation(assumptions) {
         approxAgi * (assumptions.npLandDonationAgiCapPct / 100)
       );
       npLandDonationTaxSavings = deductibleThisYear * (assumptions.npLandDonationMarginalRate / 100);
-      // Tax savings arrive as a refund → credited to RH if under cap, else V1 Alpaca
-      if (robinhood < assumptions.robinhoodCap) {
-        const room = assumptions.robinhoodCap - robinhood;
-        const toRh = Math.min(npLandDonationTaxSavings, room);
-        robinhood += toRh;
-        venture2 += npLandDonationTaxSavings - toRh;
-      } else {
-        venture2 += npLandDonationTaxSavings;
-      }
+      // Tax savings arrive as a refund → V1 Alpaca (RH consolidated into V1)
+      venture2 += npLandDonationTaxSavings;
     }
     // NP land appreciates alongside personal land
     if (npLandValue > 0) {
       npLandValue = npLandValue * (1 + assumptions.landAppreciation / 100);
     }
 
-    // Offshore (Belize/Costa Rica): cash purchase at 33 — split between V1 Alpaca (primary) and RH
+    // Offshore (Belize/Costa Rica): cash purchase at 33 — funded from V1 Alpaca
+    // (RH consolidated into V1 at 31, so V1 is the primary capital source)
     if (age === assumptions.offshorePurchaseAge) {
-      // V1 Alpaca funds up to what it can afford; RH covers the rest
-      const v1CanAfford = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
-      const fromV1 = Math.min(v1CanAfford, assumptions.offshorePurchasePrice);
-      const fromRH = assumptions.offshorePurchasePrice - fromV1;
-      venture2 -= fromV1;
-      robinhood -= fromRH;
+      venture2 -= assumptions.offshorePurchasePrice;
       offshoreEquity += assumptions.offshorePurchasePrice;
     }
     if (offshoreEquity > 0) {
       offshoreEquity = offshoreEquity * (1 + assumptions.offshoreAppreciation / 100);
     }
 
-    // Nigeria: cash purchase at 36 — split between V1 Alpaca (primary) and RH
+    // Nigeria: cash purchase at 36 — funded from V1 Alpaca
     if (age === assumptions.nigeriaPurchaseAge) {
-      const v1CanAffordNg = Math.max(0, venture2 * 0.4); // use up to 40% of V1 balance
-      const fromV1Ng = Math.min(v1CanAffordNg, assumptions.nigeriaPurchasePrice);
-      const fromRHNg = assumptions.nigeriaPurchasePrice - fromV1Ng;
-      venture2 -= fromV1Ng;
-      robinhood -= fromRHNg;
+      venture2 -= assumptions.nigeriaPurchasePrice;
       nigeriaEquity += assumptions.nigeriaPurchasePrice;
     }
     if (nigeriaEquity > 0) {
@@ -1370,6 +1362,14 @@ export function runSimulation(assumptions) {
 
     const safeWithdrawal = netWorth * (assumptions.safeWithdrawalRate / 100);
     const passiveIncome = Math.max(0, ayoolaRentalShare) + businessIncome + safeWithdrawal;
+
+    // RH → V1 CONSOLIDATION: port Robinhood funds to V1 Alpaca (end of May 2026)
+    // After transfer, RH balance = 0 and V1 gets the capital (invested at 44% til 34)
+    // Placed at end of year to capture all land purchases, Seattle proceeds, etc. first
+    if (age === assumptions.rhConsolidateToV1Age && robinhood > 0) {
+      venture2 += robinhood; // V1 Alpaca gets RH funds
+      robinhood = 0;
+    }
 
     years.push({
       age,

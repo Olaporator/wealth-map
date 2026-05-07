@@ -118,8 +118,8 @@ export const DEFAULT_ASSUMPTIONS = {
   robinhoodCap: 250000,     // keep RH liquid up to $250K before overflow → V1 Alpaca
   rhPullStartAge: 36,       // delay pulls until 36 — keep liquid through build + STR ramp
   rhPullPersonalPct: 5,     // 5% of Robinhood gains → personal
-  rhPullQozPct: 15,         // 15% of Robinhood gains → QOZ (down from 20% — prioritize liquidity)
-  rhPullQozStartAge: 36,    // QOZ contributions start at 36 (not 31 — keep liquid early)
+  rhPullQozPct: 15,         // 15% of distributions → QOZ
+  rhPullQozStartAge: 32,    // QOZ contributions start at 32 (when V1 launches)
   freeCashToQozPct: 40,     // 40% of positive free cash → QOZ (down from 66% — rest stays liquid)
   homeAppreciation: 6,      // Seattle home appreciation
   landAppreciation: 4,      // rural land appreciation
@@ -753,7 +753,7 @@ export function runSimulation(assumptions) {
     // ═══════════════════════════════════════════════════════════
     const grossFreeCash = totalPersonalIn - totalPersonalOut;
     let freeCashToRobinhood = 0;
-    const freeCashToQoz = 0;
+    let freeCashToQoz = 0;
     let freeCash = 0;
 
     // CC interest on carried balance from last year
@@ -761,10 +761,15 @@ export function runSimulation(assumptions) {
     ccDebt += ccInterest; // interest accrues
 
     if (grossFreeCash >= 0) {
-      // Surplus: pay down CC debt first, remainder → Robinhood
+      // Surplus: pay down CC debt first, remainder split between V1 (via RH path) and QOZ
       const ccPaydown = Math.min(ccDebt, grossFreeCash);
       ccDebt -= ccPaydown;
-      freeCashToRobinhood = grossFreeCash - ccPaydown;
+      const surplus = grossFreeCash - ccPaydown;
+      // Route % of surplus to QOZ if active
+      if (age >= assumptions.rhPullQozStartAge && surplus > 0) {
+        freeCashToQoz = surplus * (assumptions.freeCashToQozPct / 100);
+      }
+      freeCashToRobinhood = surplus - freeCashToQoz;
       freeCash = 0; // no idle cash — everything deployed
     } else {
       // Deficit: goes on credit cards instead of pulling from RH
@@ -1009,11 +1014,22 @@ export function runSimulation(assumptions) {
       const v1ReturnRate = age <= 34 ? assumptions.v1WebullReturn : assumptions.v1WebullReturnPost33;
       const v2InvestGain = v1Equity * (v1ReturnRate / 100);
 
+      // V1 GAIN-SHARING: trading strategy benefits all entities — V1 routes
+      // a share of investment gains to V2 Agro and QOZ (inter-company, tax-free)
+      let v1ToV2GainShare = 0;
+      let v1ToQozGainShare = 0;
+      if (v2InvestGain > 0 && age >= assumptions.venture2StartAge) {
+        v1ToV2GainShare = v2InvestGain * 0.05;  // 5% of V1 gains → V2 Agro
+        v1ToQozGainShare = v2InvestGain * 0.03; // 3% of V1 gains → QOZ
+        ventures += v1ToV2GainShare;
+        qozFund += v1ToQozGainShare;
+      }
+
       // Update V1 NimbusTech (sim: venture2): LOC + income + distros to Alpaca + gains - costs
       // V1 pays its own ops hub bill (30%), not V2's bill
       venture2Loc = Math.max(0, venture2Loc + v2LocDraw - v2PrincipalPaydown);
       // distroToV1Webull already added above (outside venture2StartAge gate)
-      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost - opsHubBillV1;
+      venture2 = venture2 + v2LocDraw + v2SelfIncome + v2InvestGain - v2StaffCost - opsHubBillV1 - v1ToV2GainShare - v1ToQozGainShare;
       // Investment profits + self income pay down LOC
       if ((v2InvestGain + v2SelfIncome) > 0 && venture2Loc > 0) {
         const v2LocPaydown = Math.min(venture2Loc, (v2InvestGain + v2SelfIncome) * 0.5); // 50% of gains → LOC paydown

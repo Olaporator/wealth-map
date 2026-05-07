@@ -15,7 +15,6 @@ const DESCRIPTIONS = {
   freeCash: "Annual surplus after taxes, expenses, contributions, and debt service",
   netWorth: "Total assets minus liabilities (Ayoola's share only)",
   ayoolaIncome: "Ayoola's W2 salary from NimbusTech S-Corp",
-  robinhood: "Robinhood Individual Brokerage — receives S-Corp distributions + Ayoola's fund strategy at 25% returns (no margin leverage)",
   distributions: "S-Corp distributions — NT revenue minus W2 salary and employer payroll taxes, taxed as personal income, flows to Robinhood",
   w2: "W2 salary from NimbusTech S-Corp — $40/hr via Gusto",
 };
@@ -91,7 +90,6 @@ export default function PlanDashboard() {
   const getPieData = (ageData) => {
     if (!ageData) return [];
     return [
-      { name: 'Robinhood', value: ageData.robinhood, desc: DESCRIPTIONS.robinhood },
       { name: '401k/IRA', value: ageData.k401 + ageData.ira, desc: DESCRIPTIONS.k401 },
       { name: 'Home Build', value: ageData.homeBuild, desc: 'Cumulative home development investment on land — $20K/yr from ventures fund' },
       { name: 'Land', value: ageData.totalLandEquity, desc: 'All property equity: US primary + offshore (Belize/CR) + Nigeria + city rentals' },
@@ -188,7 +186,6 @@ export default function PlanDashboard() {
               <YAxis stroke="#9CA3AF" tick={{ fontSize: 10 }} tickFormatter={formatCurrency} />
               <Tooltip content={<CustomChartTooltip />} />
               <ReferenceLine x={targetAge1} stroke="#10B981" strokeDasharray="5 5" strokeWidth={2} />
-              <Area type="monotone" dataKey="robinhood" stackId="1" stroke="#F97316" fill="#F97316" name="Robinhood" />
               <Area type="monotone" dataKey="totalLandEquity" stackId="1" stroke="#F59E0B" fill="#F59E0B" name="Land" />
               <Area type="monotone" dataKey="homeBuild" stackId="1" stroke="#10B981" fill="#10B981" name="Home Build" />
               <Area type="monotone" dataKey="k401" stackId="1" stroke="#8B5CF6" fill="#8B5CF6" name="401k/IRA" />
@@ -377,7 +374,6 @@ export default function PlanDashboard() {
   const getNetWorthBreakdown = (d) => {
     if (!d) return [];
     return [
-      { label: 'Robinhood', value: d.robinhood, color: 'text-orange-400' },
       { label: '401k/IRA', value: d.k401 + d.ira, color: 'text-purple-400' },
       { label: 'Home Build', value: d.homeBuild, color: 'text-emerald-400' },
       { label: 'Land', value: d.landEquity, color: 'text-amber-400' },
@@ -620,12 +616,10 @@ export default function PlanDashboard() {
             <thead className="sticky top-0 bg-gray-900 z-10">
             <tr className="border-b border-gray-800 text-gray-400">
               <th className="p-2 text-left">Age</th>
-              <TableHeader id="robinhood" label="Robinhood" color="text-orange-400" />
               <TableHeader id="k401" label="401k/IRA" color="text-purple-400" />
               <TableHeader id="land" label="Land" color="text-amber-400" link="/homestead" />
               <TableHeader id="venture1" label="V1 NimbusTech" color="text-purple-400" link="/venture1" />
               <TableHeader id="venture2" label="V2 Agro" color="text-lime-400" link="/venture2" />
-              <TableHeader id="hardAssets" label="Hard Assets" color="text-yellow-400" link="/hard-assets" />
               <TableHeader id="qoz" label="QOZ Fund" color="text-cyan-400" link="/nonprofit" />
               <th className="p-2 text-right text-indigo-400">Emp</th>
               <th className="p-2 text-right text-red-400">Tax</th>
@@ -644,12 +638,10 @@ export default function PlanDashboard() {
                     : 'hover:bg-gray-800/50'}`}
               >
                 <td className={`p-2 ${row.age === targetAge1 ? 'text-emerald-400 font-bold' : 'text-gray-300'}`}>{row.age}</td>
-                <td className="p-2 text-right text-orange-400">{formatCurrency(row.robinhood)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.k401 + row.ira)}</td>
                 <td className="p-2 text-right text-amber-400">{formatCurrency(row.totalLandEquity)}</td>
                 <td className="p-2 text-right text-purple-400">{formatCurrency(row.venture2)}</td>
                 <td className="p-2 text-right text-lime-400">{formatCurrency(row.ventures)}</td>
-                <td className="p-2 text-right text-yellow-400">{formatCurrency(row.hardAssets)}</td>
                 <td className="p-2 text-right text-cyan-400">{formatCurrency(row.qozFund)}</td>
                 <td className="p-2 text-right text-indigo-400 relative group/emp">
                   {(() => {
@@ -848,10 +840,6 @@ export default function PlanDashboard() {
                     <div className="text-xs text-gray-500">Est. Rental Income</div>
                     <div className="text-blue-400 font-semibold">{formatCurrency(assumptions.grossRentYear1)}/yr</div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-3 text-center">
-                    <div className="text-xs text-gray-500">Robinhood Brokerage</div>
-                    <div className="text-orange-400 font-semibold">{formatCurrency(assumptions.robinhoodStart)}</div>
-                  </div>
                 </div>
               </div>
             )}
@@ -863,7 +851,6 @@ export default function PlanDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {[
                     { key: 'currentAge', label: 'Current Age', suffix: ' yrs', step: 1 },
-                    { key: 'robinhoodStart', label: 'Robinhood Brokerage', prefix: '$', step: 1000 },
                     { key: 'k401Start', label: "401k Balance", prefix: '$', step: 1000 },
                     { key: 'iraStart', label: 'IRA Balance', prefix: '$', step: 1000 },
                     { key: 'seattleEquityStart', label: 'Seattle Total Equity (50% counted)', prefix: '$', step: 1000 },
@@ -1325,8 +1312,6 @@ export default function PlanDashboard() {
                   <div className="text-xs text-emerald-400 mb-2 font-semibold">Expected Return Rates</div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: 'robinhoodReturn', label: 'Robinhood (31-34)' },
-                      { key: 'robinhoodReturnPost35', label: 'Robinhood (35+)' },
                       { key: 'k401Return', label: '401k Return' },
                       { key: 'iraReturn', label: 'IRA Return' },
                       { key: 'venturesReturn', label: 'Ventures Return' },
